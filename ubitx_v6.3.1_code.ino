@@ -801,7 +801,8 @@ void setup()
   frequency = vfoA;
   setFrequency(vfoA);
 
-  if (btnDown()){
+  if (btnDown())
+    setupTouch();
     isUSB = 1;
     setFrequency(10000000l);
     setupFreq();
