@@ -52,7 +52,8 @@ static const PROGMEM struct Morse morse_table[] = {
 {'9', 0xde}, // 11011110
 {'0', 0xdf}, // 11011111
 {'.', 0xd5}, // 110010101
-{'?', 0xd3}, // 110110011
+{',', 0xd3}, // 110110011 //AD7U 20191217 
+{'?', 0xcc}, // 11001100 //AD7U 20191217 - Added
 };
 
 static void morseLetter(char c){
