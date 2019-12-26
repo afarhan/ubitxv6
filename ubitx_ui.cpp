@@ -743,7 +743,7 @@ void doCommand(struct Button *b){
     switchBand(10000000l);
   else if (!strcmp(b->text, "20"))
     switchBand(14000000l);
-  else if (!strcmp(b->text, "18"))
+  else if (!strcmp(b->text, "17"))
     switchBand(18000000l);
   else if (!strcmp(b->text, "15"))
     switchBand(21000000l);
