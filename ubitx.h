@@ -57,7 +57,6 @@ it uses an ILI9341 display controller and an  XPT2046 touch controller.
  */
 extern char c[30], b[30];
 extern char printBuff[2][20];  //mirrors what is showing on the two lines of the display
-extern int count;          //to generally count ticks, loops, etc
 
 /** 
  *  The second set of 16 pins on the Raduino's bottom connector are have the three clock outputs and the digital lines to control the rig.
