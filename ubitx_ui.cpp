@@ -4,14 +4,6 @@
 #include "ubitx.h"
 #include "nano_gui.h"
 
-/**
- * The user interface of the ubitx consists of the encoder, the push-button on top of it
- * and the 16x2 LCD display.
- * The upper line of the display is constantly used to display frequency and status
- * of the radio. Occasionally, it is used to provide a two-line information that is 
- * quickly cleared up.
- */
-
 #define BUTTON_SELECTED 1
 
 struct Button {
@@ -405,16 +397,15 @@ void enterFreq(){
 }
 
 void drawCWStatus(){
-  displayFillrect(0, 201, 320, 39, DISPLAY_NAVY);
-  strcpy(b, " cw:");
-  int wpm = 1200/cwSpeed;    
+  strcpy(b, " cw: ");
+  int wpm = 1200/cwSpeed;
   itoa(wpm,c, 10);
   strcat(b, c);
   strcat(b, "wpm, ");
   itoa(sideTone, c, 10);
   strcat(b, c);
   strcat(b, "hz");
-  displayRawText(b, 0, 201, DISPLAY_CYAN, DISPLAY_NAVY);  
+  displayText(b, 0, 201, 320, 39, DISPLAY_CYAN, DISPLAY_NAVY, DISPLAY_NAVY);
 }
 
 
