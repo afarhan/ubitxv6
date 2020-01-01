@@ -37,7 +37,6 @@ void writeTouchCalibration(){
 #define Z_THRESHOLD     400
 #define Z_THRESHOLD_INT  75
 #define MSEC_THRESHOLD  3
-#define SPI_SETTING     SPISettings(2000000, MSBFIRST, SPI_MODE0)
 
 static uint32_t msraw=0x80000000;
 static  int16_t xraw=0, yraw=0, zraw=0;
@@ -63,7 +62,6 @@ static void touch_update(){
   uint32_t now = millis();
   if (now - msraw < MSEC_THRESHOLD) return;
   
-  SPI.beginTransaction(SPI_SETTING);
   digitalWrite(CS_PIN, LOW);
   SPI.transfer(0xB1 /* Z1 */);
   int16_t z1 = SPI.transfer16(0xC1 /* Z2 */) >> 3;
@@ -81,7 +79,6 @@ static void touch_update(){
   data[4] = SPI.transfer16(0xD0 /* Y */) >> 3;  // Last Y touch power down
   data[5] = SPI.transfer16(0) >> 3;
   digitalWrite(CS_PIN, HIGH);
-  SPI.endTransaction();
   //Serial.printf("z=%d  ::  z1=%d,  z2=%d  ", z, z1, z2);
   if (z < 0) z = 0;
   if (z < Z_THRESHOLD) { // if ( !touched ) {
