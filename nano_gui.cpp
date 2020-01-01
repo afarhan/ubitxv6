@@ -210,9 +210,9 @@ void displayText(char *text, int x1, int y1, int w, int h, int color, int backgr
   uint16_t width_out;
   uint16_t height_out;
   tft.getTextBounds(text,x1,y1,&x1_out,&y1_out,&width_out,&height_out);
-  x1_out += (w - width_out)/2;
-  y1_out += 2*height_out + (h - height_out)/2;
-  displayRawText(text,x1_out,y1_out,color,background);
+  x1 += (w - ( width_out + (x1_out-x1)))/2;
+  y1 += h - (h - height_out)/2;
+  displayRawText(text,x1,y1,color,background);
 }
 
 void setupTouch(){
