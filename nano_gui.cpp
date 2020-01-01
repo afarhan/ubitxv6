@@ -3,19 +3,9 @@
 #include "ubitx.h"
 #include "nano_gui.h"
 
-//#include "Adafruit_GFX.h"
-//#include <XPT2046_Touchscreen.h>
 #include <SPI.h>
 #include <avr/pgmspace.h>
 
-#define TFT_CS    10        
-#define TFT_RS    9      
-
-
-GFXfont *gfxFont = NULL;
-//int touch_x, touch_y;
-//XPT2046_Touchscreen ts(CS_PIN);
-//TS_Point ts_point;
 struct Point ts_point;
 
 //filled from a test run of calibration routine
@@ -149,139 +139,16 @@ void scaleTouch(struct Point *p){
 //  p->y = ((long)(p->y) * 10l)/(long)(slope_y) - offset_y;  
 }
 
+/*****************
+ * Begin TFT functions
+ *****************/
+#define ILI9341_CS_PIN TFT_CS
+#define ILI9341_DC_PIN TFT_DC
+#include "PDQ_MinLib/PDQ_ILI9341.h"
+PDQ_ILI9341 tft;
 
-#if !defined(__INT_MAX__) || (__INT_MAX__ > 0xFFFF)
- #define pgm_read_pointer(addr) ((void *)pgm_read_dword(addr))
-#else
- #define pgm_read_pointer(addr) ((void *)pgm_read_word(addr))
-#endif
+#include "nano_font.h"
 
-inline GFXglyph * pgm_read_glyph_ptr(const GFXfont *gfxFont, uint8_t c)
-{
-#ifdef __AVR__
-    return &(((GFXglyph *)pgm_read_pointer(&gfxFont->glyph))[c]);
-#else
-    // expression in __AVR__ section may generate "dereferencing type-punned pointer will break strict-aliasing rules" warning
-    // In fact, on other platforms (such as STM32) there is no need to do this pointer magic as program memory may be read in a usual way
-    // So expression may be simplified
-    return gfxFont->glyph + c;
-#endif //__AVR__
-}
-
-inline uint8_t * pgm_read_bitmap_ptr(const GFXfont *gfxFont){
-#ifdef __AVR__
-    return (uint8_t *)pgm_read_pointer(&gfxFont->bitmap);
-#else
-    // expression in __AVR__ section generates "dereferencing type-punned pointer will break strict-aliasing rules" warning
-    // In fact, on other platforms (such as STM32) there is no need to do this pointer magic as program memory may be read in a usual way
-    // So expression may be simplified
-    return gfxFont->bitmap;
-#endif //__AVR__
-}
-
-inline static void utft_write(unsigned char d){
-  SPI.transfer(d);
-}
-
-inline static void utftCmd(unsigned char VH){   
-  *(portOutputRegister(digitalPinToPort(TFT_RS))) &=  ~digitalPinToBitMask(TFT_RS);//LCD_RS=0;
-  utft_write(VH);
-}
-
-inline static void utftData(unsigned char VH){
-  *(portOutputRegister(digitalPinToPort(TFT_RS)))|=  digitalPinToBitMask(TFT_RS);//LCD_RS=1;
-  utft_write(VH);
-}
-
-
-static void utftAddress(unsigned int x1,unsigned int y1,unsigned int x2,unsigned int y2){
-
-  utftCmd(0x2a);
-  utftData(x1>>8);
-  utftData(x1);
-  utftData(x2>>8);
-  utftData(x2);
-  utftCmd(0x2b);
-  utftData(y1>>8);
-  utftData(y1);
-  utftData(y2>>8);
-  utftData(y2);
-  utftCmd(0x2c);               
-}
-
-void displayPixel(unsigned int x, unsigned int y, unsigned int c){  
-  unsigned int i,j;
-  digitalWrite(TFT_CS,LOW);
-
-  utftCmd(0x02c); //write_memory_start
-  utftAddress(x,y,x,y);
-  utftData(c>>8);
-  utftData(c);
-
-  digitalWrite(TFT_CS,HIGH);   
-}
-
-void displayHline(unsigned int x, unsigned int y, unsigned int l, unsigned int c){  
-  unsigned int i,j;
-
-  digitalWrite(TFT_CS,LOW);
-  utftCmd(0x02c); //write_memory_start
-  l=l+x;
-  utftAddress(x,y,l,y);
-  j = l;
-  for(i=1;i<=j;i++)
-  {
-      utftData(c>>8);
-      utftData(c);
-  }
-  digitalWrite(TFT_CS,HIGH);   
-  checkCAT();
-}
-
-void displayVline(unsigned int x, unsigned int y, unsigned int l, unsigned int c){ 
-  unsigned int i,j;
-  digitalWrite(TFT_CS,LOW);
-  
-  utftCmd(0x02c); //write_memory_start
-  l=l+y;
-  utftAddress(x,y,x,l);
-  j = l;
-  for(i=1;i<=l;i++)
-  { 
-      utftData(c>>8);
-      utftData(c);
-  }
-  digitalWrite(TFT_CS,HIGH);   
-  checkCAT();
-}
-
-void displayClear(unsigned int color){  
-  unsigned int i,m;
-  
-  digitalWrite(TFT_CS,LOW);
-  utftAddress(0,0,320,240);
-  for(i=0;i<320;i++)
-    for(m=0;m<240;m++){
-      utftData(color>>8);
-      utftData(color);
-    }
-  digitalWrite(TFT_CS,HIGH);   
-}
-
-void displayRect(unsigned int x,unsigned int y,unsigned int w,unsigned int h,unsigned int c){
-  displayHline(x  , y  , w, c);
-  displayHline(x  , y+h, w, c);
-  displayVline(x  , y  , h, c);
-  displayVline(x+w, y  , h, c);
-}
-
-void displayFillrect(unsigned int x,unsigned int y,unsigned int w,unsigned int h,unsigned int c){
-  unsigned int i;
-  
-  for(i=0;i<h;i++){
-    displayHline(x  , y+i, w, c);
-  }
-}
 
 bool xpt2046_Init(){
   pinMode(CS_PIN, OUTPUT);
@@ -289,220 +156,63 @@ bool xpt2046_Init(){
 }
 
 void displayInit(void){
+  tft.begin();
+  tft.setFont(&ubitx_font);
+  tft.setTextWrap(false);
+  tft.setTextColor(DISPLAY_GREEN,DISPLAY_BLACK);
+  tft.setTextSize(1);
+  tft.setRotation(1);
 
-  SPI.begin();
-  SPI.setClockDivider(SPI_CLOCK_DIV4); // 4 MHz (half speed)
-  SPI.setBitOrder(MSBFIRST);
-  SPI.setDataMode(SPI_MODE0);  
-
-  gfxFont = &ubitx_font;
-  pinMode(TFT_CS,OUTPUT);
-  pinMode(TFT_RS,OUTPUT);
-
-
-  digitalWrite(TFT_CS,LOW);  //CS
-  utftCmd(0xCB);  
-  utftData(0x39); 
-  utftData(0x2C); 
-  utftData(0x00); 
-  utftData(0x34); 
-  utftData(0x02); 
-
-  utftCmd(0xCF);  
-  utftData(0x00); 
-  utftData(0XC1); 
-  utftData(0X30); 
-
-  utftCmd(0xE8);  
-  utftData(0x85); 
-  utftData(0x00); 
-  utftData(0x78); 
-
-  utftCmd(0xEA);  
-  utftData(0x00); 
-  utftData(0x00); 
-
-  utftCmd(0xED);  
-  utftData(0x64); 
-  utftData(0x03); 
-  utftData(0X12); 
-  utftData(0X81); 
-
-  utftCmd(0xF7);  
-  utftData(0x20); 
-
-  utftCmd(0xC0);    //Power control 
-  utftData(0x23);   //VRH[5:0] 
-
-  utftCmd(0xC1);    //Power control 
-  utftData(0x10);   //SAP[2:0];BT[3:0] 
-
-  utftCmd(0xC5);    //VCM control 
-  utftData(0x3e);   //Contrast
-  utftData(0x28); 
-
-  utftCmd(0xC7);    //VCM control2 
-  utftData(0x86);   //--
-
-  utftCmd(0x36);    // Memory Access Control 
-  utftData(0x28);   // Make this horizontal display   
-
-  utftCmd(0x3A);    
-  utftData(0x55); 
-
-  utftCmd(0xB1);    
-  utftData(0x00);  
-  utftData(0x18); 
-
-  utftCmd(0xB6);    // Display Function Control 
-  utftData(0x08); 
-  utftData(0x82);
-  utftData(0x27);  
-
-  utftCmd(0x11);    //Exit Sleep 
-  delay(120); 
-      
-  utftCmd(0x29);    //Display on 
-  utftCmd(0x2c); 
-  digitalWrite(TFT_CS,HIGH);
-
-  //now to init the touch screen controller
-  //ts.begin();
-  //ts.setRotation(1);
   xpt2046_Init();
-  
-  readTouchCalibration();  
+  readTouchCalibration();
 }
 
-// Draw a character
-/**************************************************************************/
-/*!
-   @brief   Draw a single character
-    @param    x   Bottom left corner x coordinate
-    @param    y   Bottom left corner y coordinate
-    @param    c   The 8-bit font-indexed character (likely ascii)
-    @param    color 16-bit 5-6-5 Color to draw chraracter with
-    @param    bg 16-bit 5-6-5 Color to fill background with (if same as color, no background)
-    @param    size_x  Font magnification level in X-axis, 1 is 'original' size
-    @param    size_y  Font magnification level in Y-axis, 1 is 'original' size
-*/
-/**************************************************************************/
-#define FAST_TEXT 1
+void displayPixel(unsigned int x, unsigned int y, unsigned int c){
+  tft.drawPixel(x,y,c);
+}
+
+void displayHline(unsigned int x, unsigned int y, unsigned int w, unsigned int c){
+  tft.drawFastHLine(x,y,w,c);
+}
+
+void displayVline(unsigned int x, unsigned int y, unsigned int l, unsigned int c){
+  tft.drawFastVLine(x,y,l,c);
+}
+
+void displayClear(unsigned int color){  
+  tft.fillRect(0,0,320,240,color);
+}
+
+void displayRect(unsigned int x,unsigned int y,unsigned int w,unsigned int h,unsigned int c){
+  tft.drawRect(x,y,w,h,c);
+}
+
+void displayFillrect(unsigned int x,unsigned int y,unsigned int w,unsigned int h,unsigned int c){
+  tft.fillRect(x,y,w,h,c);
+}
 
 void displayChar(int16_t x, int16_t y, unsigned char c, uint16_t color, uint16_t bg) {
-  c -= (uint8_t)pgm_read_byte(&gfxFont->first);
-  GFXglyph *glyph  = pgm_read_glyph_ptr(gfxFont, c);
-  uint8_t  *bitmap = pgm_read_bitmap_ptr(gfxFont);
-  
-  uint16_t bo = pgm_read_word(&glyph->bitmapOffset);
-  uint8_t  w  = pgm_read_byte(&glyph->width),
-           h  = pgm_read_byte(&glyph->height);
-  int8_t   xo = pgm_read_byte(&glyph->xOffset),
-           yo = pgm_read_byte(&glyph->yOffset);
-  uint8_t  xx, yy, bits = 0, bit = 0;
-  int16_t  xo16 = 0, yo16 = 0;
-      
-  digitalWrite(TFT_CS,LOW);
-
-#ifdef FAST_TEXT
-    uint16_t hpc = 0; // Horizontal foreground pixel count
-    for(yy=0; yy<h; yy++) {
-      for(xx=0; xx<w; xx++) {
-        if(bit == 0) {
-          bits = pgm_read_byte(&bitmap[bo++]);
-          bit  = 0x80;
-        }
-        if(bits & bit) hpc++;
-        else {
-          if (hpc) {
-             displayHline(x+xo+xx-hpc, y+yo+yy, hpc, color);
-            hpc=0;
-          }
-        }
-        bit >>= 1;
-      }
-      // Draw pixels for this line as we are about to increment yy
-      if (hpc) {
-        displayHline(x+xo+xx-hpc, y+yo+yy, hpc, color);
-        hpc=0;
-      }
-      checkCAT();      
-    }
-#else
-    for(yy=0; yy<h; yy++) {
-      for(xx=0; xx<w; xx++) {
-        if(!(bit++ & 7)) {
-          bits = pgm_read_byte(&bitmap[bo++]);
-        }
-        if(bits & 0x80) {
-          utftPixel(x+xo+xx, y+yo+yy, color);
-        }
-        bits <<= 1;
-      }
-      checkCAT();
-    }
-#endif
-}
-
-int displayTextExtent(char *text) {
-
-  int ext = 0;
-  while(*text){
-    char c = *text++;
-    uint8_t first = pgm_read_byte(&gfxFont->first);
-    if((c >= first) && (c <= (uint8_t)pgm_read_byte(&gfxFont->last))) {
-        GFXglyph *glyph  = pgm_read_glyph_ptr(gfxFont, c - first);
-        ext += (uint8_t)pgm_read_byte(&glyph->xAdvance);    
-    }
-  }//end of the while loop of the characters to be printed
-  return ext;
+  tft.drawCharGFX(x,y,c,color,bg,1);
 }
 
 void displayRawText(char *text, int x1, int y1, int color, int background){
-  while(*text){
-    char c = *text++;
-    
-    uint8_t first = pgm_read_byte(&gfxFont->first);
-    if((c >= first) && (c <= (uint8_t)pgm_read_byte(&gfxFont->last))) {
-  
-        GFXglyph *glyph  = pgm_read_glyph_ptr(gfxFont, c - first);
-        uint8_t   w     = pgm_read_byte(&glyph->width),
-                  h     = pgm_read_byte(&glyph->height);
-        if((w > 0) && (h > 0)) { // Is there an associated bitmap?
-            int16_t xo = (int8_t)pgm_read_byte(&glyph->xOffset); // sic
-            displayChar(x1, y1+TEXT_LINE_HEIGHT, c, color, background);
-            checkCAT();
-        }
-        x1 += (uint8_t)pgm_read_byte(&glyph->xAdvance);    
-    }
-  }//end of the while loop of the characters to be printed
+  tft.setTextColor(color,background);
+  tft.setCursor(x1,y1);
+  tft.print(text);
 }
 
-// The generic routine to display one line on the LCD 
 void displayText(char *text, int x1, int y1, int w, int h, int color, int background, int border) {
-
   displayFillrect(x1, y1, w ,h, background);
   displayRect(x1, y1, w ,h, border);
 
-  x1 += (w - displayTextExtent(text))/2;
-  y1  += (h - TEXT_LINE_HEIGHT)/2;
-  while(*text){
-    char c = *text++;
-    
-    uint8_t first = pgm_read_byte(&gfxFont->first);
-    if((c >= first) && (c <= (uint8_t)pgm_read_byte(&gfxFont->last))) {
-  
-        GFXglyph *glyph  = pgm_read_glyph_ptr(gfxFont, c - first);
-        uint8_t   w     = pgm_read_byte(&glyph->width),
-                  h     = pgm_read_byte(&glyph->height);
-        if((w > 0) && (h > 0)) { // Is there an associated bitmap?
-            int16_t xo = (int8_t)pgm_read_byte(&glyph->xOffset); // sic
-            displayChar(x1, y1+TEXT_LINE_HEIGHT, c, color, background);
-            checkCAT();
-        }
-        x1 += (uint8_t)pgm_read_byte(&glyph->xAdvance);    
-    }
-  }//end of the while loop of the characters to be printed
+  int16_t x1_out;
+  int16_t y1_out;
+  uint16_t width_out;
+  uint16_t height_out;
+  tft.getTextBounds(text,x1,y1,&x1_out,&y1_out,&width_out,&height_out);
+  x1_out += (w - width_out)/2;
+  y1_out += 2*height_out + (h - height_out)/2;
+  displayRawText(text,x1_out,y1_out,color,background);
 }
 
 void setupTouch(){
