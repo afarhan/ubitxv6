@@ -43,11 +43,6 @@ it uses an ILI9341 display controller and an  XPT2046 touch controller.
 #define TFT_DC  9
 #define TFT_CS 10
 #define CS_PIN  8     //this is the pin to select the touch controller on spi interface
-// MOSI=11, MISO=12, SCK=13
-
-//XPT2046_Touchscreen ts(CS_PIN);
-
-//Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
 /**
  * The Arduino, unlike C/C++ on a regular computer with gigabytes of RAM, has very little memory.
@@ -60,7 +55,7 @@ it uses an ILI9341 display controller and an  XPT2046 touch controller.
  * the input and output from the USB port. We must keep a count of the bytes used while reading
  * the serial port as we can easily run out of buffer space. This is done in the serial_in_count variable.
  */
-extern char c[30], b[30];      
+extern char c[30], b[30];
 extern char printBuff[2][20];  //mirrors what is showing on the two lines of the display
 extern int count;          //to generally count ticks, loops, etc
 
