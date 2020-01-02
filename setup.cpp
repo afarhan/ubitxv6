@@ -213,34 +213,81 @@ void setupKeyer(){
   
   EEPROM.put(CW_KEY_TYPE, tmp_key);
   
-  menuOn = 0;  
+  menuOn = 0;
 }
+
+static const unsigned int COLOR_TEXT = DISPLAY_WHITE;
+static const unsigned int COLOR_BACKGROUND = DISPLAY_BLACK;
+static const unsigned int COLOR_TITLE_BACKGROUND = DISPLAY_NAVY;
+static const unsigned int COLOR_ACTIVE_BORDER = DISPLAY_WHITE;
+static const unsigned int COLOR_INACTIVE_BORDER = DISPLAY_DARKGREY;
+
+static const unsigned int LAYOUT_TITLE_X = 10;
+static const unsigned int LAYOUT_TITLE_Y = 10;
+static const unsigned int LAYOUT_TITLE_WIDTH = 300;
+static const unsigned int LAYOUT_TITLE_HEIGHT = 35;
+
+static const unsigned int LAYOUT_ITEM_X = 30;
+static const unsigned int LAYOUT_ITEM_Y = LAYOUT_TITLE_Y + LAYOUT_TITLE_HEIGHT + 5;
+static const unsigned int LAYOUT_ITEM_WIDTH = 260;
+static const unsigned int LAYOUT_ITEM_HEIGHT = 30;
+static const unsigned int LAYOUT_ITEM_PITCH_Y = 31;
+
+const char MI_SET_FREQ [] PROGMEM = "Set Freq...";
+const char MI_SET_BFO [] PROGMEM = "Set BFO...";
+const char MI_CW_DELAY [] PROGMEM = "CW Delay...";
+const char MI_CW_KEYER [] PROGMEM = "CW Keyer...";
+const char MI_TOUCH [] PROGMEM = "Touch Screen...";
+const char MI_EXIT [] PROGMEM = "Exit";
+
+enum MenuIds {
+  MENU_SET_FREQ,
+  MENU_SET_BFO,
+  MENU_CW_DELAY,
+  MENU_CW_KEYER,
+  MENU_TOUCH,
+  MENU_EXIT,
+  MENU_TOTAL
+};
+
+const char* const menuItems [MENU_TOTAL] PROGMEM {
+  MI_SET_FREQ,
+  MI_SET_BFO,
+  MI_CW_DELAY,
+  MI_CW_KEYER,
+  MI_TOUCH,
+  MI_EXIT
+};
 
 void drawSetupMenu(){
-  displayClear(DISPLAY_BLACK);
- 
-  displayText("Setup", 10, 10, 300, 35, DISPLAY_WHITE, DISPLAY_NAVY, DISPLAY_WHITE); 
-  displayRect(10,10,300,220, DISPLAY_WHITE);
-  
-  displayRawText("Set Freq...", 30, 50, DISPLAY_WHITE, DISPLAY_NAVY);       
-  displayRawText("Set BFO...", 30, 80, DISPLAY_WHITE, DISPLAY_NAVY);       
-  displayRawText("CW Delay...", 30, 110, DISPLAY_WHITE, DISPLAY_NAVY);       
-  displayRawText("CW Keyer...", 30, 140, DISPLAY_WHITE, DISPLAY_NAVY);       
-  displayRawText("Touch Screen...", 30, 170, DISPLAY_WHITE, DISPLAY_NAVY);       
-  displayRawText("Exit", 30, 200, DISPLAY_WHITE, DISPLAY_NAVY);       
+  displayClear(COLOR_BACKGROUND);
+  strcpy_P(b,(const char*)F("Setup"));
+  displayText(b, LAYOUT_TITLE_X, LAYOUT_TITLE_Y, LAYOUT_TITLE_WIDTH, LAYOUT_TITLE_HEIGHT, COLOR_TEXT, COLOR_TITLE_BACKGROUND, COLOR_ACTIVE_BORDER);
+  for(unsigned int i = 0; i < MENU_TOTAL; ++i){
+    strcpy_P(b,(const char*)pgm_read_word(&(menuItems[i])));
+    displayText(b, LAYOUT_ITEM_X, LAYOUT_ITEM_Y + i*LAYOUT_ITEM_PITCH_Y, LAYOUT_ITEM_WIDTH, LAYOUT_ITEM_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_INACTIVE_BORDER);
+  }
 }
 
-static int prevPuck = -1;
 void movePuck(int i){
-  if (prevPuck >= 0)
-    displayRect(15, 49 + (prevPuck * 30), 290, 25, DISPLAY_NAVY);
-  displayRect(15, 49 + (i * 30), 290, 25, DISPLAY_WHITE);
+  static int prevPuck = 1;//Start value at 1 so that on init, when we get called with 0, we'll update
+
+  //Don't update if we're already on the right selection
+  if(prevPuck == i){
+    return;
+  }
+
+  //Clear old
+  displayRect(LAYOUT_ITEM_X, LAYOUT_ITEM_Y + (prevPuck*LAYOUT_ITEM_PITCH_Y), LAYOUT_ITEM_WIDTH, LAYOUT_ITEM_HEIGHT, COLOR_INACTIVE_BORDER);
+  //Draw new
+  displayRect(LAYOUT_ITEM_X, LAYOUT_ITEM_Y + (i*LAYOUT_ITEM_PITCH_Y), LAYOUT_ITEM_WIDTH, LAYOUT_ITEM_HEIGHT, COLOR_ACTIVE_BORDER);
   prevPuck = i;
   
 }
 
 void doSetup2(){
-  int select=0, i,btnState;
+  static const unsigned int COUNTS_PER_ITEM = 10;
+  int select=0, i, btnState;
 
   drawSetupMenu();
   movePuck(select);
@@ -256,13 +303,13 @@ void doSetup2(){
     i = enc_read();
 
     if (i > 0){
-      if (select + i < 60)
+      if (select + i < MENU_TOTAL*COUNTS_PER_ITEM)
         select += i;
-        movePuck(select/10);
+      movePuck(select/COUNTS_PER_ITEM);
     }
-    if (i < 0 && select - i >= 0){
+    if (i < 0 && select + i >= 0){
       select += i;      //caught ya, i is already -ve here, so you add it
-      movePuck(select/10);
+      movePuck(select/COUNTS_PER_ITEM);
     }
 
     if (!btnDown()){
@@ -276,19 +323,40 @@ void doSetup2(){
     }
     active_delay(300);
     
-    if (select < 10)
-     setupFreq();
-    else if (select < 20 )
-      setupBFO(); 
-    else if (select < 30 )
-      setupCwDelay(); 
-    else if (select < 40)
+    switch(select/COUNTS_PER_ITEM){
+      case MENU_SET_FREQ:
+      {
+        setupFreq();
+        break;
+      }
+      case MENU_SET_BFO:
+      {
+        setupBFO();
+        break;
+      }
+      case MENU_CW_DELAY:
+      {
+        setupCwDelay();
+        break;
+      }
+      case MENU_CW_KEYER:
+      {
         setupKeyer();
-    else if (select < 50)
+        break;
+      }
+      case MENU_TOUCH:
+      {
         setupTouch();
-    else
-      break; //exit setup was chosen
-      //setupExit();
+        break;
+      }
+      case MENU_EXIT:
+      default:
+      {
+        Serial.println(F("Exiting menu"));
+        menuOn = 0;
+        break;
+      }
+    }//switch
     //redraw
     drawSetupMenu();
   }
