@@ -352,7 +352,6 @@ void doSetup2(){
       case MENU_EXIT:
       default:
       {
-        Serial.println(F("Exiting menu"));
         menuOn = 0;
         break;
       }
