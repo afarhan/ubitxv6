@@ -5,16 +5,16 @@
 #include "nano_gui.h"
 
 static const unsigned int COLOR_TEXT = DISPLAY_WHITE;
-static const unsigned int COLOR_BACKGROUND = DISPLAY_BLACK;
+static const unsigned int COLOR_BACKGROUND = DISPLAY_NAVY;
 
 static const unsigned int COLOR_ACTIVE_VFO_TEXT = DISPLAY_WHITE;
-static const unsigned int COLOR_ACTIVE_VFO_BACKGROUND = DISPLAY_DARKGREY;
+static const unsigned int COLOR_ACTIVE_VFO_BACKGROUND = DISPLAY_BLACK;
 
 static const unsigned int COLOR_INACTIVE_VFO_TEXT = DISPLAY_GREEN;
-static const unsigned int COLOR_INACTIVE_VFO_BACKGROUND = DISPLAY_DARKGREY;
+static const unsigned int COLOR_INACTIVE_VFO_BACKGROUND = DISPLAY_BLACK;
 
 static const unsigned int COLOR_INACTIVE_TEXT = DISPLAY_GREEN;
-static const unsigned int COLOR_INACTIVE_BACKGROUND = DISPLAY_DARKGREY;
+static const unsigned int COLOR_INACTIVE_BACKGROUND = DISPLAY_BLACK;
 static const unsigned int COLOR_INACTIVE_BORDER = DISPLAY_DARKGREY;
 
 static const unsigned int COLOR_ACTIVE_TEXT = DISPLAY_BLACK;
@@ -463,8 +463,8 @@ void enterFreq(){
   
       if(button.x < ts_point.x && ts_point.x < x2 && 
          button.y < ts_point.y && ts_point.y < y2){
-        Serial.print(F("Entered key: "));
-        Serial.println(button.text);
+        //Serial.print(F("Entered key: "));
+        //Serial.println(button.text);
         switch(button.id){
           case KEYS_OK:
           {
@@ -832,13 +832,13 @@ void setCwTone(){
 }
 
 void doCommand(Button* button){
-  Serial.print(F("Doing command: "));
-  Serial.print(button->text);
-  Serial.print(F(", Hitbox: "));
-  Serial.print(button->x);Serial.print(F(","));
-  Serial.print(button->y);Serial.print(F(";"));
-  Serial.print(button->x + button->w);Serial.print(F(","));
-  Serial.println(button->y + button->h);
+  //Serial.print(F("Doing command: "));
+  //Serial.print(button->text);
+  //Serial.print(F(", Hitbox: "));
+  //Serial.print(button->x);Serial.print(F(","));
+  //Serial.print(button->y);Serial.print(F(";"));
+  //Serial.print(button->x + button->w);Serial.print(F(","));
+  //Serial.println(button->y + button->h);
   switch(button->id){
     case BUTTON_RIT:
     {
