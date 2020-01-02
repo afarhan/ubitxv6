@@ -791,6 +791,11 @@ void setCwTone(){
   int prev_sideTone;
      
   tone(CW_TONE, sideTone);
+  itoa(sideTone, c, 10);
+  strcpy(b, "CW Tone: ");
+  strcat(b, c);
+  strcat(b, " Hz");
+  drawCommandbar(b);
 
   //disable all clock 1 and clock 2 
   while (digitalRead(PTT) == HIGH && !btnDown())
