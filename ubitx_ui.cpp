@@ -32,7 +32,7 @@ static const unsigned int LAYOUT_MODE_TEXT_Y = LAYOUT_VFO_LABEL_Y + LAYOUT_VFO_L
 static const unsigned int LAYOUT_MODE_TEXT_WIDTH = 320;
 static const unsigned int LAYOUT_MODE_TEXT_HEIGHT = 36;
 
-static const unsigned int LAYOUT_BUTTON_X = 0;
+static const unsigned int LAYOUT_BUTTON_X = 2;
 static const unsigned int LAYOUT_BUTTON_Y = LAYOUT_MODE_TEXT_Y + LAYOUT_MODE_TEXT_HEIGHT + 1;
 static const unsigned int LAYOUT_BUTTON_WIDTH = 60;
 static const unsigned int LAYOUT_BUTTON_HEIGHT = 36;
@@ -463,6 +463,8 @@ void enterFreq(){
   
       if(button.x < ts_point.x && ts_point.x < x2 && 
          button.y < ts_point.y && ts_point.y < y2){
+        Serial.print(F("Entered key: "));
+        Serial.println(button.text);
         switch(button.id){
           case KEYS_OK:
           {
@@ -825,6 +827,13 @@ void setCwTone(){
 }
 
 void doCommand(Button* button){
+  Serial.print(F("Doing command: "));
+  Serial.print(button->text);
+  Serial.print(F(", Hitbox: "));
+  Serial.print(button->x);Serial.print(F(","));
+  Serial.print(button->y);Serial.print(F(";"));
+  Serial.print(button->x + button->w);Serial.print(F(","));
+  Serial.println(button->y + button->h);
   switch(button->id){
     case BUTTON_RIT:
     {
