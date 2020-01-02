@@ -154,7 +154,7 @@ bool xpt2046_Init(){
 
 void displayInit(void){
   tft.begin();
-  tft.setFont(&ubitx_font);
+  tft.setFont(ubitx_font);
   tft.setTextWrap(false);
   tft.setTextColor(DISPLAY_GREEN,DISPLAY_BLACK);
   tft.setTextSize(1);
