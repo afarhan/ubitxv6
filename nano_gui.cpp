@@ -62,6 +62,7 @@ static void touch_update(){
   uint32_t now = millis();
   if (now - msraw < MSEC_THRESHOLD) return;
   
+  SPI.setClockDivider(SPI_CLOCK_DIV8);//2MHz
   digitalWrite(CS_PIN, LOW);
   SPI.transfer(0xB1 /* Z1 */);
   int16_t z1 = SPI.transfer16(0xC1 /* Z2 */) >> 3;
@@ -79,7 +80,8 @@ static void touch_update(){
   data[4] = SPI.transfer16(0xD0 /* Y */) >> 3;  // Last Y touch power down
   data[5] = SPI.transfer16(0) >> 3;
   digitalWrite(CS_PIN, HIGH);
-  //Serial.printf("z=%d  ::  z1=%d,  z2=%d  ", z, z1, z2);
+  SPI.setClockDivider(SPI_CLOCK_DIV2);//Return to full speed for TFT
+
   if (z < 0) z = 0;
   if (z < Z_THRESHOLD) { // if ( !touched ) {
     // Serial.println();
@@ -121,7 +123,7 @@ boolean readTouch(){
   if (zraw >= Z_THRESHOLD) {
     ts_point.x = xraw;
     ts_point.y = yraw;
-//    Serial.print(ts_point.x); Serial.print(",");Serial.println(ts_point.y);
+    //Serial.print(ts_point.x); Serial.print(",");Serial.println(ts_point.y);
     return true;
   }
   return false;
@@ -131,9 +133,7 @@ void scaleTouch(struct Point *p){
   p->x = ((long)(p->x - offset_x) * 10l)/ (long)slope_x;
   p->y = ((long)(p->y - offset_y) * 10l)/ (long)slope_y;
 
-// Serial.print(p->x); Serial.print(",");Serial.println(p->y);
- 
-//  p->y = ((long)(p->y) * 10l)/(long)(slope_y) - offset_y;  
+  //Serial.print(p->x); Serial.print(",");Serial.println(p->y);
 }
 
 /*****************
