@@ -28,26 +28,26 @@ static const unsigned int LAYOUT_VFO_LABEL_HEIGHT = 36;
 static const unsigned int LAYOUT_VFO_LABEL_PITCH_X = 160;
 
 static const unsigned int LAYOUT_MODE_TEXT_X = 0;
-static const unsigned int LAYOUT_MODE_TEXT_Y = 55;
+static const unsigned int LAYOUT_MODE_TEXT_Y = LAYOUT_VFO_LABEL_Y + LAYOUT_VFO_LABEL_HEIGHT + 1;
 static const unsigned int LAYOUT_MODE_TEXT_WIDTH = 320;
-static const unsigned int LAYOUT_MODE_TEXT_HEIGHT = 30;
+static const unsigned int LAYOUT_MODE_TEXT_HEIGHT = 36;
 
 static const unsigned int LAYOUT_BUTTON_X = 0;
-static const unsigned int LAYOUT_BUTTON_Y = 80;
+static const unsigned int LAYOUT_BUTTON_Y = LAYOUT_MODE_TEXT_Y + LAYOUT_MODE_TEXT_HEIGHT + 1;
 static const unsigned int LAYOUT_BUTTON_WIDTH = 60;
 static const unsigned int LAYOUT_BUTTON_HEIGHT = 36;
 static const unsigned int LAYOUT_BUTTON_PITCH_X = 64;
 static const unsigned int LAYOUT_BUTTON_PITCH_Y = 40;
 
 static const unsigned int LAYOUT_CW_TEXT_X = 0;
-static const unsigned int LAYOUT_CW_TEXT_Y = 201;
+static const unsigned int LAYOUT_CW_TEXT_Y = LAYOUT_BUTTON_Y + 3*LAYOUT_BUTTON_PITCH_Y + 1;
 static const unsigned int LAYOUT_CW_TEXT_WIDTH = 320;
-static const unsigned int LAYOUT_CW_TEXT_HEIGHT = 39;
+static const unsigned int LAYOUT_CW_TEXT_HEIGHT = 36;
 
 static const unsigned int LAYOUT_TX_X = 280;
-static const unsigned int LAYOUT_TX_Y = 48;
-static const unsigned int LAYOUT_TX_WIDTH = 37;
-static const unsigned int LAYOUT_TX_HEIGHT = 28;
+static const unsigned int LAYOUT_TX_Y = LAYOUT_MODE_TEXT_Y;
+static const unsigned int LAYOUT_TX_WIDTH = 40;
+static const unsigned int LAYOUT_TX_HEIGHT = 36;
 
 enum btn_set_e {
   BUTTON_VFOA,
