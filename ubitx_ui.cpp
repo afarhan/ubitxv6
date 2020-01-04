@@ -744,7 +744,15 @@ void switchBand(uint32_t bandfreq){
   //Serial.println(offset);
 
   setFrequency(bandfreq + offset);
-  updateDisplay(); 
+
+  if(bandfreq >= THRESHOLD_USB_LSB){
+    SetActiveVfoMode(VfoMode_e::VFO_MODE_USB);
+  }
+  else{
+    SetActiveVfoMode(VfoMode_e::VFO_MODE_LSB);
+  }
+
+  updateDisplay();
   saveVFOs();
 }
 
