@@ -628,7 +628,7 @@ int enc_read(void) {
 }
 
 void ritToggle(struct Button *button){
-  if (globalSettings.ritOn){
+  if(!globalSettings.ritOn){
     ritEnable(GetActiveVfoFreq());
   }
   else{
