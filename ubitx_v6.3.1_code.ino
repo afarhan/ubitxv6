@@ -336,6 +336,8 @@ void checkButton(){
 }
 
 void switchVFO(Vfo_e new_vfo){
+  ritDisable();//If we are in RIT mode, we need to disable it before setting the active VFO so that the correct VFO gets it's frequency restored
+
   globalSettings.activeVfo = new_vfo;
   setFrequency(GetActiveVfoFreq());
   redrawVFOs();
