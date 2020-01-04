@@ -63,12 +63,14 @@ static const unsigned int LAYOUT_INSTRUCTION_TEXT_Y = LAYOUT_ITEM_Y + 5*LAYOUT_I
 static const unsigned int LAYOUT_INSTRUCTION_TEXT_WIDTH = LAYOUT_ITEM_WIDTH;
 static const unsigned int LAYOUT_INSTRUCTION_TEXT_HEIGHT = LAYOUT_ITEM_HEIGHT;
 
-void displayDialog(char *title, char *instructions){
+void displayDialog(const __FlashStringHelper* title, const __FlashStringHelper* instructions){
+  strcpy_P(b,(const char*)title);
+  strcpy_P(c,(const char*)instructions);
   displayClear(COLOR_BACKGROUND);
   displayRect(LAYOUT_OUTER_BORDER_X,LAYOUT_OUTER_BORDER_Y,LAYOUT_OUTER_BORDER_WIDTH,LAYOUT_OUTER_BORDER_HEIGHT, COLOR_ACTIVE_BORDER);
   displayRect(LAYOUT_INNER_BORDER_X,LAYOUT_INNER_BORDER_Y,LAYOUT_INNER_BORDER_WIDTH,LAYOUT_INNER_BORDER_HEIGHT, COLOR_ACTIVE_BORDER);
-  displayText(title, LAYOUT_TITLE_X, LAYOUT_TITLE_Y, LAYOUT_TITLE_WIDTH, LAYOUT_TITLE_HEIGHT, COLOR_TEXT, COLOR_TITLE_BACKGROUND, COLOR_ACTIVE_BORDER);
-  displayText(instructions, LAYOUT_INSTRUCTION_TEXT_X, LAYOUT_INSTRUCTION_TEXT_Y, LAYOUT_INSTRUCTION_TEXT_WIDTH, LAYOUT_INSTRUCTION_TEXT_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
+  displayText(b, LAYOUT_TITLE_X, LAYOUT_TITLE_Y, LAYOUT_TITLE_WIDTH, LAYOUT_TITLE_HEIGHT, COLOR_TEXT, COLOR_TITLE_BACKGROUND, COLOR_ACTIVE_BORDER);
+  displayText(c, LAYOUT_INSTRUCTION_TEXT_X, LAYOUT_INSTRUCTION_TEXT_Y, LAYOUT_INSTRUCTION_TEXT_WIDTH, LAYOUT_INSTRUCTION_TEXT_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
 }
 
 void printCarrierFreq(unsigned long freq){
@@ -79,9 +81,9 @@ void printCarrierFreq(unsigned long freq){
   ultoa(freq, b, DEC);
   
   strncat(c, b, 2);
-  strcat(c, ".");
+  strcat_P(c,(const char*)F("."));
   strncat(c, &b[2], 3);
-  strcat(c, ".");
+  strcat(c,(const char*)F("."));
   strncat(c, &b[5], 1);
   displayText(c, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_TITLE_BACKGROUND, COLOR_BACKGROUND);
 }
@@ -90,18 +92,21 @@ void setupFreq(){
   int knob = 0;
   int32_t prev_calibration;
 
-  displayDialog("Set Frequency", "Push TUNE to Save"); 
+  displayDialog(F("Set Frequency"),F("Push TUNE to Save"));
 
   //round off the the nearest khz
   frequency = (frequency/1000l)* 1000l;
   setFrequency(frequency);
   
-  displayText("You should have a", LAYOUT_SETTING_VALUE_X, LAYOUT_ITEM_Y, LAYOUT_ITEM_WIDTH, LAYOUT_ITEM_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
-  displayText("signal exactly at ", LAYOUT_SETTING_VALUE_X, LAYOUT_ITEM_Y + 1*LAYOUT_ITEM_PITCH_Y, LAYOUT_ITEM_WIDTH, LAYOUT_ITEM_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
+  strcpy_P(c,(const char*)F("You should have a"));
+  displayText(c, LAYOUT_SETTING_VALUE_X, LAYOUT_ITEM_Y, LAYOUT_ITEM_WIDTH, LAYOUT_ITEM_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
+  strcpy_P(c,(const char*)F("signal exactly at"));
+  displayText(c, LAYOUT_SETTING_VALUE_X, LAYOUT_ITEM_Y + 1*LAYOUT_ITEM_PITCH_Y, LAYOUT_ITEM_WIDTH, LAYOUT_ITEM_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
   ltoa(frequency/1000l, c, 10);
-  strcat(c, " KHz");
+  strcat_P(c,(const char*)F(" KHz"));
   displayText(c, LAYOUT_SETTING_VALUE_X, LAYOUT_ITEM_Y + 2*LAYOUT_ITEM_PITCH_Y, LAYOUT_ITEM_WIDTH, LAYOUT_ITEM_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
-  displayText("Rotate to zerobeat", LAYOUT_SETTING_VALUE_X, LAYOUT_ITEM_Y + 4*LAYOUT_ITEM_PITCH_Y, LAYOUT_ITEM_WIDTH, LAYOUT_ITEM_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
+  strcpy_P(c,(const char*)F("Rotate to zerobeat"));
+  displayText(c, LAYOUT_SETTING_VALUE_X, LAYOUT_ITEM_Y + 4*LAYOUT_ITEM_PITCH_Y, LAYOUT_ITEM_WIDTH, LAYOUT_ITEM_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
   
   ltoa(calibration, b, 10);
   displayText(b, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_TITLE_BACKGROUND, COLOR_BACKGROUND);
@@ -112,11 +117,6 @@ void setupFreq(){
    
   prev_calibration = calibration;
   calibration = 0;
-
-//  ltoa(calibration/8750, c, 10);
-//  strcpy(b, c);
-//  strcat(b, "Hz");
-//  printLine2(b);     
 
   while (!btnDown())
   {
@@ -131,8 +131,6 @@ void setupFreq(){
     si5351bx_setfreq(0, usbCarrier);  //set back the cardrier oscillator anyway, cw tx switches it off  
     si5351_set_calibration(calibration);
     setFrequency(frequency);
-
-    //displayRawText("Rotate to zerobeat", 20, 120, DISPLAY_CYAN, DISPLAY_NAVY);
     
     ltoa(calibration, b, 10);
     displayText(b, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_TITLE_BACKGROUND, COLOR_BACKGROUND);
@@ -155,7 +153,7 @@ void setupBFO(){
    
   prevCarrier = usbCarrier;
 
-  displayDialog("Set BFO", "Press TUNE to Save"); 
+  displayDialog(F("Set BFO"),F("Press TUNE to Save")); 
   
   usbCarrier = 11053000l;
   si5351bx_setfreq(0, usbCarrier);
@@ -187,13 +185,13 @@ void setupCwDelay(){
   int knob = 0;
   int prev_cw_delay;
 
-  displayDialog("Set CW T/R Delay", "Press tune to Save"); 
+  displayDialog(F("Set CW T/R Delay"),F("Press tune to Save")); 
 
   active_delay(500);
   prev_cw_delay = cwDelayTime;
 
   itoa(10 * (int)cwDelayTime, b, 10);
-  strcat(b, " msec");
+  strcat_P(b,(const char*)F(" msec"));
   displayText(b, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
 
   while (!btnDown()){
@@ -207,15 +205,12 @@ void setupCwDelay(){
       continue; //don't update the frequency or the display
 
     itoa(10 * (int)cwDelayTime, b, 10);
-    strcat(b, " msec");
+    strcat_P(b,(const char*)F(" msec"));
     displayText(b, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
       
   }
 
   EEPROM.put(CW_DELAYTIME, cwDelayTime);
-
-  
-//  cwDelayTime = getValueByKnob(10, 1000, 50,  cwDelayTime, "CW Delay>", " msec");
 
   active_delay(500);
   menuOn = 0;
@@ -224,14 +219,20 @@ void setupCwDelay(){
 void setupKeyer(){
   int tmp_key, knob;
   
-  displayDialog("Set CW Keyer", "Press tune to Save"); 
+  displayDialog(F("Set CW Keyer"),F("Press tune to Save")); 
  
-  if (!Iambic_Key)
-    displayText("< Hand Key >", LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
-  else if (keyerControl & IAMBICB)
-    displayText("< Iambic A >", LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
-  else 
-    displayText("< Iambic B >", LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
+  if (!Iambic_Key){
+    strcpy_P(c,(const char*)F("< Hand Key >"));
+    displayText(c, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
+  }
+  else if (keyerControl & IAMBICB){
+    strcpy_P(c,(const char*)F("< Iambic A >"));
+    displayText(c, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
+  }
+  else{
+    strcpy_P(c,(const char*)F("< Iambic B >"));
+    displayText(c, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
+  }
 
   if (!Iambic_Key)
     tmp_key = 0; //hand key
@@ -254,12 +255,18 @@ void setupKeyer(){
     if (tmp_key > 2)
       tmp_key = 0;
 
-    if (tmp_key == 0)
-      displayText("< Hand Key >", LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
-    else if (tmp_key == 1)
-      displayText("< Iambic A >", LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
-    else if (tmp_key == 2)
-      displayText("< Iambic B >", LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
+    if (tmp_key == 0){
+      strcpy_P(c,(const char*)F("< Hand Key >"));
+      displayText(c, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
+    }
+    else if (tmp_key == 1){
+      strcpy_P(c,(const char*)F("< Iambic A >"));
+      displayText(c, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
+    }
+    else if (tmp_key == 2){
+      strcpy_P(c,(const char*)F("< Iambic B >"));
+      displayText(c, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
+    }
   }
 
   active_delay(500);
