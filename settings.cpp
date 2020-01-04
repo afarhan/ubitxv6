@@ -1,3 +1,8 @@
+#include <string.h>//memset
+#include <stdint.h>
+#include <EEPROM.h>
+#include "settings.h"
+
 /**
  * These are the "magic" indices where these user changable settinngs are stored in the EEPROM
  */
@@ -30,9 +35,6 @@ bool LoadSane(T& dest,uint16_t addr, T min, T max)
     return false;
 }
 
-#include <EEPROM.h>
-#include "settings.h"
-
 //This is the non-extern version that actually gets built
 SettingsRam globalSettings;
 
@@ -62,22 +64,23 @@ void LoadDefaultSettings()
   globalSettings.ritOn = false;
   globalSettings.ritFrequency = globalSettings.vfoA.frequency;
 
-  globalSettings.tuningMode = TuningMode_e::TUNE_VOICE;
+  globalSettings.tuningMode = TuningMode_e::TUNE_SSB;
 
   globalSettings.splitOn = false;
 
   globalSettings.txActive = false;
   globalSettings.txCatActive = false;
+  globalSettings.cwExpirationTimeMs = 0;
 }
 
 void LoadSettingsFromEeprom()
 {
-  LoadSane(globalSettings.usbCarrierFreq,EEPROM_ADDR_USB_CAL,11048000L,11060000L);
-  LoadSane(globalSettings.vfoA.frequency,EEPROM_ADDR_VFO_A_FREQ,3500000L,30000000L);
-  LoadSane(globalSettings.vfoB.frequency,EEPROM_ADDR_VFO_B_FREQ,3500000L,30000000L);
-  LoadSane(globalSettings.cwSideToneFreq,EEPROM_ADDR_CW_SIDETONE,100,2000);
-  LoadSane(globalSettings.cwDitDurationMs,EEPROM_ADDR_CW_DIT_TIME,10,1000);
-  if(LoadSane(globalSettings.cwActiveTimeoutMs,EEPROM_ADDR_CW_DELAYTIME,10,100)){
+  LoadSane(globalSettings.usbCarrierFreq,EEPROM_ADDR_USB_CAL,11048000UL,11060000UL);
+  LoadSane(globalSettings.vfoA.frequency,EEPROM_ADDR_VFO_A_FREQ,3500000UL,30000000UL);
+  LoadSane(globalSettings.vfoB.frequency,EEPROM_ADDR_VFO_B_FREQ,3500000UL,30000000UL);
+  LoadSane(globalSettings.cwSideToneFreq,EEPROM_ADDR_CW_SIDETONE,100UL,2000UL);
+  LoadSane(globalSettings.cwDitDurationMs,EEPROM_ADDR_CW_DIT_TIME,10UL,1000UL);
+  if(LoadSane(globalSettings.cwActiveTimeoutMs,EEPROM_ADDR_CW_DELAYTIME,10U,100U)){
     globalSettings.cwActiveTimeoutMs *= 10;//scale by 10 for legacy reasons
   }
   LoadSane(globalSettings.vfoA.mode,EEPROM_ADDR_VFO_A_MODE,VFO_MODE_LSB,VFO_MODE_USB);
@@ -85,7 +88,7 @@ void LoadSettingsFromEeprom()
   LoadSane(globalSettings.keyerMode,EEPROM_ADDR_CW_KEY_TYPE,KEYER_STRAIGHT,KEYER_IAMBIC_B);
 
   //No sanity check on these - cal your heart out
-  EEPROM.get(EEPROM_ADDR_MASTER_CAL,globalSettings.masterCalibration);
+  EEPROM.get(EEPROM_ADDR_MASTER_CAL,globalSettings.oscillatorCal);
   EEPROM.get(EEPROM_ADDR_TOUCH_SLOPE_X,globalSettings.touchSlopeX);
   EEPROM.get(EEPROM_ADDR_TOUCH_SLOPE_Y,globalSettings.touchSlopeY);
   EEPROM.get(EEPROM_ADDR_TOUCH_OFFSET_X,globalSettings.touchOffsetX);
@@ -94,7 +97,7 @@ void LoadSettingsFromEeprom()
 
 void SaveSettingsToEeprom()
 {
-  EEPROM.put(EEPROM_ADDR_MASTER_CAL,globalSettings.masterCalibration);
+  EEPROM.put(EEPROM_ADDR_MASTER_CAL,globalSettings.oscillatorCal);
   EEPROM.put(EEPROM_ADDR_USB_CAL,globalSettings.usbCarrierFreq);
   EEPROM.put(EEPROM_ADDR_VFO_A_FREQ,globalSettings.vfoA.frequency);
   EEPROM.put(EEPROM_ADDR_VFO_B_FREQ,globalSettings.vfoB.frequency);
@@ -108,4 +111,46 @@ void SaveSettingsToEeprom()
   EEPROM.put(EEPROM_ADDR_VFO_A_MODE,globalSettings.vfoA.mode);
   EEPROM.put(EEPROM_ADDR_VFO_B_MODE,globalSettings.vfoB.mode);
   EEPROM.put(EEPROM_ADDR_CW_KEY_TYPE,globalSettings.keyerMode);
+}
+
+uint32_t GetActiveVfoFreq()
+{
+  if(VFO_A == globalSettings.activeVfo){
+    return globalSettings.vfoA.frequency;
+  }
+  else{
+    return globalSettings.vfoB.frequency;
+  }
+}
+
+void SetActiveVfoFreq(uint32_t frequency)
+{
+  if(VFO_A == globalSettings.activeVfo)
+  {
+    globalSettings.vfoA.frequency = frequency;
+  }
+  else{
+    globalSettings.vfoB.frequency = frequency;
+  }
+}
+
+VfoMode_e GetActiveVfoMode()
+{
+  if(VFO_A == globalSettings.activeVfo){
+    return globalSettings.vfoA.mode;
+  }
+  else{
+    return globalSettings.vfoB.mode;
+  }
+}
+
+void SetActiveVfoMode(VfoMode_e mode)
+{
+  if(VFO_A == globalSettings.activeVfo)
+  {
+    globalSettings.vfoA.mode = mode;
+  }
+  else{
+    globalSettings.vfoB.mode = mode;
+  }
 }

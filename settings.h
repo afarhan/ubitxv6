@@ -96,7 +96,6 @@ struct SettingsRam
 
   bool txActive;
   bool txCatActive;
-
   uint32_t cwExpirationTimeMs;
 };
 
@@ -104,44 +103,7 @@ struct SettingsRam
 extern SettingsRam globalSettings;
 
 //Some convenience functions
-uint32_t GetActiveVfoFreq()
-{
-  if(VFO_A == globalSettings.activeVfo){
-    return globalSettings.vfoA.frequency;
-  }
-  else{
-    return globalSettings.vfoB.frequency;
-  }
-}
-
-void SetActiveVfoFreq(uint32_t frequency)
-{
-  if(VFO_A == globalSettings.activeVfo)
-  {
-    globalSettings.vfoA.frequency = frequency;
-  }
-  else{
-    globalSettings.vfoB.frequency = frequency;
-  }
-}
-
-VfoMode_e GetActiveVfoMode()
-{
-  if(VFO_A == globalSettings.activeVfo){
-    return globalSettings.vfoA.mode;
-  }
-  else{
-    return globalSettings.vfoB.mode;
-  }
-}
-
-void SetActiveVfoMode(VfoMode_e mode)
-{
-  if(VFO_A == globalSettings.activeVfo)
-  {
-    globalSettings.vfoA.mode = mode;
-  }
-  else{
-    globalSettings.vfoB.mode = mode;
-  }
-}
+uint32_t GetActiveVfoFreq();
+void SetActiveVfoFreq(uint32_t frequency);
+VfoMode_e GetActiveVfoMode();
+void SetActiveVfoMode(VfoMode_e mode);
