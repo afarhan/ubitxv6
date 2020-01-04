@@ -532,7 +532,7 @@ void enterFreq(){
 
 void drawCWStatus(){
   strcpy(b, " cw: ");
-  int wpm = 12000/globalSettings.cwDitDurationMs;
+  int wpm = 1200/globalSettings.cwDitDurationMs;
   itoa(wpm,c, 10);
   strcat(b, c);
   strcat(b, "wpm, ");
@@ -770,11 +770,11 @@ void switchBand(uint32_t bandfreq){
 
 void setCwSpeed()
 {
-  int wpm = 12000/globalSettings.cwDitDurationMs;
+  int wpm = 1200/globalSettings.cwDitDurationMs;
    
   wpm = getValueByKnob(1, 100, 1,  wpm, "CW: ", " WPM");
 
-  globalSettings.cwDitDurationMs = 12000/wpm;
+  globalSettings.cwDitDurationMs = 1200/wpm;
   SaveSettingsToEeprom();
   active_delay(500);
   drawStatusbar();

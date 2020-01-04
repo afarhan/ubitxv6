@@ -211,7 +211,7 @@ void catReadEEPRom(void)
       //5-0  CW Speed (4-60 WPM) (#21) From 0 to 38 (HEX) with 0 = 4 WPM and 38 = 60 WPM (1 WPM steps)
       //7-6  Batt-Chg (6/8/10 Hours (#11)  00 = 6 Hours, 01 = 8 Hours, 10 = 10 Hours
       //CAT_BUFF[0] = 0x08;
-      cat[0] = 12000 / globalSettings.cwDitDurationMs - 4;
+      cat[0] = 1200 / globalSettings.cwDitDurationMs - 4;
       cat[1] = 0xB2;
       break;
     case 0x63 : //
