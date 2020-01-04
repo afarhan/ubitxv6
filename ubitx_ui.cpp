@@ -165,12 +165,12 @@ void formatFreq(long f, char *buff) {
   if (f < 10000000l){
     buff[0] = ' ';
     strncat(buff, b, 4);
-    strcat(buff, ".");
+    strcat_P(buff,(const char*)F("."));
     strncat(buff, &b[4], 2);
   }
   else {
     strncat(buff, b, 5);
-    strcat(buff, ".");
+    strcat_P(buff,(const char*)F("."));
     strncat(buff, &b[5], 2);
   }
 }
@@ -181,7 +181,7 @@ inline void drawCommandbar(char* text){
 
 /** A generic control to read variable values
 */
-int getValueByKnob(int minimum, int maximum, int step_size,  int initial, char* prefix, char *postfix)
+int getValueByKnob(int minimum, int maximum, int step_size,  int initial, const __FlashStringHelper* prefix, const __FlashStringHelper* postfix)
 {
   int knob = 0;
   int knob_value;
@@ -192,10 +192,10 @@ int getValueByKnob(int minimum, int maximum, int step_size,  int initial, char* 
   active_delay(200);
   knob_value = initial;
 
-  strcpy(b, prefix);
+  strcpy_P(b,(const char*)prefix);
   itoa(knob_value, c, 10);
   strcat(b, c);
-  strcat(b, postfix);
+  strcat_P(b, (const char*)postfix);
   drawCommandbar(b);
 
   while(!btnDown() && digitalRead(PTT) == HIGH){
@@ -206,10 +206,10 @@ int getValueByKnob(int minimum, int maximum, int step_size,  int initial, char* 
       if (knob_value < maximum && knob > 0)
         knob_value += step_size;
 
-      strcpy(b, prefix);
+      strcpy_P(b,(const char*)prefix);
       itoa(knob_value, c, 10);
       strcat(b, c);
-      strcat(b, postfix);
+      strcat_P(b,(const char*)postfix);
       drawCommandbar(b);
     }
   checkCAT();
@@ -376,7 +376,8 @@ void fastTune(){
     active_delay(50);
   active_delay(300);
   
-  displayText("Fast tune", LAYOUT_MODE_TEXT_X, LAYOUT_MODE_TEXT_Y, LAYOUT_MODE_TEXT_WIDTH, LAYOUT_MODE_TEXT_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
+  strcpy_P(c,(const char*)F("Fast tune"));
+  displayText(c, LAYOUT_MODE_TEXT_X, LAYOUT_MODE_TEXT_Y, LAYOUT_MODE_TEXT_WIDTH, LAYOUT_MODE_TEXT_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
   while(1){
     checkCAT();
 
@@ -498,7 +499,7 @@ void enterFreq(){
       }//if button hit test
     }// end of the button scanning loop
     strcpy(b, c);
-    strcat(b, " KHz");
+    strcat_P(b,(const char*)F(" KHz"));
     displayText(b, LAYOUT_MODE_TEXT_X, LAYOUT_MODE_TEXT_Y, LAYOUT_MODE_TEXT_WIDTH, LAYOUT_MODE_TEXT_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
     active_delay(300);
     while(readTouch())
@@ -507,23 +508,26 @@ void enterFreq(){
 }
 
 void drawCWStatus(){
-  strcpy(b, " cw: ");
+  strcpy_P(b,(const char*)F(" cw: "));
   int wpm = 1200/globalSettings.cwDitDurationMs;
   itoa(wpm,c, 10);
   strcat(b, c);
-  strcat(b, "wpm, ");
+  strcat_P(b,(const char*)F("wpm, "));
   itoa(globalSettings.cwSideToneFreq, c, 10);
   strcat(b, c);
-  strcat(b, "hz");
+  strcat_P(b,(const char*)F("hz"));
   displayText(b, LAYOUT_CW_TEXT_X, LAYOUT_CW_TEXT_Y, LAYOUT_CW_TEXT_WIDTH, LAYOUT_CW_TEXT_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
 }
 
 
 void drawTx(){
-  if (globalSettings.txActive)
-    displayText("TX", LAYOUT_TX_X, LAYOUT_TX_Y, LAYOUT_TX_WIDTH, LAYOUT_TX_HEIGHT, COLOR_ACTIVE_TEXT, COLOR_ACTIVE_BACKGROUND, COLOR_BACKGROUND);
-  else
+  if (globalSettings.txActive){
+    strcpy_P(b,(const char*)F("TX"));
+    displayText(b, LAYOUT_TX_X, LAYOUT_TX_Y, LAYOUT_TX_WIDTH, LAYOUT_TX_HEIGHT, COLOR_ACTIVE_TEXT, COLOR_ACTIVE_BACKGROUND, COLOR_BACKGROUND);
+  }
+  else{
     displayFillrect(LAYOUT_TX_X, LAYOUT_TX_Y, LAYOUT_TX_WIDTH, LAYOUT_TX_HEIGHT, COLOR_BACKGROUND);
+  }
 }
 void drawStatusbar(){
   drawCWStatus();
@@ -748,7 +752,7 @@ void setCwSpeed()
 {
   int wpm = 1200/globalSettings.cwDitDurationMs;
    
-  wpm = getValueByKnob(1, 100, 1,  wpm, "CW: ", " WPM");
+  wpm = getValueByKnob(1, 100, 1,  wpm,F("CW: "),F(" WPM"));
 
   globalSettings.cwDitDurationMs = 1200/wpm;
   SaveSettingsToEeprom();
@@ -764,9 +768,9 @@ void setCwTone(){
      
   tone(CW_TONE, globalSettings.cwSideToneFreq);
   itoa(globalSettings.cwSideToneFreq, c, 10);
-  strcpy(b, "CW Tone: ");
+  strcpy_P(b,(const char*)F("CW Tone: "));
   strcat(b, c);
-  strcat(b, " Hz");
+  strcat_P(b,(const char*)F(" Hz"));
   drawCommandbar(b);
 
   //disable all clock 1 and clock 2 
@@ -783,9 +787,9 @@ void setCwTone(){
         
     tone(CW_TONE, globalSettings.cwSideToneFreq);
     itoa(globalSettings.cwSideToneFreq, c, 10);
-    strcpy(b, "CW Tone: ");
+    strcpy_P(b,(const char*)F("CW Tone: "));
     strcat(b, c);
-    strcat(b, " Hz");
+    strcat_P(b,(const char*)F(" Hz"));
     drawCommandbar(b);
     //printLine2(b);
 
