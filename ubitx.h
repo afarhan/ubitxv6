@@ -1,3 +1,4 @@
+#include "settings.h"
 
 /* The ubitx is powered by an arduino nano. The pin assignment is as folows 
  *  
@@ -56,7 +57,6 @@ it uses an ILI9341 display controller and an  XPT2046 touch controller.
  * the serial port as we can easily run out of buffer space. This is done in the serial_in_count variable.
  */
 extern char c[30], b[30];
-extern char printBuff[2][20];  //mirrors what is showing on the two lines of the display
 
 /** 
  *  The second set of 16 pins on the Raduino's bottom connector are have the three clock outputs and the digital lines to control the rig.
@@ -68,37 +68,6 @@ extern char printBuff[2][20];  //mirrors what is showing on the two lines of the
  *  - CW_KEY line : turns on the carrier for CW
  */
 
-
-/**
- * These are the indices where these user changable settinngs are stored  in the EEPROM
- */
-#define MASTER_CAL 0
-#define LSB_CAL 4
-#define USB_CAL 8
-#define SIDE_TONE 12
-//these are ids of the vfos as well as their offset into the eeprom storage, don't change these 'magic' values
-#define VFO_A 16
-#define VFO_B 20
-#define CW_SIDETONE 24
-#define CW_SPEED 28
-// the screen calibration parameters : int slope_x=104, slope_y=137, offset_x=28, offset_y=29;
-#define SLOPE_X 32
-#define SLOPE_Y 36
-#define OFFSET_X 40
-#define OFFSET_Y 44
-#define CW_DELAYTIME 48
-
-//These are defines for the new features back-ported from KD8CEC's software
-//these start from beyond 256 as Ian, KD8CEC has kept the first 256 bytes free for the base version
-#define VFO_A_MODE  256 // 2: LSB, 3: USB
-#define VFO_B_MODE  257
-
-//values that are stroed for the VFO modes
-#define VFO_MODE_LSB 2
-#define VFO_MODE_USB 3
-
-// handkey, iambic a, iambic b : 0,1,2f
-#define CW_KEY_TYPE 358
 
 /**
  * The uBITX is an upconnversion transceiver. The first IF is at 45 MHz.
@@ -121,62 +90,23 @@ extern char printBuff[2][20];  //mirrors what is showing on the two lines of the
 // limits the tuning and working range of the ubitx between 3 MHz and 30 MHz
 #define LOWEST_FREQ   (100000l)
 #define HIGHEST_FREQ (30000000l)
+static const uint32_t THRESHOLD_USB_LSB = 10000000L;
 
-//we directly generate the CW by programmin the Si5351 to the cw tx frequency, hence, both are different modes
-//these are the parameter passed to startTx
-#define TX_SSB 0
-#define TX_CW 1
-
-extern char ritOn;
-extern char vfoActive;
-extern unsigned long vfoA, vfoB, sideTone, usbCarrier;
-extern char isUsbVfoA, isUsbVfoB;
-extern unsigned long frequency, ritRxFrequency, ritTxFrequency;  //frequency is the current frequency on the dial
 extern unsigned long firstIF;
 
-// if cwMode is flipped on, the rx frequency is tuned down by sidetone hz instead of being zerobeat
-extern int cwMode;
-
-
-//these are variables that control the keyer behaviour
-extern int cwSpeed; //this is actuall the dot period in milliseconds
-extern int32_t calibration;
-extern int cwDelayTime;
-extern bool Iambic_Key;
-
-#define IAMBICB 0x10 // 0 for Iambic A, 1 for Iambic B
-extern unsigned char keyerControl;
-//during CAT commands, we will freeeze the display until CAT is disengaged
-extern unsigned char doingCAT;
-
-
-/**
- * Raduino needs to keep track of current state of the transceiver. These are a few variables that do it
- */
-extern boolean txCAT;        //turned on if the transmitting due to a CAT command
-extern char inTx;                //it is set to 1 if in transmit mode (whatever the reason : cw, ptt or cat)
-extern int splitOn;             //working split, uses VFO B as the transmit frequency
-extern char keyDown;             //in cw mode, denotes the carrier is being transmitted
-extern char isUSB;               //upper sideband was selected, this is reset to the default for the 
-                              //frequency when it crosses the frequency border of 10 MHz
-extern byte menuOn;              //set to 1 when the menu is being displayed, if a menu item sets it to zero, the menu is exited
-extern unsigned long cwTimeout;  //milliseconds to go before the cw transmit line is released and the radio goes back to rx mode
-extern unsigned long dbgCount;   //not used now
-extern unsigned char txFilter ;   //which of the four transmit filters are in use
-extern boolean modeCalibrate;//this mode of menus shows extended menus to calibrate the oscillators and choose the proper
-                              //beat frequency
+extern uint8_t menuOn;
 
 /* these are functions implemented in the main file named as ubitx_xxx.ino */
 void active_delay(int delay_by);
 void saveVFOs();
 void setFrequency(unsigned long f);
-void startTx(byte txMode);
+void startTx(TuningMode_e tx_mode);
 void stopTx();
 void ritEnable(unsigned long f);
 void ritDisable();
 void checkCAT();
 void cwKeyer(void);
-void switchVFO(int vfoSelect);
+void switchVFO(Vfo_e vfoSelect);
 
 int enc_read(void); // returns the number of ticks in a short interval, +ve in clockwise, -ve in anti-clockwise
 int btnDown(); //returns true if the encoder button is pressed
@@ -206,10 +136,6 @@ void printCarrierFreq(unsigned long freq); //used to display the frequency in th
 //main functions to check if any button is pressed and other user interface events
 void doCommands();  //does the commands with encoder to jump from button to button
 void  checkTouch(); //does the commands with a touch on the buttons
-
-
-
-
 
 
 

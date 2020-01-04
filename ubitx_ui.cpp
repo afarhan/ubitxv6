@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 #include "morse.h"
+#include "settings.h"
 #include "ubitx.h"
 #include "nano_gui.h"
 
@@ -242,13 +243,13 @@ void displayDialog(char *title, char *instructions){
   displayRawText(instructions, 20, 200, COLOR_TEXT, COLOR_BACKGROUND);
 }
 
-void displayVFO(int vfo){
+void displayVFO(Vfo_e vfo){
   int x, y;
   int displayColor, displayBackground, displayBorder;
   Button button;
 
-  if (splitOn){
-    if (vfoActive == vfo){
+  if (globalSettings.splitOn){
+    if (vfo == globalSettings.activeVfo){
       c[0] = 'R';
     }
     else{
@@ -269,32 +270,30 @@ void displayVFO(int vfo){
   c[1] = ':';
 
 
-  if (vfo == VFO_A){
+  if (VFO_A == vfo){
     getButton(BUTTON_VFOA, &button);
+    formatFreq(globalSettings.vfoA.frequency, c+2);
 
-    if (vfoActive == VFO_A){
-      formatFreq(frequency, c+2);
+    if (VFO_A == globalSettings.activeVfo){
       displayColor = COLOR_ACTIVE_VFO_TEXT;
       displayBackground = COLOR_ACTIVE_VFO_BACKGROUND;
       displayBorder = COLOR_ACTIVE_BORDER;
     }else{
-      formatFreq(vfoA, c+2);
       displayColor = COLOR_INACTIVE_VFO_TEXT;
       displayBackground = COLOR_INACTIVE_VFO_BACKGROUND;
       displayBorder = COLOR_INACTIVE_BORDER;
     }
   }
 
-  if (vfo == VFO_B){
+  if (VFO_B == vfo){
     getButton(BUTTON_VFOB, &button);
+    formatFreq(globalSettings.vfoB.frequency, c+2);
 
-    if (vfoActive == VFO_B){
-      formatFreq(frequency, c+2);
+    if (VFO_B == globalSettings.activeVfo){
       displayColor = COLOR_ACTIVE_VFO_TEXT;
       displayBackground = COLOR_ACTIVE_VFO_BACKGROUND;
       displayBorder = COLOR_ACTIVE_BORDER;
     } else {
-      formatFreq(vfoB, c+2);
       displayColor = COLOR_INACTIVE_VFO_TEXT;
       displayBackground = COLOR_INACTIVE_VFO_BACKGROUND;
       displayBorder = COLOR_INACTIVE_BORDER;
@@ -325,7 +324,7 @@ void btnDraw(struct Button *button){
     }
     case BUTTON_RIT:
     {
-      if(1 == ritOn){
+      if(globalSettings.ritOn){
         btnDrawActive(button);
       }
       else{
@@ -335,7 +334,7 @@ void btnDraw(struct Button *button){
     }
     case BUTTON_USB:
     {
-      if(1 == isUSB){
+      if(VFO_MODE_USB == GetActiveVfoMode()){
         btnDrawActive(button);
       }
       else{
@@ -345,7 +344,7 @@ void btnDraw(struct Button *button){
     }
     case BUTTON_LSB:
     {
-      if(0 == isUSB){
+      if(VFO_MODE_LSB == GetActiveVfoMode()){
         btnDrawActive(button);
       }
       else{
@@ -355,7 +354,7 @@ void btnDraw(struct Button *button){
     }
     case BUTTON_SPL:
     {
-      if(1 == splitOn){
+      if(globalSettings.splitOn){
         btnDrawActive(button);
       }
       else{
@@ -365,7 +364,7 @@ void btnDraw(struct Button *button){
     }
     case BUTTON_CW:
     {
-      if(1 == cwMode){
+      if(TuningMode_e::TUNE_CW == globalSettings.tuningMode){
         btnDrawActive(button);
       }
       else{
@@ -385,10 +384,10 @@ void btnDraw(struct Button *button){
 void displayRIT(){
   c[0] = 0;
   displayFillrect(LAYOUT_MODE_TEXT_X,LAYOUT_MODE_TEXT_Y,LAYOUT_MODE_TEXT_WIDTH,LAYOUT_MODE_TEXT_HEIGHT, COLOR_BACKGROUND);
-  if (ritOn){
+  if(globalSettings.ritOn){
     strcpy_P(c,(const char*)F("TX:"));
-    formatFreq(ritTxFrequency, c+3);
-    if (vfoActive == VFO_A)
+    formatFreq(globalSettings.ritFrequency, c+3);
+    if (VFO_A == globalSettings.activeVfo)
       displayText(c, LAYOUT_MODE_TEXT_X + 0*LAYOUT_VFO_LABEL_PITCH_X, LAYOUT_MODE_TEXT_Y, LAYOUT_MODE_TEXT_WIDTH, LAYOUT_MODE_TEXT_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
     else
       displayText(c, LAYOUT_MODE_TEXT_X + 1*LAYOUT_VFO_LABEL_PITCH_X, LAYOUT_MODE_TEXT_Y, LAYOUT_MODE_TEXT_WIDTH, LAYOUT_MODE_TEXT_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
@@ -396,8 +395,6 @@ void displayRIT(){
 }
 
 void fastTune(){
-  int encoder;
-
   //if the btn is down, wait until it is up
   while(btnDown())
     active_delay(50);
@@ -418,15 +415,17 @@ void fastTune(){
       return;
     }
     
-    encoder = enc_read();
+    int encoder = enc_read();
     if (encoder != 0){
- 
-      if (encoder > 0 && frequency < 30000000l)
-        frequency += 50000l;
-      else if (encoder < 0 && frequency > 600000l)
-        frequency -= 50000l;
-      setFrequency(frequency);
-      displayVFO(vfoActive);
+      uint32_t freq = GetActiveVfoFreq();
+      if (encoder > 0 && freq < 30000000l){
+        freq += 50000l;
+      }
+      else if (encoder < 0 && freq > 600000l){
+        freq -= 50000l;
+      }
+      setFrequency(freq);
+      displayVFO(globalSettings.activeVfo);
     }
   }// end of the event loop
 }
@@ -434,7 +433,6 @@ void fastTune(){
 void enterFreq(){
   //force the display to refresh everything
   //display all the buttons
-  int f;
   
   for (int i = 0; i < KEYS_TOTAL; i++){
     Button button;
@@ -444,7 +442,6 @@ void enterFreq(){
 
   int cursor_pos = 0;
   memset(c, 0, sizeof(c));
-  f = frequency / 1000l;
 
   while(1){
 
@@ -468,14 +465,16 @@ void enterFreq(){
         switch(button.id){
           case KEYS_OK:
           {
-            long f = atol(c);
-            if(30000 >= f && f > 100){
-              frequency = f * 1000l;
-              setFrequency(frequency);
-              if (vfoActive == VFO_A)
-                vfoA = frequency;
-              else
-                vfoB = frequency;
+            long freq = atol(c);
+            if((LOWEST_FREQ/1000 <= freq) && (freq <= HIGHEST_FREQ/1000)){
+              freq *= 1000L;
+              setFrequency(freq);
+              if (VFO_A == globalSettings.activeVfo){
+                globalSettings.vfoA.frequency = freq;
+              }
+              else{
+                globalSettings.vfoB.frequency = freq;
+              }
               saveVFOs();
             }
             guiUpdate();
@@ -525,7 +524,7 @@ void enterFreq(){
     strcpy(b, c);
     strcat(b, " KHz");
     displayText(b, LAYOUT_MODE_TEXT_X, LAYOUT_MODE_TEXT_Y, LAYOUT_MODE_TEXT_WIDTH, LAYOUT_MODE_TEXT_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
-    delay(300);
+    active_delay(300);
     while(readTouch())
       checkCAT();
   } // end of event loop : while(1)
@@ -533,11 +532,11 @@ void enterFreq(){
 
 void drawCWStatus(){
   strcpy(b, " cw: ");
-  int wpm = 1200/cwSpeed;
+  int wpm = 12000/globalSettings.cwDitDurationMs;
   itoa(wpm,c, 10);
   strcat(b, c);
   strcat(b, "wpm, ");
-  itoa(sideTone, c, 10);
+  itoa(globalSettings.cwSideToneFreq, c, 10);
   strcat(b, c);
   strcat(b, "hz");
   displayText(b, LAYOUT_CW_TEXT_X, LAYOUT_CW_TEXT_Y, LAYOUT_CW_TEXT_WIDTH, LAYOUT_CW_TEXT_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
@@ -545,7 +544,7 @@ void drawCWStatus(){
 
 
 void drawTx(){
-  if (inTx)
+  if (globalSettings.txActive)
     displayText("TX", LAYOUT_TX_X, LAYOUT_TX_Y, LAYOUT_TX_WIDTH, LAYOUT_TX_HEIGHT, COLOR_ACTIVE_TEXT, COLOR_ACTIVE_BACKGROUND, COLOR_BACKGROUND);
   else
     displayFillrect(LAYOUT_TX_X, LAYOUT_TX_Y, LAYOUT_TX_WIDTH, LAYOUT_TX_HEIGHT, COLOR_BACKGROUND);
@@ -586,7 +585,7 @@ void guiUpdate(){
 
 // this builds up the top line of the display with frequency and mode
 void updateDisplay() {
-   displayVFO(vfoActive);    
+   displayVFO(globalSettings.activeVfo);
 }
 
 int enc_prev_state = 3;
@@ -653,21 +652,19 @@ int enc_read(void) {
 }
 
 void ritToggle(struct Button *button){
-  if (ritOn == 0){
-    ritEnable(frequency);
+  if (globalSettings.ritOn){
+    ritEnable(GetActiveVfoFreq());
   }
-  else
+  else{
     ritDisable();
+  }
   btnDraw(button);
   displayRIT();
 }
 
 void splitToggle(Button *button){
 
-  if (splitOn)
-    splitOn = 0;
-  else
-    splitOn = 1;
+  globalSettings.splitOn = !globalSettings.splitOn;
 
   btnDraw(button);
 
@@ -685,17 +682,17 @@ void splitToggle(Button *button){
 
 void vfoReset(){
   Button button;
-  if (vfoActive = VFO_A)
-    vfoB = vfoA;
+  if (VFO_A == globalSettings.activeVfo)
+    globalSettings.vfoB.frequency = globalSettings.vfoA.frequency;
   else
-    vfoA = vfoB;
+    globalSettings.vfoA.frequency = globalSettings.vfoB.frequency;
 
-  if (splitOn){
+  if(globalSettings.splitOn){
     getButton(BUTTON_SPL, &button);
     splitToggle(&button);
   }
 
-  if (ritOn){
+  if(globalSettings.ritOn){
     getButton(BUTTON_RIT, &button);
     ritToggle(&button);
   }
@@ -707,21 +704,22 @@ void vfoReset(){
 }
 
 void cwToggle(struct Button *b){
-  if (cwMode == 0){
-    cwMode = 1;
+  if (TuningMode_e::TUNE_SSB == globalSettings.tuningMode){
+    globalSettings.tuningMode = TuningMode_e::TUNE_CW;
   }
-  else
-    cwMode = 0;
+  else{
+    globalSettings.tuningMode = TuningMode_e::TUNE_SSB;
+  }
 
-  setFrequency(frequency);
+  setFrequency(GetActiveVfoFreq());
   btnDraw(b);
 }
 
 void sidebandToggle(Button* button){
   if(BUTTON_LSB == button->id)
-    isUSB = 0;
+    SetActiveVfoMode(VfoMode_e::VFO_MODE_LSB);
   else
-    isUSB = 1;
+    SetActiveVfoMode(VfoMode_e::VFO_MODE_USB);
 
   struct Button button2;
   getButton(BUTTON_USB, &button2);
@@ -750,48 +748,46 @@ void redrawVFOs(){
 }
 
 
-void switchBand(long bandfreq){
-  long offset;
+void switchBand(uint32_t bandfreq){
 
-//  Serial.println(frequency);
-//  Serial.println(bandfreq);
-  if (3500000l <= frequency && frequency <= 4000000l)
-    offset = frequency - 3500000l;
-  else if (24800000l <= frequency && frequency <= 25000000l)
-    offset = frequency - 24800000l;
+  //Serial.println(frequency);
+  //Serial.println(bandfreq);
+  uint32_t offset;
+  uint32_t freq = GetActiveVfoFreq();
+  if (3500000L <= freq && freq <= 4000000L)
+    offset = freq - 3500000l;
+  else if (24800000L <= freq && freq <= 25000000L)
+    offset = freq - 24800000L;
   else 
-    offset = frequency % 1000000l; 
+    offset = freq % 1000000L;
 
-//  Serial.println(offset);
+  //Serial.println(offset);
 
   setFrequency(bandfreq + offset);
   updateDisplay(); 
   saveVFOs();
 }
 
-int setCwSpeed(){
-    int knob = 0;
-    int wpm;
+void setCwSpeed()
+{
+  int wpm = 12000/globalSettings.cwDitDurationMs;
+   
+  wpm = getValueByKnob(1, 100, 1,  wpm, "CW: ", " WPM");
 
-    wpm = 1200/cwSpeed;
-     
-    wpm = getValueByKnob(1, 100, 1,  wpm, "CW: ", " WPM");
-  
-    cwSpeed = 1200/wpm;
-
-    EEPROM.put(CW_SPEED, cwSpeed);
-    active_delay(500);
-    drawStatusbar();      
-//    printLine2("");
-//    updateDisplay();
+  globalSettings.cwDitDurationMs = 12000/wpm;
+  SaveSettingsToEeprom();
+  active_delay(500);
+  drawStatusbar();
+  //printLine2("");
+  //updateDisplay();
 }
 
 void setCwTone(){
   int knob = 0;
   int prev_sideTone;
      
-  tone(CW_TONE, sideTone);
-  itoa(sideTone, c, 10);
+  tone(CW_TONE, globalSettings.cwSideToneFreq);
+  itoa(globalSettings.cwSideToneFreq, c, 10);
   strcpy(b, "CW Tone: ");
   strcat(b, c);
   strcat(b, " Hz");
@@ -802,15 +798,15 @@ void setCwTone(){
   {
     knob = enc_read();
 
-    if (knob > 0 && sideTone < 2000)
-      sideTone += 10;
-    else if (knob < 0 && sideTone > 100 )
-      sideTone -= 10;
+    if (knob > 0 && globalSettings.cwSideToneFreq < 2000)
+      globalSettings.cwSideToneFreq += 10;
+    else if (knob < 0 && globalSettings.cwSideToneFreq > 100 )
+      globalSettings.cwSideToneFreq -= 10;
     else
       continue; //don't update the frequency or the display
         
-    tone(CW_TONE, sideTone);
-    itoa(sideTone, c, 10);
+    tone(CW_TONE, globalSettings.cwSideToneFreq);
+    itoa(globalSettings.cwSideToneFreq, c, 10);
     strcpy(b, "CW Tone: ");
     strcat(b, c);
     strcat(b, " Hz");
@@ -821,14 +817,14 @@ void setCwTone(){
     active_delay(20);
   }
   noTone(CW_TONE);
-  //save the setting
-  EEPROM.put(CW_SIDETONE, sideTone);
+
+  SaveSettingsToEeprom();
 
   b[0] = 0;
   drawCommandbar(b);
   drawStatusbar();
-//  printLine2("");  
-//  updateDisplay();  
+  //printLine2("");
+  //updateDisplay();
 }
 
 void doCommand(Button* button){
@@ -863,7 +859,7 @@ void doCommand(Button* button){
     }
     case BUTTON_VFOA:
     {
-      if(VFO_A == vfoActive){
+      if(VFO_A == globalSettings.activeVfo){
         fastTune();
       }
       else{
@@ -873,7 +869,7 @@ void doCommand(Button* button){
     }
     case BUTTON_VFOB:
     {
-      if(VFO_B == vfoActive){
+      if(VFO_B == globalSettings.activeVfo){
         fastTune();
       }
       else{
@@ -1002,7 +998,7 @@ void doCommands(){
 
       //unfocus the buttons
       drawFocus(select, COLOR_INACTIVE_BORDER);
-      if (vfoActive == VFO_A)
+      if (VFO_A == globalSettings.activeVfo)
         drawFocus(BUTTON_VFOA, COLOR_ACTIVE_BORDER);
       else
         drawFocus(BUTTON_VFOB, COLOR_ACTIVE_BORDER);

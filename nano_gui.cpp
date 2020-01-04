@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include <EEPROM.h>
+#include "settings.h"
 #include "ubitx.h"
 #include "nano_gui.h"
 
@@ -8,30 +8,18 @@
 
 struct Point ts_point;
 
-//filled from a test run of calibration routine
-int slope_x=104, slope_y=137, offset_x=28, offset_y=29;
-
 void readTouchCalibration(){
-  EEPROM.get(SLOPE_X, slope_x);
-  EEPROM.get(SLOPE_Y, slope_y);
-  EEPROM.get(OFFSET_X, offset_x);
-  EEPROM.get(OFFSET_Y, offset_y);  
-
-/*
-  //for debugging
-  Serial.print(slope_x); Serial.print(' ');
-  Serial.print(slope_y); Serial.print(' ');
-  Serial.print(offset_x); Serial.print(' ');
-  Serial.println(offset_y); Serial.println(' ');
-*/
-
+  LoadSettingsFromEeprom();
+  /* for debugging
+  Serial.print(globalSettings.touchSlopeX); Serial.print(' ');
+  Serial.print(globalSettings.touchSlopeY); Serial.print(' ');
+  Serial.print(globalSettings.touchOffsetX); Serial.print(' ');
+  Serial.println(globalSettings.touchOffsetY); Serial.println(' ');
+  //*/
 }
 
 void writeTouchCalibration(){
-  EEPROM.put(SLOPE_X, slope_x);
-  EEPROM.put(SLOPE_Y, slope_y);
-  EEPROM.put(OFFSET_X, offset_x);
-  EEPROM.put(OFFSET_Y, offset_y);    
+  SaveSettingsToEeprom();
 }
 
 #define Z_THRESHOLD     400
@@ -118,7 +106,7 @@ static void touch_update(){
 }
 
 
-boolean readTouch(){
+bool readTouch(){
   touch_update();
   if (zraw >= Z_THRESHOLD) {
     ts_point.x = xraw;
@@ -130,8 +118,8 @@ boolean readTouch(){
 }
 
 void scaleTouch(struct Point *p){
-  p->x = ((long)(p->x - offset_x) * 10l)/ (long)slope_x;
-  p->y = ((long)(p->y - offset_y) * 10l)/ (long)slope_y;
+  p->x = ((long)(p->x - globalSettings.touchOffsetX) * 10L)/ (long)globalSettings.touchSlopeX;
+  p->y = ((long)(p->y - globalSettings.touchOffsetY) * 10L)/ (long)globalSettings.touchSlopeY;
 
   //Serial.print(p->x); Serial.print(",");Serial.println(p->y);
 }
@@ -176,7 +164,7 @@ void displayVline(unsigned int x, unsigned int y, unsigned int l, unsigned int c
   tft.drawFastVLine(x,y,l,c);
 }
 
-void displayClear(unsigned int color){  
+void displayClear(unsigned int color){
   tft.fillRect(0,0,320,240,color);
 }
 
@@ -283,14 +271,14 @@ void setupTouch(){
   // we average two readings and divide them by half and store them as scaled integers 10 times their actual, fractional value
   //the x points are located at 20 and 300 on x axis, hence, the delta x is 280, we take 28 instead, to preserve fractional value,
   //there are two readings (x1,x2) and (x3, x4). Hence, we have to divide by 28 * 2 = 56 
-  slope_x = ((x4 - x3) + (x2 - x1))/56; 
+  globalSettings.touchSlopeX = ((x4 - x3) + (x2 - x1))/56; 
   //the y points are located at 20 and 220 on the y axis, hence, the delta is 200. we take it as 20 instead, to preserve the fraction value 
   //there are two readings (y1, y2) and (y3, y4). Hence we have to divide by 20 * 2 = 40
-  slope_y = ((y3 - y1) + (y4 - y2))/40;
+  globalSettings.touchSlopeY = ((y3 - y1) + (y4 - y2))/40;
   
   //x1, y1 is at 20 pixels
-  offset_x = x1 + -((20 * slope_x)/10);
-  offset_y = y1 + -((20 * slope_y)/10);
+  globalSettings.touchOffsetX = x1 + -((20 * globalSettings.touchSlopeX)/10);
+  globalSettings.touchOffsetY = y1 + -((20 * globalSettings.touchSlopeY)/10);
 
 /*
   Serial.print(x1);Serial.print(':');Serial.println(y1);
@@ -299,10 +287,10 @@ void setupTouch(){
   Serial.print(x4);Serial.print(':');Serial.println(y4);
   
   //for debugging
-  Serial.print(slope_x); Serial.print(' ');
-  Serial.print(slope_y); Serial.print(' ');
-  Serial.print(offset_x); Serial.print(' ');
-  Serial.println(offset_y); Serial.println(' ');
+  Serial.print(globalSettings.touchSlopeX); Serial.print(' ');
+  Serial.print(globalSettings.touchSlopeY); Serial.print(' ');
+  Serial.print(globalSettings.touchOffsetX); Serial.print(' ');
+  Serial.println(globalSettings.touchOffsetY); Serial.println(' ');
 */  
   writeTouchCalibration();
   displayClear(DISPLAY_BLACK);

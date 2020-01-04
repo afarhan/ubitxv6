@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <Wire.h>
+#include "settings.h"
 #include "ubitx.h"
 
 // *************  SI5315 routines - tks Jerry Gaffke, KE7ER   ***********************
@@ -115,14 +116,14 @@ void si5351bx_setfreq(uint8_t clknum, uint32_t fout) {  // Set a CLK to fout Hz
 
 void si5351_set_calibration(int32_t cal){
     si5351bx_vcoa = (SI5351BX_XTAL * SI5351BX_MSA) + cal; // apply the calibration correction factor
-    si5351bx_setfreq(0, usbCarrier);
+    si5351bx_setfreq(0, globalSettings.usbCarrierFreq);
 }
 
 void initOscillators(){
   //initialize the SI5351
   si5351bx_init();
   si5351bx_vcoa = (SI5351BX_XTAL * SI5351BX_MSA) + calibration; // apply the calibration correction factor
-  si5351bx_setfreq(0, usbCarrier);
+  si5351bx_setfreq(0, globalSettings.usbCarrierFreq);
 }
 
 

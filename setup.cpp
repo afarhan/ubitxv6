@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 #include "morse.h"
+#include "settings.h"
 #include "ubitx.h"
 #include "nano_gui.h"
 
@@ -22,7 +23,6 @@ void setupExit(){
 }
 
  //this is used by the si5351 routines in the ubitx_5351 file
-extern int32_t calibration;
 extern uint32_t si5351bx_vcoa;
 
 void setupFreq(){
@@ -32,12 +32,15 @@ void setupFreq(){
   displayDialog("Set Frequency", "Push TUNE to Save"); 
 
   //round off the the nearest khz
-  frequency = (frequency/1000l)* 1000l;
-  setFrequency(frequency);
-  
+  {
+    uint32_t freq = GetActiveVfoFreq();
+    freq = (freq/1000l)* 1000l;
+    setFrequency(freq);
+  }
+
   displayRawText("You should have a", 20, 50, DISPLAY_CYAN, DISPLAY_NAVY);
   displayRawText("signal exactly at ", 20, 75, DISPLAY_CYAN, DISPLAY_NAVY);
-  ltoa(frequency/1000l, c, 10);
+  ltoa(GetActiveVfoFreq()/1000l, c, 10);
   strcat(c, " KHz");
   displayRawText(c, 20, 100, DISPLAY_CYAN, DISPLAY_NAVY);
 
@@ -47,38 +50,38 @@ void setupFreq(){
     active_delay(100);
   active_delay(100);
    
-  prev_calibration = calibration;
-  calibration = 0;
+  prev_calibration = globalSettings.oscillatorCal;
+  globalSettings.oscillatorCal = 0;
 
 //  ltoa(calibration/8750, c, 10);
 //  strcpy(b, c);
 //  strcat(b, "Hz");
-//  printLine2(b);     
+//  printLine2(b);
 
   while (!btnDown())
   {
    knob = enc_read();
    if (knob != 0)
-      calibration += knob * 875;
+      globalSettings.oscillatorCal += knob * 875;
  /*   else if (knob < 0)
       calibration -= 875; */
     else  
       continue; //don't update the frequency or the display
  
-    si5351bx_setfreq(0, usbCarrier);  //set back the cardrier oscillator anyway, cw tx switches it off  
-    si5351_set_calibration(calibration);
-    setFrequency(frequency);
+    si5351bx_setfreq(0, globalSettings.usbCarrierFreq);  //set back the cardrier oscillator anyway, cw tx switches it off  
+    si5351_set_calibration(globalSettings.oscillatorCal);
+    setFrequency(GetActiveVfoFreq());
 
     //displayRawText("Rotate to zerobeat", 20, 120, DISPLAY_CYAN, DISPLAY_NAVY);
     
-    ltoa(calibration, b, 10);
+    ltoa(globalSettings.oscillatorCal, b, 10);
     displayText(b, 100, 140, 100, 26, DISPLAY_CYAN, DISPLAY_NAVY, DISPLAY_WHITE);
   }
 
-  EEPROM.put(MASTER_CAL, calibration);
+  SaveSettingsToEeprom();
   initOscillators();
-  si5351_set_calibration(calibration);
-  setFrequency(frequency);    
+  si5351_set_calibration(globalSettings.oscillatorCal);
+  setFrequency(GetActiveVfoFreq());
 
   //debounce and delay
   while(btnDown())
@@ -90,34 +93,34 @@ void setupBFO(){
   int knob = 0;
   unsigned long prevCarrier;
    
-  prevCarrier = usbCarrier;
+  prevCarrier = globalSettings.usbCarrierFreq;
 
   displayDialog("Set BFO", "Press TUNE to Save"); 
   
-  usbCarrier = 11053000l;
-  si5351bx_setfreq(0, usbCarrier);
-  printCarrierFreq(usbCarrier);
+  globalSettings.usbCarrierFreq = 11053000l;
+  si5351bx_setfreq(0, globalSettings.usbCarrierFreq);
+  printCarrierFreq(globalSettings.usbCarrierFreq);
 
   while (!btnDown()){
     knob = enc_read();
 
     if (knob != 0)
-      usbCarrier -= 50 * knob;
+      globalSettings.usbCarrierFreq -= 50 * knob;
     else
       continue; //don't update the frequency or the display
       
-    si5351bx_setfreq(0, usbCarrier);
-    setFrequency(frequency);
-    printCarrierFreq(usbCarrier);
+    si5351bx_setfreq(0, globalSettings.usbCarrierFreq);
+    setFrequency(GetActiveVfoFreq());
+    printCarrierFreq(globalSettings.usbCarrierFreq);
     
     active_delay(100);
   }
 
-  EEPROM.put(USB_CAL, usbCarrier);  
-  si5351bx_setfreq(0, usbCarrier);          
-  setFrequency(frequency);
+  SaveSettingsToEeprom();
+  si5351bx_setfreq(0, globalSettings.usbCarrierFreq);
+  setFrequency(GetActiveVfoFreq());
   updateDisplay();
-  menuOn = 0; 
+  setupExit();
 }
 
 void setupCwDelay(){
@@ -127,93 +130,79 @@ void setupCwDelay(){
   displayDialog("Set CW T/R Delay", "Press tune to Save"); 
 
   active_delay(500);
-  prev_cw_delay = cwDelayTime;
+  prev_cw_delay = globalSettings.cwActiveTimeoutMs;
 
-  itoa(10 * (int)cwDelayTime, b, 10);
+  ltoa(globalSettings.cwActiveTimeoutMs, b, 10);
   strcat(b, " msec");
   displayText(b, 100, 100, 120, 26, DISPLAY_CYAN, DISPLAY_BLACK, DISPLAY_BLACK);
 
   while (!btnDown()){
     knob = enc_read();
 
-    if (knob < 0 && cwDelayTime > 10)
-      cwDelayTime -= 10;
-    else if (knob > 0 && cwDelayTime < 100)
-      cwDelayTime += 10;
+    if (knob < 0 && globalSettings.cwActiveTimeoutMs > 100)
+      globalSettings.cwActiveTimeoutMs -= 100;
+    else if (knob > 0 && globalSettings.cwActiveTimeoutMs < 1000)
+      globalSettings.cwActiveTimeoutMs += 100;
     else
       continue; //don't update the frequency or the display
 
-    itoa(10 * (int)cwDelayTime, b, 10);
+    ltoa(globalSettings.cwActiveTimeoutMs, b, 10);
     strcat(b, " msec");
     displayText(b, 100, 100, 120, 26, DISPLAY_CYAN, DISPLAY_BLACK, DISPLAY_BLACK);
       
   }
 
-  EEPROM.put(CW_DELAYTIME, cwDelayTime);
-
-  
-//  cwDelayTime = getValueByKnob(10, 1000, 50,  cwDelayTime, "CW Delay>", " msec");
-
+  SaveSettingsToEeprom();
   active_delay(500);
-  menuOn = 0;
+  setupExit();
 }
 
 void setupKeyer(){
-  int tmp_key, knob;
-  
   displayDialog("Set CW Keyer", "Press tune to Save"); 
- 
-  if (!Iambic_Key)
-    displayText("< Hand Key >", 100, 100, 120, 26, DISPLAY_CYAN, DISPLAY_BLACK, DISPLAY_BLACK);
-  else if (keyerControl & IAMBICB)
-    displayText("< Iambic A >", 100, 100, 120, 26, DISPLAY_CYAN, DISPLAY_BLACK, DISPLAY_BLACK);
-  else 
-    displayText("< Iambic B >", 100, 100, 120, 26, DISPLAY_CYAN, DISPLAY_BLACK, DISPLAY_BLACK);
 
-  if (!Iambic_Key)
-    tmp_key = 0; //hand key
-  else if (keyerControl & IAMBICB)
-    tmp_key = 2; //Iambic B
-  else 
-    tmp_key = 1;
- 
+  if(KeyerMode_e::KEYER_STRAIGHT == globalSettings.keyerMode){
+    displayText("< Hand Key >", 100, 100, 120, 26, DISPLAY_CYAN, DISPLAY_BLACK, DISPLAY_BLACK);
+  }
+  else if(KeyerMode_e::KEYER_IAMBIC_A == globalSettings.keyerMode){
+    displayText("< Iambic A >", 100, 100, 120, 26, DISPLAY_CYAN, DISPLAY_BLACK, DISPLAY_BLACK);
+  }
+  else{
+    displayText("< Iambic B >", 100, 100, 120, 26, DISPLAY_CYAN, DISPLAY_BLACK, DISPLAY_BLACK);
+  }
+
+  int knob = 0;
+  uint32_t tmp_mode = globalSettings.keyerMode;
   while (!btnDown())
   {
     knob = enc_read();
-    if (knob == 0){
+    if(knob == 0){
       active_delay(50);
       continue;
     }
-    if (knob < 0 && tmp_key > 0)
-      tmp_key--;
-    if (knob > 0)
-      tmp_key++;
-    if (tmp_key > 2)
-      tmp_key = 0;
+    if(knob < 0 && tmp_mode > KeyerMode_e::KEYER_STRAIGHT){
+      tmp_mode--;
+    }
+    if(knob > 0 && tmp_mode < KeyerMode_e::KEYER_IAMBIC_B){
+      tmp_mode++;
+    }
 
-    if (tmp_key == 0)
+    if (KeyerMode_e::KEYER_STRAIGHT == tmp_mode){
       displayText("< Hand Key >", 100, 100, 120, 26, DISPLAY_CYAN, DISPLAY_BLACK, DISPLAY_BLACK);
-    else if (tmp_key == 1)
+    }
+    else if(KeyerMode_e::KEYER_IAMBIC_A == tmp_mode){
       displayText("< Iambic A >", 100, 100, 120, 26, DISPLAY_CYAN, DISPLAY_BLACK, DISPLAY_BLACK);
-    else if (tmp_key == 2)
+    }
+    else if (KeyerMode_e::KEYER_IAMBIC_B == tmp_mode){
       displayText("< Iambic B >", 100, 100, 120, 26, DISPLAY_CYAN, DISPLAY_BLACK, DISPLAY_BLACK);
+    }
   }
 
   active_delay(500);
-  if (tmp_key == 0)
-    Iambic_Key = false;
-  else if (tmp_key == 1){
-    Iambic_Key = true;
-    keyerControl &= ~IAMBICB;
-  }
-  else if (tmp_key == 2){
-    Iambic_Key = true;
-    keyerControl |= IAMBICB;
-  }
+
+  globalSettings.keyerMode = tmp_mode;
+  SaveSettingsToEeprom();
   
-  EEPROM.put(CW_KEY_TYPE, tmp_key);
-  
-  menuOn = 0;
+  setupExit();
 }
 
 static const unsigned int COLOR_TEXT = DISPLAY_WHITE;
