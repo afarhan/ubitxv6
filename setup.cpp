@@ -111,7 +111,7 @@ void setupFreq(){
   strcpy_P(c,(const char*)F("Rotate to zerobeat"));
   displayText(c, LAYOUT_SETTING_VALUE_X, LAYOUT_ITEM_Y + 4*LAYOUT_ITEM_PITCH_Y, LAYOUT_ITEM_WIDTH, LAYOUT_ITEM_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
   
-  ltoa(calibration, b, 10);
+  ltoa(globalSettings.oscillatorCal, b, 10);
   displayText(b, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_TITLE_BACKGROUND, COLOR_BACKGROUND);
   //keep clear of any previous button press
   while (btnDown())
