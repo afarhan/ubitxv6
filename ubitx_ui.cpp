@@ -218,30 +218,6 @@ int getValueByKnob(int minimum, int maximum, int step_size,  int initial, char* 
   return knob_value;
 }
 
-void printCarrierFreq(unsigned long freq){
-
-  memset(c, 0, sizeof(c));
-  memset(b, 0, sizeof(b));
-
-  ultoa(freq, b, DEC);
-  
-  strncat(c, b, 2);
-  strcat(c, ".");
-  strncat(c, &b[2], 3);
-  strcat(c, ".");
-  strncat(c, &b[5], 1);
-  displayText(c, 110, 100, 100, 30, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
-}
-
-void displayDialog(char *title, char *instructions){
-  displayClear(COLOR_BACKGROUND);
-  displayRect(10,10,300,220, COLOR_TEXT);
-  displayHline(20,45,280,COLOR_TEXT);
-  displayRect(12,12,296,216, COLOR_TEXT);
-  displayRawText(title, 20, 20, COLOR_TEXT, COLOR_BACKGROUND);
-  displayRawText(instructions, 20, 200, COLOR_TEXT, COLOR_BACKGROUND);
-}
-
 void displayVFO(int vfo){
   int x, y;
   int displayColor, displayBackground, displayBorder;

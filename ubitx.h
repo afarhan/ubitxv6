@@ -196,13 +196,6 @@ void doSetup2(); //main setup function, displays the setup menu, calls various d
 void setupBFO();
 void setupFreq();
 
-
-
-//displays a nice dialog box with a title and instructions as footnotes
-void displayDialog(char *title, char *instructions);
-void printCarrierFreq(unsigned long freq); //used to display the frequency in the command area (ex: fast tuning)
-
-
 //main functions to check if any button is pressed and other user interface events
 void doCommands();  //does the commands with encoder to jump from button to button
 void  checkTouch(); //does the commands with a touch on the buttons
