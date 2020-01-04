@@ -40,7 +40,7 @@ enum Vfo_e : uint8_t
   VFO_B
 };
 
-enum VfoMode_e : uint16_t
+enum VfoMode_e : uint8_t
 {
   VFO_MODE_LSB = 2,
   VFO_MODE_USB = 3
@@ -79,7 +79,7 @@ struct SettingsRam
 
   KeyerMode_e keyerMode;
   uint32_t cwSideToneFreq;
-  uint32_t cwDitDurationMs;
+  uint16_t cwDitDurationMs;
   uint16_t cwActiveTimeoutMs;
 
   int16_t touchSlopeX;

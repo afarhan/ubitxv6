@@ -2,26 +2,27 @@
 #include <stdint.h>
 #include <EEPROM.h>
 #include "settings.h"
+#include <Arduino.h>
 
 /**
  * These are the "magic" indices where these user changable settinngs are stored in the EEPROM
  */
-static const uint8_t EEPROM_ADDR_MASTER_CAL = 0;//int32_t
+static const uint16_t EEPROM_ADDR_MASTER_CAL = 0;//int32_t
 //4 is currently unused, but may have been LSB_CAL on other versions
-static const uint8_t EEPROM_ADDR_USB_CAL = 8;//uint32_t
+static const uint16_t EEPROM_ADDR_USB_CAL = 8;//uint32_t
 //12 is currently unused, but may have been CW_SIDETONE on other versions?
-static const uint8_t EEPROM_ADDR_VFO_A_FREQ  = 16;//uint32_t
-static const uint8_t EEPROM_ADDR_VFO_B_FREQ  = 20;//uint32_t
-static const uint8_t EEPROM_ADDR_CW_SIDETONE  = 24;//uint32_t
-static const uint8_t EEPROM_ADDR_CW_DIT_TIME  = 28;//uint32_t
-static const uint8_t EEPROM_ADDR_TOUCH_SLOPE_X  = 32;//int16_t
-static const uint8_t EEPROM_ADDR_TOUCH_SLOPE_Y  = 36;//int16_t
-static const uint8_t EEPROM_ADDR_TOUCH_OFFSET_X  = 40;//int16_t
-static const uint8_t EEPROM_ADDR_TOUCH_OFFSET_Y  = 44;//int16_t
-static const uint8_t EEPROM_ADDR_CW_DELAYTIME  = 48;
-static const uint8_t EEPROM_ADDR_VFO_A_MODE = 256;
-static const uint8_t EEPROM_ADDR_VFO_B_MODE = 257;
-static const uint8_t EEPROM_ADDR_CW_KEY_TYPE = 358;
+static const uint16_t EEPROM_ADDR_VFO_A_FREQ  = 16;//uint32_t
+static const uint16_t EEPROM_ADDR_VFO_B_FREQ  = 20;//uint32_t
+static const uint16_t EEPROM_ADDR_CW_SIDETONE  = 24;//uint32_t
+static const uint16_t EEPROM_ADDR_CW_DIT_TIME  = 28;//uint32_t
+static const uint16_t EEPROM_ADDR_TOUCH_SLOPE_X  = 32;//int16_t
+static const uint16_t EEPROM_ADDR_TOUCH_SLOPE_Y  = 36;//int16_t
+static const uint16_t EEPROM_ADDR_TOUCH_OFFSET_X  = 40;//int16_t
+static const uint16_t EEPROM_ADDR_TOUCH_OFFSET_Y  = 44;//int16_t
+static const uint16_t EEPROM_ADDR_CW_DELAYTIME  = 48;
+static const uint16_t EEPROM_ADDR_VFO_A_MODE = 256;
+static const uint16_t EEPROM_ADDR_VFO_B_MODE = 257;
+static const uint16_t EEPROM_ADDR_CW_KEY_TYPE = 358;
 
 template<typename T>
 bool LoadSane(T& dest,uint16_t addr, T min, T max)
@@ -30,8 +31,14 @@ bool LoadSane(T& dest,uint16_t addr, T min, T max)
     EEPROM.get(addr,read_value);
     if((min <= read_value) && (read_value <= max)){
       dest = read_value;
+      //Serial.print(addr);
+      //Serial.print(F(":"));
+      //Serial.println(dest);
       return true;
     }
+    //Serial.print(addr);
+    //Serial.print(F(": Not valid: "));
+    //Serial.println(read_value);
     return false;
 }
 
@@ -42,13 +49,13 @@ void LoadDefaultSettings()
 {
   memset(&globalSettings,0x00,sizeof(globalSettings));
 
-  globalSettings.oscillatorCal = 0;
-  globalSettings.usbCarrierFreq = 11052000L;
+  globalSettings.oscillatorCal = 0L;
+  globalSettings.usbCarrierFreq = 11052000UL;
 
   globalSettings.activeVfo = Vfo_e::VFO_A;
-  globalSettings.vfoA.frequency = 7150000L;
+  globalSettings.vfoA.frequency = 7150000UL;
   globalSettings.vfoA.mode = VFO_MODE_LSB;
-  globalSettings.vfoB.frequency = 14150000L;
+  globalSettings.vfoB.frequency = 14150000UL;
   globalSettings.vfoB.mode = VFO_MODE_USB;
 
   globalSettings.keyerMode = KEYER_STRAIGHT;
@@ -79,7 +86,7 @@ void LoadSettingsFromEeprom()
   LoadSane(globalSettings.vfoA.frequency,EEPROM_ADDR_VFO_A_FREQ,3500000UL,30000000UL);
   LoadSane(globalSettings.vfoB.frequency,EEPROM_ADDR_VFO_B_FREQ,3500000UL,30000000UL);
   LoadSane(globalSettings.cwSideToneFreq,EEPROM_ADDR_CW_SIDETONE,100UL,2000UL);
-  LoadSane(globalSettings.cwDitDurationMs,EEPROM_ADDR_CW_DIT_TIME,10UL,1000UL);
+  LoadSane(globalSettings.cwDitDurationMs,EEPROM_ADDR_CW_DIT_TIME,10U,1000U);
   if(LoadSane(globalSettings.cwActiveTimeoutMs,EEPROM_ADDR_CW_DELAYTIME,10U,100U)){
     globalSettings.cwActiveTimeoutMs *= 10;//scale by 10 for legacy reasons
   }
@@ -97,6 +104,7 @@ void LoadSettingsFromEeprom()
 
 void SaveSettingsToEeprom()
 {
+  //Serial.println(F("Saving..."));
   EEPROM.put(EEPROM_ADDR_MASTER_CAL,globalSettings.oscillatorCal);
   EEPROM.put(EEPROM_ADDR_USB_CAL,globalSettings.usbCarrierFreq);
   EEPROM.put(EEPROM_ADDR_VFO_A_FREQ,globalSettings.vfoA.frequency);
