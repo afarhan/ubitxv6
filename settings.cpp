@@ -1,8 +1,9 @@
 #include <string.h>//memset
 #include <stdint.h>
 #include <EEPROM.h>
+#include <Arduino.h>//only needed for debugging's Serial.print stuff
 #include "settings.h"
-#include <Arduino.h>
+#include "ubitx.h"//redrawVFOs() function
 
 /**
  * These are the "magic" indices where these user changable settinngs are stored in the EEPROM
@@ -161,4 +162,5 @@ void SetActiveVfoMode(VfoMode_e mode)
   else{
     globalSettings.vfoB.mode = mode;
   }
+  redrawVFOs();
 }
