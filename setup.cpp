@@ -83,7 +83,7 @@ void printCarrierFreq(unsigned long freq){
   strncat(c, b, 2);
   strcat_P(c,(const char*)F("."));
   strncat(c, &b[2], 3);
-  strcat(c,(const char*)F("."));
+  strcat_P(c,(const char*)F("."));
   strncat(c, &b[5], 1);
   displayText(c, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_TITLE_BACKGROUND, COLOR_BACKGROUND);
 }
