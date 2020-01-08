@@ -153,6 +153,14 @@ bool xpt2046_Init(){
 }
 
 void displayInit(void){
+  //Pulling this low 6 times should exit deep sleep mode
+  pinMode(TFT_CS,OUTPUT);
+  for(uint8_t i = 0; i < 6; ++i){
+    digitalWrite(TFT_CS,HIGH);
+    digitalWrite(TFT_CS,LOW);
+  }
+  digitalWrite(TFT_CS,HIGH);//Disable writing for now
+
   tft.begin();
   tft.setFont(ubitx_font);
   tft.setTextWrap(false);
