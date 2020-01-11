@@ -526,7 +526,7 @@ void doTuning(){
   if (!s)
     return;
 
-  //Serial.print(s);
+  //Serial.println(s);
 
   doingCAT = 0; // go back to manual mode if you were doing CAT
   prev_freq = frequency;

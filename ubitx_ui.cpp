@@ -635,7 +635,7 @@ int enc_read(void) {
 /*
  * SmittyHalibut's encoder handling, using interrupts. Should be quicker, smoother handling.
  */
-int enc_count;
+int8_t enc_count;
 uint8_t prev_enc;
 
 uint8_t enc_state (void) {
@@ -699,18 +699,9 @@ ISR (PCINT1_vect) {
 }
 
 int enc_read(void) {
-  int ret = enc_count;
+  int8_t ret = enc_count;
   enc_count = 0;
-  if (ret == 255 || ret == -256) {
-    // FIXME I (@SmittyHalibut) can't figure out why we occasionally get 
-    // either a 255 or -256 return value here. It's like it's occasionally
-    // treating an int as an unsigned value while incrementing or decrementing.
-    // I can't figure out why, but I can detect it and skip it. So that's 
-    // what we're doing.
-    //Serial.println("255 error in encoder.");
-    return 0;
-  }
-  return ret;
+  return int(ret);
 }
 
 
