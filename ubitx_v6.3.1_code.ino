@@ -522,32 +522,30 @@ void doTuning(){
 
   unsigned long now = millis();
   
-  if (now >= nextFrequencyUpdate && prev_freq != frequency){
-    updateDisplay();
-    nextFrequencyUpdate = now + 500;
-    prev_freq = frequency;
-  }
-
   s = enc_read();
   if (!s)
     return;
 
+  //Serial.print(s);
+
   doingCAT = 0; // go back to manual mode if you were doing CAT
   prev_freq = frequency;
 
-
-  if (s > 10)
-    frequency += 200l * s;
-  else if (s > 5)
-    frequency += 100l * s;
-  else if (s > 0)
+  // TODO With the new more responsive tuning, 5 and 10 are nearly useless
+  // thresholds for acceleration. I rarely see above 2 or 3 even when turning
+  // the knob quickly.
+  if (s < 5 && s > -5) {
     frequency += 50l * s;
-  else if (s < -10)
-    frequency += 200l * s;
-  else if (s < -5)
+    //Serial.println(" 5");
+  }
+  else if (s < 10 && s > -10) {
     frequency += 100l * s;
-  else if (s  < 0)
-    frequency += 50l * s;
+    //Serial.println(" 10");
+  }
+  else { // if (s >= 10 || s <= -10) 
+    frequency += 200l * s;
+    //Serial.println(" <");
+  }
    
   if (prev_freq < 10000000l && frequency > 10000000l)
     isUSB = true;
@@ -556,6 +554,12 @@ void doTuning(){
     isUSB = false;
 
   setFrequency(frequency);    
+
+  if (now >= nextFrequencyUpdate && prev_freq != frequency){
+    updateDisplay();
+    nextFrequencyUpdate = now + 100;
+    prev_freq = frequency;
+  }
 }
 
 
@@ -676,6 +680,7 @@ void initPorts(){
   pinMode(ENC_A, INPUT_PULLUP);
   pinMode(ENC_B, INPUT_PULLUP);
   pinMode(FBUTTON, INPUT_PULLUP);
+  enc_setup();
   
   //configure the function button to use the external pull-up
 //  pinMode(FBUTTON, INPUT);

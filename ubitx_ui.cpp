@@ -565,7 +565,6 @@ void updateDisplay() {
    displayVFO(vfoActive);    
 }
 
-int enc_prev_state = 3;
 
 /**
  * The A7 And A6 are purely analog lines on the Arduino Nano
@@ -585,10 +584,14 @@ int enc_prev_state = 3;
  * at which the enccoder was spun
  */
 
+/*
+int enc_prev_state = 3;
+
 byte enc_state (void) {
     //Serial.print(digitalRead(ENC_A)); Serial.print(":");Serial.println(digitalRead(ENC_B));
     return (digitalRead(ENC_A) == 1 ? 1 : 0) + (digitalRead(ENC_B) == 1 ? 2: 0);
 }
+
 
 int enc_read(void) {
   int result = 0; 
@@ -627,6 +630,91 @@ int enc_read(void) {
   //  Serial.println(result);
   return(result);
 }
+*/
+
+/*
+ * SmittyHalibut's encoder handling, using interrupts. Should be quicker, smoother handling.
+ */
+int enc_count;
+uint8_t prev_enc;
+
+uint8_t enc_state (void) {
+    return (digitalRead(ENC_A)?1:0 + digitalRead(ENC_B)?2:0);
+}
+
+/*
+ * Setup the encoder interrupts and global variables.
+ */
+void pci_setup(byte pin) {
+  *digitalPinToPCMSK(pin) |= bit (digitalPinToPCMSKbit(pin));  // enable pin
+  PCIFR  |= bit (digitalPinToPCICRbit(pin)); // clear any outstanding interrupt
+  PCICR  |= bit (digitalPinToPCICRbit(pin)); // enable interrupt for the group 
+}
+
+void enc_setup(void) {
+  enc_count = 0;
+  // This is already done in setup() ?
+  //pinMode(ENC_A, INPUT);
+  //pinMode(ENC_B, INPUT);
+  prev_enc = enc_state();
+
+  // Setup Pin Change Interrupts for the encoder inputs
+  pci_setup(ENC_A);
+  pci_setup(ENC_B);
+}
+
+/*
+ * The Interrupt Service Routine for Pin Change Interrupts on A0-A5.
+ */
+ISR (PCINT1_vect) {
+  uint8_t cur_enc = enc_state();
+  if (prev_enc == cur_enc) {
+    //Serial.println("unnecessary ISR");
+    return;
+  }
+  //Serial.print(prev_enc);
+  //Serial.println(cur_enc);
+  
+  //these transitions point to the enccoder being rotated anti-clockwise
+  if ((prev_enc == 0 && cur_enc == 2) || 
+      (prev_enc == 2 && cur_enc == 3) || 
+      (prev_enc == 3 && cur_enc == 1) || 
+      (prev_enc == 1 && cur_enc == 0))
+  {
+    enc_count-=1;
+  }
+  //these transitions point to the enccoder being rotated clockwise
+  else if ((prev_enc == 0 && cur_enc == 1) || 
+      (prev_enc == 1 && cur_enc == 3) || 
+      (prev_enc == 3 && cur_enc == 2) || 
+      (prev_enc == 2 && cur_enc == 0))
+  {
+    enc_count+=1;
+  }
+  else {
+    // A change to two states, we can't tell whether it was forward or backward, so we skip it.
+    //Serial.println("skip");
+  }
+  prev_enc = cur_enc; // Record state for next pulse interpretation
+}
+
+int enc_read(void) {
+  int ret = enc_count;
+  enc_count = 0;
+  if (ret == 255 || ret == -256) {
+    // FIXME I (@SmittyHalibut) can't figure out why we occasionally get 
+    // either a 255 or -256 return value here. It's like it's occasionally
+    // treating an int as an unsigned value while incrementing or decrementing.
+    // I can't figure out why, but I can detect it and skip it. So that's 
+    // what we're doing.
+    //Serial.println("255 error in encoder.");
+    return 0;
+  }
+  return ret;
+}
+
+
+
 
 void ritToggle(struct Button *button){
   if (ritOn == 0){
@@ -1021,4 +1109,3 @@ void doCommands(){
 
   checkCAT();
 }
-
