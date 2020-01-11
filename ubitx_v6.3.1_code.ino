@@ -522,6 +522,12 @@ void doTuning(){
 
   unsigned long now = millis();
   
+  if (now >= nextFrequencyUpdate && prev_freq != frequency){
+    updateDisplay();
+    nextFrequencyUpdate = now + 100;
+    prev_freq = frequency;
+  }
+
   s = enc_read();
   if (!s)
     return;
@@ -554,12 +560,6 @@ void doTuning(){
     isUSB = false;
 
   setFrequency(frequency);    
-
-  if (now >= nextFrequencyUpdate && prev_freq != frequency){
-    updateDisplay();
-    nextFrequencyUpdate = now + 100;
-    prev_freq = frequency;
-  }
 }
 
 
