@@ -39,7 +39,9 @@ bool LoadSane(T& dest,uint16_t addr, T min, T max)
     }
     //Serial.print(addr);
     //Serial.print(F(": Not valid: "));
-    //Serial.println(read_value);
+    //Serial.print(read_value);
+    //Serial.print(F(" Leaving value at "));
+    //Serial.println(dest);
     return false;
 }
 
