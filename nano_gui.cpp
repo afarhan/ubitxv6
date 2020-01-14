@@ -157,7 +157,6 @@ void displayInit(void){
   tft.setRotation(1);
 
   xpt2046_Init();
-  readTouchCalibration();
 }
 
 void displayPixel(unsigned int x, unsigned int y, unsigned int c){

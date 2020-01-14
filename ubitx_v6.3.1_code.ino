@@ -420,6 +420,7 @@ void doRIT(){
  * variables.
  */
 void initSettings(){
+  LoadDefaultSettings();
   LoadSettingsFromEeprom();
 }
 
@@ -461,8 +462,8 @@ void setup()
   Serial.begin(38400);
   Serial.flush();  
 
-  displayInit();
   initSettings();
+  displayInit();
   initPorts();
   initOscillators();
   setFrequency(globalSettings.vfoA.frequency);
