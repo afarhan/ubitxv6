@@ -359,13 +359,15 @@ void doTuning(){
   
   if (now >= nextFrequencyUpdate && prev_freq != GetActiveVfoFreq()){
     updateDisplay();
-    nextFrequencyUpdate = now + 500;
+    nextFrequencyUpdate = now + 100;
     prev_freq = GetActiveVfoFreq();
   }
 
   int s = enc_read();
   if (!s)
     return;
+
+  //Serial.println(s);
 
   doingCAT = 0; // go back to manual mode if you were doing CAT
   prev_freq = GetActiveVfoFreq();
@@ -432,6 +434,7 @@ void initPorts(){
   pinMode(ENC_A, INPUT_PULLUP);
   pinMode(ENC_B, INPUT_PULLUP);
   pinMode(FBUTTON, INPUT_PULLUP);
+  enc_setup();
   
   //configure the function button to use the external pull-up
 //  pinMode(FBUTTON, INPUT);

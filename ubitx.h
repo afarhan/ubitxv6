@@ -109,6 +109,7 @@ void cwKeyer(void);
 void switchVFO(Vfo_e vfoSelect);
 
 int enc_read(void); // returns the number of ticks in a short interval, +ve in clockwise, -ve in anti-clockwise
+void enc_setup(void);  // Setups up initial values and interrupts.
 int btnDown(); //returns true if the encoder button is pressed
 
 /* these functions are called universally to update the display */
