@@ -89,9 +89,6 @@ void printCarrierFreq(unsigned long freq){
 }
 
 void setupFreq(){
-  int knob = 0;
-  int32_t prev_calibration;
-
   displayDialog(F("Set Frequency"),F("Push TUNE to Save"));
 
   //round off the the nearest khz
@@ -105,7 +102,7 @@ void setupFreq(){
   displayText(c, LAYOUT_SETTING_VALUE_X, LAYOUT_ITEM_Y, LAYOUT_ITEM_WIDTH, LAYOUT_ITEM_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
   strcpy_P(c,(const char*)F("signal exactly at"));
   displayText(c, LAYOUT_SETTING_VALUE_X, LAYOUT_ITEM_Y + 1*LAYOUT_ITEM_PITCH_Y, LAYOUT_ITEM_WIDTH, LAYOUT_ITEM_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
-  ltoa(GetActiveVfoFreq()/1000l, c, 10);
+  ltoa(GetActiveVfoFreq()/1000L, c, 10);
   strcat_P(c,(const char*)F(" KHz"));
   displayText(c, LAYOUT_SETTING_VALUE_X, LAYOUT_ITEM_Y + 2*LAYOUT_ITEM_PITCH_Y, LAYOUT_ITEM_WIDTH, LAYOUT_ITEM_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
   strcpy_P(c,(const char*)F("Rotate to zerobeat"));
@@ -117,21 +114,18 @@ void setupFreq(){
   while (btnDown())
     active_delay(100);
   active_delay(100);
-   
-  prev_calibration = globalSettings.oscillatorCal;
-  globalSettings.oscillatorCal = 0;
 
   while (!btnDown())
   {
-   knob = enc_read();
-   if (knob != 0)
+    int knob = enc_read();
+    if(knob != 0){
       globalSettings.oscillatorCal += knob * 875;
- /*   else if (knob < 0)
-      calibration -= 875; */
-    else  
+    }
+    else{
       continue; //don't update the frequency or the display
- 
-    si5351bx_setfreq(0, globalSettings.usbCarrierFreq);  //set back the cardrier oscillator anyway, cw tx switches it off  
+    }
+
+    si5351bx_setfreq(0, globalSettings.usbCarrierFreq); //set back the carrier oscillator anyway, cw tx switches it off
     si5351_set_calibration(globalSettings.oscillatorCal);
     setFrequency(GetActiveVfoFreq());
     
@@ -151,24 +145,19 @@ void setupFreq(){
 }
 
 void setupBFO(){
-  int knob = 0;
-  unsigned long prevCarrier;
-   
-  prevCarrier = globalSettings.usbCarrierFreq;
-
   displayDialog(F("Set BFO"),F("Press TUNE to Save")); 
-  
-  globalSettings.usbCarrierFreq = 11053000l;
+
   si5351bx_setfreq(0, globalSettings.usbCarrierFreq);
   printCarrierFreq(globalSettings.usbCarrierFreq);
 
   while (!btnDown()){
-    knob = enc_read();
-
-    if (knob != 0)
+    int knob = enc_read();
+    if(knob != 0){
       globalSettings.usbCarrierFreq -= 50 * knob;
-    else
+    }
+    else{
       continue; //don't update the frequency or the display
+    }
       
     si5351bx_setfreq(0, globalSettings.usbCarrierFreq);
     setFrequency(GetActiveVfoFreq());
@@ -180,8 +169,6 @@ void setupBFO(){
   SaveSettingsToEeprom();
   si5351bx_setfreq(0, globalSettings.usbCarrierFreq);
   setFrequency(GetActiveVfoFreq());
-  updateDisplay();
-  setupExit();
 }
 
 void setupCwDelay(){
