@@ -86,8 +86,8 @@ void LoadDefaultSettings()
 void LoadSettingsFromEeprom()
 {
   LoadSane(globalSettings.usbCarrierFreq,EEPROM_ADDR_USB_CAL,11048000UL,11060000UL);
-  LoadSane(globalSettings.vfoA.frequency,EEPROM_ADDR_VFO_A_FREQ,3500000UL,30000000UL);
-  LoadSane(globalSettings.vfoB.frequency,EEPROM_ADDR_VFO_B_FREQ,3500000UL,30000000UL);
+  LoadSane(globalSettings.vfoA.frequency,EEPROM_ADDR_VFO_A_FREQ,500000UL+1,109000000UL-1);//Allow all freq supported by si5351 driver
+  LoadSane(globalSettings.vfoB.frequency,EEPROM_ADDR_VFO_B_FREQ,500000UL+1,109000000UL-1);//Allow all freq supported by si5351 driver
   LoadSane(globalSettings.cwSideToneFreq,EEPROM_ADDR_CW_SIDETONE,100UL,2000UL);
   LoadSane(globalSettings.cwDitDurationMs,EEPROM_ADDR_CW_DIT_TIME,10U,1000U);
   if(LoadSane(globalSettings.cwActiveTimeoutMs,EEPROM_ADDR_CW_DELAYTIME,10U,100U)){
