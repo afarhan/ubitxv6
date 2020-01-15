@@ -80,11 +80,27 @@ void printCarrierFreq(unsigned long freq){
 
   ultoa(freq, b, DEC);
   
-  strncat(c, b, 2);
-  strcat_P(c,(const char*)F("."));
-  strncat(c, &b[2], 3);
-  strcat_P(c,(const char*)F("."));
-  strncat(c, &b[5], 1);
+  unsigned int characters_remaining = strlen(b);
+  char* destination = c;
+  char* source = b;
+  while(characters_remaining > 0){
+    if(characters_remaining > 3){
+      unsigned int characters_to_read = characters_remaining % 3;
+      if(0 == characters_to_read){
+        characters_to_read = 3;
+      }
+      memcpy(destination,source,characters_to_read);
+      source += characters_to_read;
+      destination += characters_to_read;
+      characters_remaining -= characters_to_read;
+      memcpy_P(destination,(const char*)F("."),1);
+      destination += 1;
+    }
+    else{
+      memcpy(destination,source,characters_remaining);
+      characters_remaining -= characters_remaining;
+    }
+  }
   displayText(c, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_TITLE_BACKGROUND, COLOR_BACKGROUND);
 }
 
