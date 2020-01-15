@@ -159,24 +159,24 @@ void setFrequency(unsigned long freq){
  
   setTXFilters(freq);
 
-  uint32_t primary_osc_freq;
-  if(VfoMode_e::VFO_MODE_USB == GetActiveVfoMode()){
-    primary_osc_freq = firstIF + globalSettings.usbCarrierFreq;
-  }
-  else{
-    primary_osc_freq = firstIF - globalSettings.usbCarrierFreq;
-  }
-
-  uint32_t secondary_osc_freq;
+  uint32_t local_osc_freq;
   if(TuningMode_e::TUNE_CW == globalSettings.tuningMode){
-    secondary_osc_freq = firstIF + freq + globalSettings.cwSideToneFreq;
+    local_osc_freq = firstIF + freq + globalSettings.cwSideToneFreq;
   }
   else{
-    secondary_osc_freq = firstIF + freq;
+    local_osc_freq = firstIF + freq;
   }
 
-  si5351bx_setfreq(2, secondary_osc_freq);
-  si5351bx_setfreq(1, primary_osc_freq);
+  uint32_t ssb_osc_freq;
+  if(VfoMode_e::VFO_MODE_USB == GetActiveVfoMode()){
+    ssb_osc_freq = firstIF + globalSettings.usbCarrierFreq;
+  }
+  else{
+    ssb_osc_freq = firstIF - globalSettings.usbCarrierFreq;
+  }
+
+  si5351bx_setfreq(2, local_osc_freq);
+  si5351bx_setfreq(1, ssb_osc_freq);
 
   SetActiveVfoFreq(freq);
 }
