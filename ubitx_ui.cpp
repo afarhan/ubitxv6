@@ -152,26 +152,27 @@ boolean getButton(btn_set_e index, Button* button){
 /*
  * This formats the frequency given in f 
  */
-void formatFreq(long f, char *buff) {
-  // tks Jack Purdum W8TEE
-  // replaced fsprint commmands by str commands for code size reduction
+void formatFreq(uint32_t freq, char* buff, uint16_t buff_size) {
+  memset(buff, 0, buff_size);
 
-  memset(buff, 0, 10);
-  memset(b, 0, sizeof(b));
+  ultoa(freq, buff, DEC);
+  uint8_t num_digits = strlen(buff);
+  const uint8_t num_spacers = (num_digits-1) / 3;
+  const uint8_t num_leading_digits_raw = num_digits % 3;
+  const uint8_t num_leading_digits = (0 == num_leading_digits_raw) ? 3 : num_leading_digits_raw;
 
-  ultoa(f, b, DEC);
-
-  //one mhz digit if less than 10 M, two digits if more
-  if (f < 10000000l){
-    buff[0] = ' ';
-    strncat(buff, b, 4);
-    strcat_P(buff,(const char*)F("."));
-    strncat(buff, &b[4], 2);
+  if(0 == num_spacers){
+    return;
   }
-  else {
-    strncat(buff, b, 5);
-    strcat_P(buff,(const char*)F("."));
-    strncat(buff, &b[5], 2);
+
+  buff += num_leading_digits;
+  num_digits -= num_leading_digits;
+  for(int i = num_digits-1; i >= 0; --i){
+    buff[i + (i/3 + 1)] = buff[i];
+  }
+  for(unsigned int i = 0; i < num_spacers; ++i){
+    memcpy_P(buff,F("."),1);
+    buff += 4;
   }
 }
 
@@ -248,7 +249,7 @@ void displayVFO(Vfo_e vfo){
 
   if (VFO_A == vfo){
     getButton(BUTTON_VFOA, &button);
-    formatFreq(globalSettings.vfoA.frequency, c+2);
+    formatFreq(globalSettings.vfoA.frequency, c+2, sizeof(c)-2);
 
     if (VFO_A == globalSettings.activeVfo){
       displayColor = COLOR_ACTIVE_VFO_TEXT;
@@ -263,7 +264,7 @@ void displayVFO(Vfo_e vfo){
 
   if (VFO_B == vfo){
     getButton(BUTTON_VFOB, &button);
-    formatFreq(globalSettings.vfoB.frequency, c+2);
+    formatFreq(globalSettings.vfoB.frequency, c+2, sizeof(c)-2);
 
     if (VFO_B == globalSettings.activeVfo){
       displayColor = COLOR_ACTIVE_VFO_TEXT;
@@ -362,7 +363,7 @@ void displayRIT(){
   displayFillrect(LAYOUT_MODE_TEXT_X,LAYOUT_MODE_TEXT_Y,LAYOUT_MODE_TEXT_WIDTH,LAYOUT_MODE_TEXT_HEIGHT, COLOR_BACKGROUND);
   if(globalSettings.ritOn){
     strcpy_P(c,(const char*)F("TX:"));
-    formatFreq(globalSettings.ritFrequency, c+3);
+    formatFreq(globalSettings.ritFrequency, c+3, sizeof(c)-3);
     if (VFO_A == globalSettings.activeVfo)
       displayText(c, LAYOUT_VFO_LABEL_X + 0*LAYOUT_VFO_LABEL_PITCH_X, LAYOUT_MODE_TEXT_Y, LAYOUT_VFO_LABEL_WIDTH, LAYOUT_MODE_TEXT_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
     else
