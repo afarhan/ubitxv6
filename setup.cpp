@@ -284,6 +284,17 @@ void setupCwTone(){
   SaveSettingsToEeprom();
 }
 
+void setupResetAll()
+{
+  LoadDefaultSettings();
+  SaveSettingsToEeprom();
+  while(btnDown()){
+    active_delay(50);
+  }
+  active_delay(50);
+  setup();
+}
+
 struct MenuItem_t {
   const char* const ItemName;
   const void (*OnSelect)();
@@ -319,10 +330,12 @@ const MenuItem_t cwMenu [] PROGMEM {
 void runCwMenu(){RUN_MENU(cwMenu);}
 
 const char MT_SETTINGS [] PROGMEM = "Settings";
+const char MI_RESET [] PROGMEM = "Reset all Cals/Settings";
 const MenuItem_t mainMenu [] PROGMEM {
   {MT_SETTINGS,nullptr},//Title
   {MT_CAL,runCalibrationMenu},
   {MT_CW,runCwMenu},
+  {MI_RESET,setupResetAll},
 };
 
 const char MI_EXIT [] PROGMEM = "Exit";
