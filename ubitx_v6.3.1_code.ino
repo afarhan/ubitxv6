@@ -473,12 +473,13 @@ void setup()
 
   //Run initial calibration routine if button is pressed during power up
   if(btnDown()){
+    LoadDefaultSettings();
     setupTouch();
     SetActiveVfoMode(VfoMode_e::VFO_MODE_USB);
-    setFrequency(10000000l);
+    setFrequency(10000000L);
     setupFreq();
     SetActiveVfoMode(VfoMode_e::VFO_MODE_LSB);
-    setFrequency(7100000l);
+    setFrequency(7100000L);
     setupBFO();
   }
 
