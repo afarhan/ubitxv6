@@ -286,13 +286,44 @@ void setupCwTone(){
 
 void setupResetAll()
 {
-  LoadDefaultSettings();
-  SaveSettingsToEeprom();
+  displayDialog(F("Reset all cals and settings?"),F("Press tune to Confirm"));
+  strcpy_P(b,(const char*)F("No"));
+  displayText(b, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
+
+  bool reset_all = false;
+  while(!btnDown()){
+    int knob = enc_read();
+    
+    if(knob > 0){
+      reset_all = true;
+    }
+    else if(knob < 0){
+      reset_all = false;
+    }
+    else{
+      continue;
+    }
+
+    if(reset_all){
+      strcpy_P(b,(const char*)F("Yes"));
+    }
+    else{
+      strcpy_P(b,(const char*)F("No"));
+    }
+    
+    displayText(b, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
+  }
+
   while(btnDown()){
     active_delay(50);
   }
   active_delay(50);
-  setup();
+
+  if(reset_all){
+    LoadDefaultSettings();
+    SaveSettingsToEeprom();
+    setup();
+  }
 }
 
 struct MenuItem_t {
