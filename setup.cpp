@@ -161,7 +161,6 @@ void setupCwDelay(){
 
   displayDialog(F("Set CW T/R Delay"),F("Press tune to Save")); 
 
-  active_delay(500);
   prev_cw_delay = globalSettings.cwActiveTimeoutMs;
 
   ltoa(globalSettings.cwActiveTimeoutMs, b, 10);
@@ -185,7 +184,6 @@ void setupCwDelay(){
   }
 
   SaveSettingsToEeprom();
-  active_delay(500);
 }
 
 void formatKeyerEnum(char* output, const KeyerMode_e mode)
@@ -233,6 +231,59 @@ void setupKeyer(){
   SaveSettingsToEeprom();
 }
 
+void setupCwSpeed()
+{
+  displayDialog(F("Set CW Speed (WPM)"),F("Press tune to Save"));
+
+  unsigned int wpm = 1200/globalSettings.cwDitDurationMs;
+
+  itoa(wpm, b, 10);
+  displayText(b, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
+
+  while (!btnDown()){
+    int knob = enc_read();
+
+    if (knob < 0 && wpm > 1)
+      --wpm;
+    else if (knob > 0 && wpm < 100)
+      ++wpm;
+    else
+      continue;//don't update the frequency or the display
+
+    itoa(wpm, b, 10);
+    displayText(b, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
+  }
+
+  globalSettings.cwDitDurationMs = 1200/wpm;
+  SaveSettingsToEeprom();
+}
+
+void setupCwTone(){
+  displayDialog(F("Set CW Tone (Hz)"),F("Press tune to Save"));
+
+  tone(CW_TONE, globalSettings.cwSideToneFreq);
+  itoa(globalSettings.cwSideToneFreq, b, 10);
+  displayText(b, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
+
+  while(!btnDown()){
+    int knob = enc_read();
+
+    if (knob > 0 && globalSettings.cwSideToneFreq < 2000)
+      globalSettings.cwSideToneFreq += 10;
+    else if (knob < 0 && globalSettings.cwSideToneFreq > 100 )
+      globalSettings.cwSideToneFreq -= 10;
+    else
+      continue; //don't update the frequency or the display
+        
+    tone(CW_TONE, globalSettings.cwSideToneFreq);
+    itoa(globalSettings.cwSideToneFreq, b, 10);
+    displayText(b, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
+  }
+  noTone(CW_TONE);
+
+  SaveSettingsToEeprom();
+}
+
 struct MenuItem_t {
   const char* const ItemName;
   const void (*OnSelect)();
@@ -242,8 +293,8 @@ void runMenu(const MenuItem_t* const menu_items, const uint16_t num_items);
 #define RUN_MENU(menu) runMenu(menu,sizeof(menu)/sizeof(menu[0]))
 
 const char MT_CAL [] PROGMEM = "Calibrations";
-const char MI_SET_FREQ [] PROGMEM = "Local Osc Frequency";
-const char MI_SET_BFO [] PROGMEM = "Beat Osc Frequency";
+const char MI_SET_FREQ [] PROGMEM = "Local Oscillator";
+const char MI_SET_BFO [] PROGMEM = "Beat Frequency Osc (BFO)";
 const char MI_TOUCH [] PROGMEM = "Touch Screen";
 const MenuItem_t calibrationMenu [] PROGMEM {
   {MT_CAL,nullptr},//Title
@@ -254,10 +305,14 @@ const MenuItem_t calibrationMenu [] PROGMEM {
 void runCalibrationMenu(){RUN_MENU(calibrationMenu);}
 
 const char MT_CW [] PROGMEM = "CW/Morse Setup";
+const char MI_CW_SPEED [] PROGMEM = "Play Speed (WPM)";
+const char MI_CW_TONE [] PROGMEM = "Tone Frequency";
 const char MI_CW_DELAY [] PROGMEM = "Tx/Rx Switching Delay";
 const char MI_CW_KEYER [] PROGMEM = "Keyer Type";
 const MenuItem_t cwMenu [] PROGMEM {
   {MT_CW,nullptr},//Title
+  {MI_CW_SPEED,setupCwSpeed},
+  {MI_CW_TONE,setupCwTone},
   {MI_CW_DELAY,setupCwDelay},
   {MI_CW_KEYER,setupKeyer},
 };

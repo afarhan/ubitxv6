@@ -65,7 +65,7 @@ enum btn_set_e {
   BUTTON_17,
   BUTTON_15,
   BUTTON_10,
-  BUTTON_WPM,
+  BUTTON_BLANK_1,
   BUTTON_MNU,
   BUTTON_FRQ,
   BUTTON_TOTAL
@@ -96,7 +96,7 @@ constexpr Button btn_set[BUTTON_TOTAL] PROGMEM = {
 
   {LAYOUT_BUTTON_X + 0*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_15 ,  "15", '5'},
   {LAYOUT_BUTTON_X + 1*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_10 ,  "10", '1'},
-  {LAYOUT_BUTTON_X + 2*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_WPM, "WPM", 'W'},
+  {LAYOUT_BUTTON_X + 2*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_BLANK_1, "", '\0'},
   {LAYOUT_BUTTON_X + 3*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_MNU, "MNU", 'M'},
   {LAYOUT_BUTTON_X + 4*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_FRQ, "FRQ", 'F'},
 };
@@ -808,65 +808,6 @@ void switchBand(uint32_t bandfreq){
   saveVFOs();
 }
 
-void setCwSpeed()
-{
-  int wpm = 1200/globalSettings.cwDitDurationMs;
-   
-  wpm = getValueByKnob(1, 100, 1,  wpm,F("CW: "),F(" WPM"));
-
-  globalSettings.cwDitDurationMs = 1200/wpm;
-  SaveSettingsToEeprom();
-  active_delay(500);
-  drawStatusbar();
-  //printLine2("");
-  //updateDisplay();
-}
-
-void setCwTone(){
-  int knob = 0;
-  int prev_sideTone;
-     
-  tone(CW_TONE, globalSettings.cwSideToneFreq);
-  itoa(globalSettings.cwSideToneFreq, c, 10);
-  strcpy_P(b,(const char*)F("CW Tone: "));
-  strcat(b, c);
-  strcat_P(b,(const char*)F(" Hz"));
-  drawCommandbar(b);
-
-  //disable all clock 1 and clock 2 
-  while (digitalRead(PTT) == HIGH && !btnDown())
-  {
-    knob = enc_read();
-
-    if (knob > 0 && globalSettings.cwSideToneFreq < 2000)
-      globalSettings.cwSideToneFreq += 10;
-    else if (knob < 0 && globalSettings.cwSideToneFreq > 100 )
-      globalSettings.cwSideToneFreq -= 10;
-    else
-      continue; //don't update the frequency or the display
-        
-    tone(CW_TONE, globalSettings.cwSideToneFreq);
-    itoa(globalSettings.cwSideToneFreq, c, 10);
-    strcpy_P(b,(const char*)F("CW Tone: "));
-    strcat(b, c);
-    strcat_P(b,(const char*)F(" Hz"));
-    drawCommandbar(b);
-    //printLine2(b);
-
-    checkCAT();
-    active_delay(20);
-  }
-  noTone(CW_TONE);
-
-  SaveSettingsToEeprom();
-
-  b[0] = 0;
-  drawCommandbar(b);
-  drawStatusbar();
-  //printLine2("");
-  //updateDisplay();
-}
-
 void doCommand(Button* button){
   //Serial.print(F("Doing command: "));
   //Serial.print(button->text);
@@ -955,11 +896,6 @@ void doCommand(Button* button){
     case BUTTON_FRQ:
     {
       enterFreq();
-      break;
-    }
-    case BUTTON_WPM:
-    {
-      setCwSpeed();
       break;
     }
     case BUTTON_MNU:
