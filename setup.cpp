@@ -242,9 +242,9 @@ void runMenu(const MenuItem_t* const menu_items, const uint16_t num_items);
 #define RUN_MENU(menu) runMenu(menu,sizeof(menu)/sizeof(menu[0]))
 
 const char MT_CAL [] PROGMEM = "Calibrations";
-const char MI_SET_FREQ [] PROGMEM = "Set Freq...";
-const char MI_SET_BFO [] PROGMEM = "Set BFO...";
-const char MI_TOUCH [] PROGMEM = "Touch Screen...";
+const char MI_SET_FREQ [] PROGMEM = "Local Osc Frequency";
+const char MI_SET_BFO [] PROGMEM = "Beat Osc Frequency";
+const char MI_TOUCH [] PROGMEM = "Touch Screen";
 const MenuItem_t calibrationMenu [] PROGMEM {
   {MT_CAL,nullptr},//Title
   {MI_SET_FREQ,setupFreq},
@@ -254,8 +254,8 @@ const MenuItem_t calibrationMenu [] PROGMEM {
 void runCalibrationMenu(){RUN_MENU(calibrationMenu);}
 
 const char MT_CW [] PROGMEM = "CW/Morse Setup";
-const char MI_CW_DELAY [] PROGMEM = "CW Delay...";
-const char MI_CW_KEYER [] PROGMEM = "CW Keyer...";
+const char MI_CW_DELAY [] PROGMEM = "Tx/Rx Switching Delay";
+const char MI_CW_KEYER [] PROGMEM = "Keyer Type";
 const MenuItem_t cwMenu [] PROGMEM {
   {MT_CW,nullptr},//Title
   {MI_CW_DELAY,setupCwDelay},
