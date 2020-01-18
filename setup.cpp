@@ -18,10 +18,6 @@
  *  - If the menu item is NOT clicked on, then the menu's prompt is to be displayed
  */
 
-void setupExit(){
-  menuOn = 0;
-}
-
 static const unsigned int COLOR_TEXT = DISPLAY_WHITE;
 static const unsigned int COLOR_BACKGROUND = DISPLAY_BLACK;
 static const unsigned int COLOR_TITLE_BACKGROUND = DISPLAY_NAVY;
@@ -190,7 +186,6 @@ void setupCwDelay(){
 
   SaveSettingsToEeprom();
   active_delay(500);
-  setupExit();
 }
 
 void setupKeyer(){
@@ -243,88 +238,107 @@ void setupKeyer(){
 
   globalSettings.keyerMode = tmp_mode;
   SaveSettingsToEeprom();
-  
-  setupExit();
 }
 
+struct MenuItem_t {
+  const char* const ItemName;
+  const void (*OnSelect)();
+};
+
+void runMenu(const MenuItem_t* const menu_items, const uint16_t num_items);
+#define RUN_MENU(menu) runMenu(menu,sizeof(menu)/sizeof(menu[0]))
+
+const char MT_CAL [] PROGMEM = "Calibrations";
 const char MI_SET_FREQ [] PROGMEM = "Set Freq...";
 const char MI_SET_BFO [] PROGMEM = "Set BFO...";
+const char MI_TOUCH [] PROGMEM = "Touch Screen...";
+const MenuItem_t calibrationMenu [] PROGMEM {
+  {MT_CAL,nullptr},//Title
+  {MI_SET_FREQ,setupFreq},
+  {MI_SET_BFO,setupBFO},
+  {MI_TOUCH,setupTouch},
+};
+void runCalibrationMenu(){RUN_MENU(calibrationMenu);}
+
+const char MT_CW [] PROGMEM = "CW/Morse Setup";
 const char MI_CW_DELAY [] PROGMEM = "CW Delay...";
 const char MI_CW_KEYER [] PROGMEM = "CW Keyer...";
-const char MI_TOUCH [] PROGMEM = "Touch Screen...";
+const MenuItem_t cwMenu [] PROGMEM {
+  {MT_CW,nullptr},//Title
+  {MI_CW_DELAY,setupCwDelay},
+  {MI_CW_KEYER,setupKeyer},
+};
+void runCwMenu(){RUN_MENU(cwMenu);}
+
+const char MT_SETTINGS [] PROGMEM = "Settings";
+const MenuItem_t mainMenu [] PROGMEM {
+  {MT_SETTINGS,nullptr},//Title
+  {MT_CAL,runCalibrationMenu},
+  {MT_CW,runCwMenu},
+};
+
 const char MI_EXIT [] PROGMEM = "Exit";
+const MenuItem_t exitMenu PROGMEM = {MI_EXIT,nullptr};
 
-enum MenuIds {
-  MENU_SET_FREQ,
-  MENU_SET_BFO,
-  MENU_CW_DELAY,
-  MENU_CW_KEYER,
-  MENU_TOUCH,
-  MENU_EXIT,
-  MENU_TOTAL
-};
-
-const char* const menuItems [MENU_TOTAL] PROGMEM {
-  MI_SET_FREQ,
-  MI_SET_BFO,
-  MI_CW_DELAY,
-  MI_CW_KEYER,
-  MI_TOUCH,
-  MI_EXIT
-};
-
-void drawSetupMenu(){
+void drawMenu(const MenuItem_t* const items, const uint16_t num_items)
+{
   displayClear(COLOR_BACKGROUND);
-  strcpy_P(b,(const char*)F("Setup"));
+  MenuItem_t mi = {"",nullptr};
+  memcpy_P(&mi,&items[0],sizeof(mi));
+  strcpy_P(b,mi.ItemName);
   displayText(b, LAYOUT_TITLE_X, LAYOUT_TITLE_Y, LAYOUT_TITLE_WIDTH, LAYOUT_TITLE_HEIGHT, COLOR_TEXT, COLOR_TITLE_BACKGROUND, COLOR_ACTIVE_BORDER);
-  for(unsigned int i = 0; i < MENU_TOTAL; ++i){
-    strcpy_P(b,(const char*)pgm_read_word(&(menuItems[i])));
-    displayText(b, LAYOUT_ITEM_X, LAYOUT_ITEM_Y + i*LAYOUT_ITEM_PITCH_Y, LAYOUT_ITEM_WIDTH, LAYOUT_ITEM_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_INACTIVE_BORDER);
+  for(unsigned int i = 1; i < num_items; ++i){
+    memcpy_P(&mi,&items[i],sizeof(mi));
+    strcpy_P(b,mi.ItemName);
+    displayText(b, LAYOUT_ITEM_X, LAYOUT_ITEM_Y + (i-1)*LAYOUT_ITEM_PITCH_Y, LAYOUT_ITEM_WIDTH, LAYOUT_ITEM_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_INACTIVE_BORDER);
   }
+  memcpy_P(&mi,&exitMenu,sizeof(mi));
+  strcpy_P(b,mi.ItemName);
+  displayText(b, LAYOUT_ITEM_X, LAYOUT_ITEM_Y + (num_items-1)*LAYOUT_ITEM_PITCH_Y, LAYOUT_ITEM_WIDTH, LAYOUT_ITEM_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_INACTIVE_BORDER);
 }
 
-void movePuck(int i){
-  static int prevPuck = 1;//Start value at 1 so that on init, when we get called with 0, we'll update
-
+void movePuck(unsigned int old_index, unsigned int new_index)
+{
   //Don't update if we're already on the right selection
-  if(prevPuck == i){
+  if(old_index == new_index){
     return;
   }
-
-  //Clear old
-  displayRect(LAYOUT_ITEM_X, LAYOUT_ITEM_Y + (prevPuck*LAYOUT_ITEM_PITCH_Y), LAYOUT_ITEM_WIDTH, LAYOUT_ITEM_HEIGHT, COLOR_INACTIVE_BORDER);
+  else if(((unsigned int)-1) != old_index){
+    //Clear old
+    displayRect(LAYOUT_ITEM_X, LAYOUT_ITEM_Y + (old_index*LAYOUT_ITEM_PITCH_Y), LAYOUT_ITEM_WIDTH, LAYOUT_ITEM_HEIGHT, COLOR_INACTIVE_BORDER);
+  }
   //Draw new
-  displayRect(LAYOUT_ITEM_X, LAYOUT_ITEM_Y + (i*LAYOUT_ITEM_PITCH_Y), LAYOUT_ITEM_WIDTH, LAYOUT_ITEM_HEIGHT, COLOR_ACTIVE_BORDER);
-  prevPuck = i;
-  
+  displayRect(LAYOUT_ITEM_X, LAYOUT_ITEM_Y + (new_index*LAYOUT_ITEM_PITCH_Y), LAYOUT_ITEM_WIDTH, LAYOUT_ITEM_HEIGHT, COLOR_ACTIVE_BORDER);
 }
 
-void doSetup2(){
+void runMenu(const MenuItem_t* const menu_items, const uint16_t num_items)
+{
   static const unsigned int COUNTS_PER_ITEM = 10;
-  int select=0, i, btnState;
+  const unsigned int MAX_KNOB_VALUE = num_items*COUNTS_PER_ITEM - 1;
+  int knob_sum = 0;
+  unsigned int old_index = 0;
 
-  drawSetupMenu();
-  movePuck(select);
+  drawMenu(menu_items,num_items);
+  movePuck(1,0);//Force draw of puck
 
    //wait for the button to be raised up
-  while(btnDown())
+  while(btnDown()){
     active_delay(50);
+  }
   active_delay(50);  //debounce
-  
-  menuOn = 2;
  
-  while (menuOn){
-    i = enc_read();
+  while (true){
+    knob_sum += enc_read();
+    if(knob_sum < 0){
+      knob_sum = 0;
+    }
+    else if(MAX_KNOB_VALUE < knob_sum){
+      knob_sum = MAX_KNOB_VALUE;
+    }
 
-    if (i > 0){
-      if (select + i < MENU_TOTAL*COUNTS_PER_ITEM)
-        select += i;
-      movePuck(select/COUNTS_PER_ITEM);
-    }
-    if (i < 0 && select + i >= 0){
-      select += i;      //caught ya, i is already -ve here, so you add it
-      movePuck(select/COUNTS_PER_ITEM);
-    }
+    uint16_t index = knob_sum/COUNTS_PER_ITEM;
+    movePuck(old_index,index);
+    old_index = index;
 
     if (!btnDown()){
       active_delay(50);
@@ -335,50 +349,28 @@ void doSetup2(){
     while(btnDown()){
       active_delay(50);
     }
-    active_delay(300);
+    active_delay(50);//debounce
     
-    switch(select/COUNTS_PER_ITEM){
-      case MENU_SET_FREQ:
-      {
-        setupFreq();
-        break;
-      }
-      case MENU_SET_BFO:
-      {
-        setupBFO();
-        break;
-      }
-      case MENU_CW_DELAY:
-      {
-        setupCwDelay();
-        break;
-      }
-      case MENU_CW_KEYER:
-      {
-        setupKeyer();
-        break;
-      }
-      case MENU_TOUCH:
-      {
-        setupTouch();
-        break;
-      }
-      case MENU_EXIT:
-      default:
-      {
-        menuOn = 0;
-        break;
-      }
-    }//switch
-    //redraw
-    drawSetupMenu();
+    if(num_items-1 > index){
+      MenuItem_t mi = {"",nullptr};
+      memcpy_P(&mi,&menu_items[index+1],sizeof(mi));//The 0th element in the array is the title, so offset by 1
+      mi.OnSelect();
+      drawMenu(menu_items,num_items);//Need to re-render, since whatever ran just now is assumed to have drawn something
+      old_index = -1;//Force redraw
+    }
+    else{
+      break;
+    }
   }
 
   //debounce the button
-  while(btnDown())
+  while(btnDown()){
     active_delay(50);
-  active_delay(50);
+  }
+  active_delay(50);//debounce
+}
 
-  checkCAT();
+void doSetup2(){
+  RUN_MENU(mainMenu);
   guiUpdate();
 }
