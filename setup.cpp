@@ -188,24 +188,27 @@ void setupCwDelay(){
   active_delay(500);
 }
 
-void setupKeyer(){
-  displayDialog(F("Set CW Keyer"),F("Press tune to Save")); 
- 
-  if(KeyerMode_e::KEYER_STRAIGHT == globalSettings.keyerMode){
-    strcpy_P(c,(const char*)F("< Hand Key >"));
-    displayText(c, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
+void formatKeyerEnum(char* output, const KeyerMode_e mode)
+{
+  if(KeyerMode_e::KEYER_STRAIGHT == mode){
+    strcpy_P(output,(const char*)F("< Hand Key >"));
   }
-  else if(KeyerMode_e::KEYER_IAMBIC_A == globalSettings.keyerMode){
-    strcpy_P(c,(const char*)F("< Iambic A >"));
-    displayText(c, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
+  else if(KeyerMode_e::KEYER_IAMBIC_A == mode){
+    strcpy_P(output,(const char*)F("< Iambic A >"));
   }
   else{
-    strcpy_P(c,(const char*)F("< Iambic B >"));
-    displayText(c, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
+    strcpy_P(output,(const char*)F("< Iambic B >"));
   }
+}
+
+void setupKeyer(){
+  displayDialog(F("Set CW Keyer"),F("Press tune to Save")); 
 
   int knob = 0;
   uint32_t tmp_mode = globalSettings.keyerMode;
+  formatKeyerEnum(c, tmp_mode);
+  displayText(c, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
+
   while (!btnDown())
   {
     knob = enc_read();
@@ -220,18 +223,8 @@ void setupKeyer(){
       tmp_mode++;
     }
 
-    if (KeyerMode_e::KEYER_STRAIGHT == tmp_mode){
-      strcpy_P(c,(const char*)F("< Hand Key >"));
-      displayText(c, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
-    }
-    else if(KeyerMode_e::KEYER_IAMBIC_A == tmp_mode){
-      strcpy_P(c,(const char*)F("< Iambic A >"));
-      displayText(c, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
-    }
-    else if (KeyerMode_e::KEYER_IAMBIC_B == tmp_mode){
-      strcpy_P(c,(const char*)F("< Iambic B >"));
-      displayText(c, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
-    }
+    formatKeyerEnum(c,tmp_mode);
+    displayText(c, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
   }
 
   active_delay(500);
