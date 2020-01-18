@@ -22,9 +22,6 @@ void setupExit(){
   menuOn = 0;
 }
 
- //this is used by the si5351 routines in the ubitx_5351 file
-extern uint32_t si5351bx_vcoa;
-
 static const unsigned int COLOR_TEXT = DISPLAY_WHITE;
 static const unsigned int COLOR_BACKGROUND = DISPLAY_BLACK;
 static const unsigned int COLOR_TITLE_BACKGROUND = DISPLAY_NAVY;
