@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include "settings.h"
 #include "ubitx.h"
 #include "nano_gui.h"
 
@@ -159,7 +160,7 @@ void catReadEEPRom(void)
       //5 : Memory/MTUNE select  0 = Memory, 1 = MTUNE
       //6 :
       //7 : MEM/VFO Select  0 = Memory, 1 = VFO (A or B - see bit 0)
-      cat[0] = 0x80 + (vfoActive == VFO_B ? 1 : 0);
+      cat[0] = 0x80 + ((VFO_B == globalSettings.activeVfo) ? 1 : 0);
       cat[1] = 0x00;
       break;
     case 0x57 : //
@@ -187,11 +188,11 @@ void catReadEEPRom(void)
       //5-4 :  Lock Mode (#32) 00 = Dial, 01 = Freq, 10 = Panel
       //7-6 :  Op Filter (#38) 00 = Off, 01 = SSB, 10 = CW
       //CAT_BUFF[0] = 0x08;
-      cat[0] = (sideTone - 300)/50;
+      cat[0] = (globalSettings.cwSideToneFreq - 300)/50;
       cat[1] = 0x25;
       break;
-    case 0x61 : //Sidetone (Volume) (#44)
-      cat[0] = sideTone % 50;
+    case 0x61 : //globalSettings.cwSideToneFreq (Volume) (#44)
+      cat[0] = globalSettings.cwSideToneFreq % 50;
       cat[1] = 0x08;
       break;
     case  0x5F : //
@@ -203,14 +204,14 @@ void catReadEEPRom(void)
       cat[1] = 0x08;
       break;
     case 0x60 : //CW Delay (10-2500 ms) (#17)  From 1 to 250 (decimal) with each step representing 10 ms
-      cat[0] = cwDelayTime;
+      cat[0] = globalSettings.cwActiveTimeoutMs / 10;
       cat[1] = 0x32;
       break;
     case 0x62 : //
       //5-0  CW Speed (4-60 WPM) (#21) From 0 to 38 (HEX) with 0 = 4 WPM and 38 = 60 WPM (1 WPM steps)
       //7-6  Batt-Chg (6/8/10 Hours (#11)  00 = 6 Hours, 01 = 8 Hours, 10 = 10 Hours
       //CAT_BUFF[0] = 0x08;
-      cat[0] = 1200 / cwSpeed - 4;
+      cat[0] = 1200 / globalSettings.cwDitDurationMs - 4;
       cat[1] = 0xB2;
       break;
     case 0x63 : //
@@ -226,7 +227,7 @@ void catReadEEPRom(void)
       cat[1] = 0xB2;
       break;      case 0x69 : //FM Mic (#29)  Contains 0-100 (decimal) as displayed
     case 0x78 :
-      if (isUSB)
+      if (VfoMode_e::VFO_MODE_USB == GetActiveVfoMode())
         cat[0] = CAT_MODE_USB;
       else
         cat[0] = CAT_MODE_LSB;
@@ -252,7 +253,7 @@ void catReadEEPRom(void)
       //7A  6 ? ?
       //7A  7 SPL On/Off  0 = Off, 1 = On
 
-      cat[0] = (splitOn ? 0xFF : 0x7F);
+      cat[0] = (globalSettings.splitOn ? 0xFF : 0x7F);
       break;
     case 0xB3 : //
       cat[0] = 0x00;
@@ -288,16 +289,16 @@ void processCATCommand2(byte* cmd) {
 
   case 0x02:
     //split on 
-    splitOn =  1;
+    globalSettings.splitOn =  1;
     break;
   case 0x82:
     //split off
-    splitOn = 0;
+    globalSettings.splitOn = 0;
     break;
     
   case 0x03:
-    writeFreq(frequency,response); // Put the frequency into the buffer
-    if (isUSB)
+    writeFreq(GetActiveVfoFreq(),response); // Put the frequency into the buffer
+    if (VfoMode_e::VFO_MODE_USB == GetActiveVfoMode())
       response[4] = 0x01; //USB
     else
       response[4] = 0x00; //LSB
@@ -307,21 +308,21 @@ void processCATCommand2(byte* cmd) {
     
   case 0x07: // set mode
     if (cmd[0] == 0x00 || cmd[0] == 0x03)
-      isUSB = 0;
+      SetActiveVfoMode(VfoMode_e::VFO_MODE_LSB);
     else
-      isUSB = 1;
+      SetActiveVfoMode(VfoMode_e::VFO_MODE_USB);
     response[0] = 0x00;
     Serial.write(response, 1);
-    setFrequency(frequency);
+    setFrequency(GetActiveVfoFreq());
       //printLine2("cat: mode changed");
     //updateDisplay();
     break;   
  
   case 0x08: // PTT On
-    if (!inTx) {
+    if (!globalSettings.txActive) {
       response[0] = 0;
-      txCAT = true;
-      startTx(TX_SSB);
+      globalSettings.txCatActive = true;
+      startTx(TuningMode_e::TUNE_SSB);
       updateDisplay();
     } else {
       response[0] = 0xf0;
@@ -331,9 +332,9 @@ void processCATCommand2(byte* cmd) {
     break;
 
   case 0x88 : //PTT OFF
-    if (inTx) {
+    if (globalSettings.txActive) {
       stopTx();
-      txCAT = false;
+      globalSettings.txCatActive = false;
     }
     response[0] = 0;
     Serial.write(response,1);
@@ -343,7 +344,7 @@ void processCATCommand2(byte* cmd) {
   case 0x81:
     //toggle the VFOs
     response[0] = 0;
-    if (vfoActive == VFO_A)
+    if (VFO_A == globalSettings.activeVfo)
       switchVFO(VFO_B);
     else
       switchVFO(VFO_A);
@@ -366,14 +367,14 @@ void processCATCommand2(byte* cmd) {
   case 0xf7:
     {
       boolean isHighSWR = false;
-      boolean isSplitOn = false;
+      boolean issplitOn = false;
   
       /*
         Inverted -> *ptt = ((p->tx_status & 0x80) == 0); <-- souce code in ft817.c (hamlib)
       */
-      response[0] = ((inTx ? 0 : 1) << 7) +
+      response[0] = ((globalSettings.txActive ? 0 : 1) << 7) +
         ((isHighSWR ? 1 : 0) << 6) +  //hi swr off / on
-        ((isSplitOn ? 1 : 0) << 5) + //Split on / off
+        ((issplitOn ? 1 : 0) << 5) + //Split on / off
         (0 << 4) +  //dummy data
         0x08;  //P0 meter data
 

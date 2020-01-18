@@ -1,19 +1,19 @@
 #include <Arduino.h>
 #include "ubitx.h"
+#include "settings.h"
 #include "morse.h"
+
+struct Morse {
+  char letter;
+  unsigned char code;
+};
+
 /*
  * Each byte of the morse table stores one letter. 
  * The 0 is a dot, a 1 is a dash 
  * From the Most significant byte onwards, the letter is padded with 1s. 
  * The first zero after the 1s indicates the start of the letter, it MUST be discarded
  */
-
-extern int cwSpeed;
-struct Morse {
-  char letter;
-  unsigned char code;  
-};
-
 static const PROGMEM struct Morse morse_table[] = { 
 {'a', 0xf9}, // 11111001
 {'b', 0xe8}, // 11101000
@@ -51,9 +51,9 @@ static const PROGMEM struct Morse morse_table[] = {
 {'8', 0xdc}, // 11011100
 {'9', 0xde}, // 11011110
 {'0', 0xdf}, // 11011111
-{'.', 0xd5}, // 110010101
-{',', 0xd3}, // 110110011 //AD7U 20191217 
-{'?', 0xcc}, // 11001100 //AD7U 20191217 - Added
+{'.', 0x95}, // 10010101
+{',', 0xb3}, // 10110011
+{'?', 0x8c}, // 10001100
 };
 
 static void morseLetter(char c){
@@ -61,8 +61,8 @@ static void morseLetter(char c){
 
   //handle space character as three dashes
   if (c == ' '){
-    active_delay(cwSpeed * 9);
-    Serial.print(' ');
+    active_delay(9 * globalSettings.cwDitDurationMs);
+    //Serial.print(' ');
     return;
   }
 
@@ -79,22 +79,23 @@ static void morseLetter(char c){
       //now we are at the first zero, skip and carry on
       mask = mask >> 1;
       while(mask){
-        tone(CW_TONE, sideTone,10000);
+        tone(CW_TONE, globalSettings.cwSideToneFreq,10000);
         if (mask & code){
-          delay(3 * (int)cwSpeed);
+          delay(3 * globalSettings.cwDitDurationMs);
           //Serial.print('-');
         }
         else{
-          delay((int)cwSpeed);
+          delay(globalSettings.cwDitDurationMs);
           //Serial.print('.');
         }
         //Serial.print('#');
         noTone(CW_TONE);
-        delay((int)cwSpeed); // space between dots and dashes
+        delay(globalSettings.cwDitDurationMs); // space between dots and dashes
         mask = mask >> 1;
       }
       //Serial.println('@');
-      delay(200); // space between letters is a dash (3 dots), one dot's space has already been sent
+      delay(2*globalSettings.cwDitDurationMs); // space between letters is a dash (3 dots), one dot's space has already been sent
+      break;//We've played the letter, so don't bother checking the rest of the list
     }
   }
 }
@@ -107,7 +108,7 @@ void morseText(char *text){
   delay(1000);
 //  }
   
-  Serial.println(sideTone);
+  //Serial.println(globalSettings.cwSideToneFreq);
   while(*text){
     morseLetter(*text++);
   }
