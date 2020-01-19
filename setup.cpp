@@ -78,32 +78,46 @@ struct SettingScreen_t {
 };
 
 #define LIMIT(val,min,max) ((val) < (min)) ? (min) : (((max) < (val)) ? (max) : (val))
+ssCwToneInitialize(long int* start_value_out)
+{
+  *start_value_out = globalSettings.cwSideToneFreq;
+}
+ssCwToneValidate(const long int candidate_value_in, long int* validated_value_out)
+{
+  *validated_value_out = LIMIT(candidate_value_in,100,2000);
+}
+ssCwToneChange(const long int new_value, char* buff_out, const size_t buff_out_size)
+{
+  globalSettings.cwSideToneFreq = new_value;
+  tone(CW_TONE, globalSettings.cwSideToneFreq);
+  ltoa(globalSettings.cwSideToneFreq,buff_out,10);
+}
+ssCwToneFinalize(const long int final_value)
+{
+  noTone(CW_TONE);
+  globalSettings.cwSideToneFreq = final_value;
+  SaveSettingsToEeprom();
+}
 const char SS_EMPTY [] PROGMEM = "";
 const char SS_CW_TONE [] PROGMEM = "Set CW Tone (Hz)";
-const SettingScreen_t SettingCwTone = {
+const SettingScreen_t settingScreens [] PROGMEM = {
   SS_CW_TONE,
   SS_EMPTY,
   1,
   10,
-  [](long int* svo){*svo = globalSettings.cwSideToneFreq;},
-  [](const long int cvi, long int* vvo){*vvo = LIMIT(cvi,100,2000);},
-  [](const long int nv, char* buf, const size_t buf_size){
-    globalSettings.cwSideToneFreq = nv;
-    tone(CW_TONE, globalSettings.cwSideToneFreq);
-    ltoa(globalSettings.cwSideToneFreq,buf,10);
-  },
-  [](const long int fv){
-    noTone(CW_TONE);
-    globalSettings.cwSideToneFreq = fv;
-    SaveSettingsToEeprom();
-  }
+  ssCwToneInitialize,
+  ssCwToneValidate,
+  ssCwToneChange,
+  ssCwToneFinalize
 };
 void runSetting(const SettingScreen_t* const screen);
-void runToneSetting(){runSetting(&SettingCwTone);}
+void runToneSetting(){runSetting(&settingScreens[0]);}
 
-void runSetting(const SettingScreen_t* const screen)
+void runSetting(const SettingScreen_t* const p_screen)
 {
-  displayDialog(reinterpret_cast<const __FlashStringHelper *>(screen->Title),F("Push Tune to Save"));
+  SettingScreen_t screen = {0};
+  memcpy_P(&screen,p_screen,sizeof(screen));
+  displayDialog(reinterpret_cast<const __FlashStringHelper *>(screen.Title),F("Push Tune to Save"));
 
   //Wait for button to stop being pressed
   while(btnDown()){
@@ -114,42 +128,42 @@ void runSetting(const SettingScreen_t* const screen)
   long int raw_value = 0;
   long int last_value = 0;
 
-  screen->Initialize(&last_value);
-  screen->OnValueChange(last_value,b,sizeof(b));
+  screen.Initialize(&last_value);
+  screen.OnValueChange(last_value,b,sizeof(b));
   displayText(b, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_TITLE_BACKGROUND, COLOR_BACKGROUND);
 
-  raw_value = last_value * screen->KnobDivider;
+  raw_value = last_value * screen.KnobDivider;
 
   while (!btnDown())
   {
     int knob = enc_read();
     if(knob != 0){
-      raw_value += knob * (int32_t)screen->StepSize;
+      raw_value += knob * (int32_t)screen.StepSize;
     }
     else{
       continue;
     }
 
-    const long int candidate_value = raw_value / (int32_t)screen->KnobDivider;
+    const long int candidate_value = raw_value / (int32_t)screen.KnobDivider;
     long int value = 0;
-    screen->Validate(candidate_value,&value);
+    screen.Validate(candidate_value,&value);
 
     //If we're going out of bounds, prevent the raw value from going too far out
     if(candidate_value != value){
-      raw_value = value * (int32_t)screen->KnobDivider;
+      raw_value = value * (int32_t)screen.KnobDivider;
     }
 
     if(value == last_value){
       continue;
     }
     else{
-      screen->OnValueChange(value,b,sizeof(b));
+      screen.OnValueChange(value,b,sizeof(b));
       displayText(b, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_TITLE_BACKGROUND, COLOR_BACKGROUND);
       last_value = value;
     }
   }
 
-  screen->Finalize(last_value);
+  screen.Finalize(last_value);
 }
 
 void printCarrierFreq(unsigned long freq)
