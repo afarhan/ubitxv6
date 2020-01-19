@@ -237,25 +237,8 @@ void displayText(char *text, int x1, int y1, int w, int h, int color, int backgr
   uint16_t width_out;
   uint16_t height_out;
   tft.getTextBounds(text,x1,y1,&x1_out,&y1_out,&width_out,&height_out,w);
-  Serial.println(text);
-  Serial.print(F("Calc w/h:"));
-  Serial.print(width_out);
-  Serial.print(F(","));
-  Serial.println(height_out);
-  Serial.print(F("w/h:"));
-  Serial.print(w);
-  Serial.print(F(","));
-  Serial.println(h);
-  Serial.print(F("Old x1/y1:"));
-  Serial.print(x1);
-  Serial.print(F(","));
-  Serial.println(y1);
   x1 += (w - ( (int32_t)width_out + (x1_out-x1)))/2;
   y1 += (ubitx_font->yAdvance + h - ( (int32_t)height_out + (y1_out-y1)))/2;
-  Serial.print(F("New x1/y1:"));
-  Serial.print(x1);
-  Serial.print(F(","));
-  Serial.println(y1);
   displayRawText(text,x1,y1,w,color,background);
 }
 
