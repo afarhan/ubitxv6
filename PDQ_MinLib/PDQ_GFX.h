@@ -748,7 +748,7 @@ size_t PDQ_GFX<HW>::write(uint8_t c)
 	{
 		if(c == '\n')
 		{
-			cursor_x	= 0;
+			cursor_x	= bound_x1;
 			cursor_y += (coord_t)textsize * (uint8_t)pgm_read_byte(&gfxFont->yAdvance);
 		}
 		else if (c != '\r')
