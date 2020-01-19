@@ -178,7 +178,7 @@ void displayInit(void){
 
   tft.begin();
   tft.setFont(ubitx_font);
-  tft.setTextWrap(false);
+  tft.setTextWrap(true);
   tft.setTextColor(DISPLAY_GREEN,DISPLAY_BLACK);
   tft.setTextSize(1);
   tft.setRotation(1);
@@ -217,6 +217,14 @@ void displayChar(int16_t x, int16_t y, unsigned char c, uint16_t color, uint16_t
 void displayRawText(char *text, int x1, int y1, int color, int background){
   tft.setTextColor(color,background);
   tft.setCursor(x1,y1);
+  tft.setBound(0,320);
+  tft.print(text);
+}
+
+void displayRawText(char *text, int x1, int y1, int w, int color, int background){
+  tft.setTextColor(color,background);
+  tft.setCursor(x1,y1);
+  tft.setBound(x1,x1+w);
   tft.print(text);
 }
 
@@ -228,10 +236,27 @@ void displayText(char *text, int x1, int y1, int w, int h, int color, int backgr
   int16_t y1_out;
   uint16_t width_out;
   uint16_t height_out;
-  tft.getTextBounds(text,x1,y1,&x1_out,&y1_out,&width_out,&height_out);
-  x1 += (w - ( width_out + (x1_out-x1)))/2;
-  y1 += h - (h - height_out)/2;
-  displayRawText(text,x1,y1,color,background);
+  tft.getTextBounds(text,x1,y1,&x1_out,&y1_out,&width_out,&height_out,w);
+  Serial.println(text);
+  Serial.print(F("Calc w/h:"));
+  Serial.print(width_out);
+  Serial.print(F(","));
+  Serial.println(height_out);
+  Serial.print(F("w/h:"));
+  Serial.print(w);
+  Serial.print(F(","));
+  Serial.println(h);
+  Serial.print(F("Old x1/y1:"));
+  Serial.print(x1);
+  Serial.print(F(","));
+  Serial.println(y1);
+  x1 += (w - ( (int32_t)width_out + (x1_out-x1)))/2;
+  y1 += (ubitx_font->yAdvance + h - ( (int32_t)height_out + (y1_out-y1)))/2;
+  Serial.print(F("New x1/y1:"));
+  Serial.print(x1);
+  Serial.print(F(","));
+  Serial.println(y1);
+  displayRawText(text,x1,y1,w,color,background);
 }
 
 void setupTouch(){
