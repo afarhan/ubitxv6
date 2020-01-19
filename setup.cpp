@@ -51,19 +51,27 @@ static const unsigned int LAYOUT_SETTING_VALUE_Y = LAYOUT_ITEM_Y + 3*LAYOUT_ITEM
 static const unsigned int LAYOUT_SETTING_VALUE_WIDTH = LAYOUT_ITEM_WIDTH;
 static const unsigned int LAYOUT_SETTING_VALUE_HEIGHT = LAYOUT_ITEM_HEIGHT;
 
-static const unsigned int LAYOUT_INSTRUCTION_TEXT_X = 20;
-static const unsigned int LAYOUT_INSTRUCTION_TEXT_Y = LAYOUT_ITEM_Y + 5*LAYOUT_ITEM_PITCH_Y;
-static const unsigned int LAYOUT_INSTRUCTION_TEXT_WIDTH = LAYOUT_ITEM_WIDTH;
-static const unsigned int LAYOUT_INSTRUCTION_TEXT_HEIGHT = LAYOUT_ITEM_HEIGHT;
+static const unsigned int LAYOUT_INSTRUCTIONS_TEXT_X = 20;
+static const unsigned int LAYOUT_INSTRUCTIONS_TEXT_Y = LAYOUT_ITEM_Y;
+static const unsigned int LAYOUT_INSTRUCTIONS_TEXT_WIDTH = LAYOUT_ITEM_WIDTH;
+static const unsigned int LAYOUT_INSTRUCTIONS_TEXT_HEIGHT = LAYOUT_SETTING_VALUE_Y - LAYOUT_ITEM_Y - 1;
 
-void displayDialog(const __FlashStringHelper* title, const __FlashStringHelper* instructions){
-  strcpy_P(b,(const char*)title);
-  strcpy_P(c,(const char*)instructions);
+static const unsigned int LAYOUT_CONFIRM_TEXT_X = 20;
+static const unsigned int LAYOUT_CONFIRM_TEXT_Y = LAYOUT_ITEM_Y + 5*LAYOUT_ITEM_PITCH_Y;
+static const unsigned int LAYOUT_CONFIRM_TEXT_WIDTH = LAYOUT_ITEM_WIDTH;
+static const unsigned int LAYOUT_CONFIRM_TEXT_HEIGHT = LAYOUT_ITEM_HEIGHT;
+
+void displayDialog(const char* title,
+                   const char* instructions){
   displayClear(COLOR_BACKGROUND);
   displayRect(LAYOUT_OUTER_BORDER_X,LAYOUT_OUTER_BORDER_Y,LAYOUT_OUTER_BORDER_WIDTH,LAYOUT_OUTER_BORDER_HEIGHT, COLOR_ACTIVE_BORDER);
   displayRect(LAYOUT_INNER_BORDER_X,LAYOUT_INNER_BORDER_Y,LAYOUT_INNER_BORDER_WIDTH,LAYOUT_INNER_BORDER_HEIGHT, COLOR_ACTIVE_BORDER);
+  strcpy_P(b,title);
   displayText(b, LAYOUT_TITLE_X, LAYOUT_TITLE_Y, LAYOUT_TITLE_WIDTH, LAYOUT_TITLE_HEIGHT, COLOR_TEXT, COLOR_TITLE_BACKGROUND, COLOR_ACTIVE_BORDER);
-  displayText(c, LAYOUT_INSTRUCTION_TEXT_X, LAYOUT_INSTRUCTION_TEXT_Y, LAYOUT_INSTRUCTION_TEXT_WIDTH, LAYOUT_INSTRUCTION_TEXT_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
+  strcpy_P(b,instructions);
+  displayText(b, LAYOUT_INSTRUCTIONS_TEXT_X, LAYOUT_INSTRUCTIONS_TEXT_Y, LAYOUT_INSTRUCTIONS_TEXT_WIDTH, LAYOUT_INSTRUCTIONS_TEXT_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
+  strcpy_P(b,(const char*)F("Push Tune to Save"));
+  displayText(b, LAYOUT_CONFIRM_TEXT_X, LAYOUT_CONFIRM_TEXT_Y, LAYOUT_CONFIRM_TEXT_WIDTH, LAYOUT_CONFIRM_TEXT_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
 }
 
 struct SettingScreen_t {
@@ -100,9 +108,10 @@ ssCwToneFinalize(const long int final_value)
 }
 const char SS_EMPTY [] PROGMEM = "";
 const char SS_CW_TONE [] PROGMEM = "Set CW Tone (Hz)";
+const char SS_LONG_TEXT [] PROGMEM = "This is a long string of text that should be wrapped at least once, possibly more.";
 const SettingScreen_t settingScreens [] PROGMEM = {
   SS_CW_TONE,
-  SS_EMPTY,
+  SS_LONG_TEXT,
   1,
   10,
   ssCwToneInitialize,
@@ -117,7 +126,8 @@ void runSetting(const SettingScreen_t* const p_screen)
 {
   SettingScreen_t screen = {0};
   memcpy_P(&screen,p_screen,sizeof(screen));
-  displayDialog(reinterpret_cast<const __FlashStringHelper *>(screen.Title),F("Push Tune to Save"));
+  displayDialog(screen.Title,
+                screen.AdditionalText);
 
   //Wait for button to stop being pressed
   while(btnDown()){
@@ -173,7 +183,7 @@ void printCarrierFreq(unsigned long freq)
 }
 
 void setupFreq(){
-  displayDialog(F("Set Frequency"),F("Push TUNE to Save"));
+  //displayDialog(F("Set Frequency"),F("Push TUNE to Save"));
 
   //round off the the nearest khz
   {
@@ -229,7 +239,7 @@ void setupFreq(){
 }
 
 void setupBFO(){
-  displayDialog(F("Set BFO"),F("Press TUNE to Save")); 
+  //displayDialog(F("Set BFO"),F("Press TUNE to Save")); 
 
   si5351bx_setfreq(0, globalSettings.usbCarrierFreq);
   printCarrierFreq(globalSettings.usbCarrierFreq);
@@ -259,7 +269,7 @@ void setupCwDelay(){
   int knob = 0;
   int prev_cw_delay;
 
-  displayDialog(F("Set CW T/R Delay"),F("Press tune to Save")); 
+  //displayDialog(F("Set CW T/R Delay"),F("Press tune to Save")); 
 
   prev_cw_delay = globalSettings.cwActiveTimeoutMs;
 
@@ -300,7 +310,7 @@ void formatKeyerEnum(char* output, const KeyerMode_e mode)
 }
 
 void setupKeyer(){
-  displayDialog(F("Set CW Keyer"),F("Press tune to Save")); 
+  //displayDialog(F("Set CW Keyer"),F("Press tune to Save")); 
 
   int knob = 0;
   uint32_t tmp_mode = globalSettings.keyerMode;
@@ -333,7 +343,7 @@ void setupKeyer(){
 
 void setupCwSpeed()
 {
-  displayDialog(F("Set CW Speed (WPM)"),F("Press tune to Save"));
+  //displayDialog(F("Set CW Speed (WPM)"),F("Press tune to Save"));
 
   unsigned int wpm = 1200/globalSettings.cwDitDurationMs;
 
@@ -359,7 +369,7 @@ void setupCwSpeed()
 }
 
 void setupCwTone(){
-  displayDialog(F("Set CW Tone (Hz)"),F("Press tune to Save"));
+  //displayDialog(F("Set CW Tone (Hz)"),F("Press tune to Save"));
 
   tone(CW_TONE, globalSettings.cwSideToneFreq);
   itoa(globalSettings.cwSideToneFreq, b, 10);
@@ -386,7 +396,7 @@ void setupCwTone(){
 
 void setupResetAll()
 {
-  displayDialog(F("Reset all cals and settings?"),F("Press tune to Confirm"));
+  //displayDialog(F("Reset all cals and settings?"),F("Press tune to Confirm"));
   strcpy_P(b,(const char*)F("No"));
   displayText(b, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
 
