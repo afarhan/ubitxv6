@@ -66,6 +66,92 @@ void displayDialog(const __FlashStringHelper* title, const __FlashStringHelper* 
   displayText(c, LAYOUT_INSTRUCTION_TEXT_X, LAYOUT_INSTRUCTION_TEXT_Y, LAYOUT_INSTRUCTION_TEXT_WIDTH, LAYOUT_INSTRUCTION_TEXT_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
 }
 
+struct SettingScreen_t {
+  const char* const Title;
+  const char* const AdditionalText;
+  const uint16_t KnobDivider;
+  const uint16_t StepSize;
+  void (*Initialize)(long int* start_value_out);
+  void (*Validate)(const long int candidate_value_in, long int* validated_value_out);
+  void (*OnValueChange)(const long int new_value, char* buff_out, const size_t buff_out_size);
+  void (*Finalize)(const long int final_value);
+};
+
+#define LIMIT(val,min,max) ((val) < (min)) ? (min) : (((max) < (val)) ? (max) : (val))
+const char SS_EMPTY [] PROGMEM = "";
+const char SS_CW_TONE [] PROGMEM = "Set CW Tone (Hz)";
+const SettingScreen_t SettingCwTone = {
+  SS_CW_TONE,
+  SS_EMPTY,
+  1,
+  10,
+  [](long int* svo){*svo = globalSettings.cwSideToneFreq;},
+  [](const long int cvi, long int* vvo){*vvo = LIMIT(cvi,100,2000);},
+  [](const long int nv, char* buf, const size_t buf_size){
+    globalSettings.cwSideToneFreq = nv;
+    tone(CW_TONE, globalSettings.cwSideToneFreq);
+    ltoa(globalSettings.cwSideToneFreq,buf,10);
+  },
+  [](const long int fv){
+    noTone(CW_TONE);
+    globalSettings.cwSideToneFreq = fv;
+    SaveSettingsToEeprom();
+  }
+};
+void runSetting(const SettingScreen_t* const screen);
+void runToneSetting(){runSetting(&SettingCwTone);}
+
+void runSetting(const SettingScreen_t* const screen)
+{
+  displayDialog(reinterpret_cast<const __FlashStringHelper *>(screen->Title),F("Push Tune to Save"));
+
+  //Wait for button to stop being pressed
+  while(btnDown()){
+    active_delay(10);
+  }
+  active_delay(10);
+
+  long int raw_value = 0;
+  long int last_value = 0;
+
+  screen->Initialize(&last_value);
+  screen->OnValueChange(last_value,b,sizeof(b));
+  displayText(b, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_TITLE_BACKGROUND, COLOR_BACKGROUND);
+
+  raw_value = last_value * screen->KnobDivider;
+
+  while (!btnDown())
+  {
+    int knob = enc_read();
+    if(knob != 0){
+      raw_value += knob * (int32_t)screen->StepSize;
+    }
+    else{
+      continue;
+    }
+
+    const long int candidate_value = raw_value / (int32_t)screen->KnobDivider;
+    long int value = 0;
+    screen->Validate(candidate_value,&value);
+
+    //If we're going out of bounds, prevent the raw value from going too far out
+    if(candidate_value != value){
+      raw_value = value * (int32_t)screen->KnobDivider;
+    }
+
+    if(value == last_value){
+      continue;
+    }
+    else{
+      screen->OnValueChange(value,b,sizeof(b));
+      displayText(b, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_TITLE_BACKGROUND, COLOR_BACKGROUND);
+      last_value = value;
+    }
+  }
+
+  screen->Finalize(last_value);
+}
+
 void printCarrierFreq(unsigned long freq)
 {
   formatFreq(freq,c,sizeof(c));
@@ -354,7 +440,7 @@ const char MI_CW_KEYER [] PROGMEM = "Keyer Type";
 const MenuItem_t cwMenu [] PROGMEM {
   {MT_CW,nullptr},//Title
   {MI_CW_SPEED,setupCwSpeed},
-  {MI_CW_TONE,setupCwTone},
+  {MI_CW_TONE,runToneSetting},
   {MI_CW_DELAY,setupCwDelay},
   {MI_CW_KEYER,setupKeyer},
 };
