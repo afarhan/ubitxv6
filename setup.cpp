@@ -225,6 +225,38 @@ const SettingScreen_t ssBfo PROGMEM = {
 };
 void runBfoSetting(){runSetting(&ssBfo);}
 
+//CW Speed
+void ssCwSpeedInitialize(long int* start_value_out)
+{
+  *start_value_out = 1200L/globalSettings.cwDitDurationMs;
+}
+void ssCwSpeedValidate(const long int candidate_value_in, long int* validated_value_out)
+{
+  *validated_value_out = LIMIT(candidate_value_in,1,100);
+}
+void ssCwSpeedChange(const long int new_value, char* buff_out, const size_t buff_out_size)
+{
+  ltoa(new_value, buff_out, 10);
+}
+void ssCwSpeedFinalize(const long int final_value)
+{
+  globalSettings.cwDitDurationMs = 1200L/final_value;
+  SaveSettingsToEeprom();
+}
+const char SS_CW_SPEED_T [] PROGMEM = "Set CW Speed";
+const char SS_CW_SPEED_A [] PROGMEM = "Select speed to play CW\ncharacters";
+const SettingScreen_t ssCwSpeed PROGMEM = {
+  SS_CW_SPEED_T,
+  SS_CW_SPEED_A,
+  5,
+  1,
+  ssCwSpeedInitialize,
+  ssCwSpeedValidate,
+  ssCwSpeedChange,
+  ssCwSpeedFinalize
+};
+void runCwSpeedSetting(){runSetting(&ssCwSpeed);}
+
 //CW Tone
 void ssCwToneInitialize(long int* start_value_out)
 {
@@ -333,38 +365,6 @@ const SettingScreen_t ssKeyer PROGMEM = {
   ssKeyerFinalize
 };
 void runKeyerSetting(){runSetting(&ssKeyer);}
-
-//CW Speed
-void ssCwSpeedInitialize(long int* start_value_out)
-{
-  *start_value_out = 1200L/globalSettings.cwDitDurationMs;
-}
-void ssCwSpeedValidate(const long int candidate_value_in, long int* validated_value_out)
-{
-  *validated_value_out = LIMIT(candidate_value_in,1,100);
-}
-void ssCwSpeedChange(const long int new_value, char* buff_out, const size_t buff_out_size)
-{
-  ltoa(new_value, buff_out, 10);
-}
-void ssCwSpeedFinalize(const long int final_value)
-{
-  globalSettings.cwDitDurationMs = 1200L/final_value;
-  SaveSettingsToEeprom();
-}
-const char SS_CW_SPEED_T [] PROGMEM = "Set CW Speed";
-const char SS_CW_SPEED_A [] PROGMEM = "Select speed to play CW\ncharacters";
-const SettingScreen_t ssCwSpeed PROGMEM = {
-  SS_CW_SPEED_T,
-  SS_CW_SPEED_A,
-  5,
-  1,
-  ssCwSpeedInitialize,
-  ssCwSpeedValidate,
-  ssCwSpeedChange,
-  ssCwSpeedFinalize
-};
-void runCwSpeedSetting(){runSetting(&ssCwSpeed);}
 
 void setupResetAll()
 {
