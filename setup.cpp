@@ -361,32 +361,6 @@ void setupCwSpeed()
   SaveSettingsToEeprom();
 }
 
-void setupCwTone(){
-  //displayDialog(F("Set CW Tone (Hz)"),F("Press tune to Save"));
-
-  tone(CW_TONE, globalSettings.cwSideToneFreq);
-  itoa(globalSettings.cwSideToneFreq, b, 10);
-  displayText(b, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
-
-  while(!btnDown()){
-    int knob = enc_read();
-
-    if (knob > 0 && globalSettings.cwSideToneFreq < 2000)
-      globalSettings.cwSideToneFreq += 10;
-    else if (knob < 0 && globalSettings.cwSideToneFreq > 100 )
-      globalSettings.cwSideToneFreq -= 10;
-    else
-      continue; //don't update the frequency or the display
-        
-    tone(CW_TONE, globalSettings.cwSideToneFreq);
-    itoa(globalSettings.cwSideToneFreq, b, 10);
-    displayText(b, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
-  }
-  noTone(CW_TONE);
-
-  SaveSettingsToEeprom();
-}
-
 void setupResetAll()
 {
   //displayDialog(F("Reset all cals and settings?"),F("Press tune to Confirm"));
