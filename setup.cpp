@@ -199,8 +199,9 @@ void ssBfoValidate(const long int candidate_value_in, long int* validated_value_
 }
 void ssBfoChange(const long int new_value, char* buff_out, const size_t buff_out_size)
 {
-  si5351bx_setfreq(0, new_value);
+  globalSettings.usbCarrierFreq = new_value;
   setFrequency(GetActiveVfoFreq());
+  si5351bx_setfreq(0, new_value);
   formatFreq(new_value,buff_out,buff_out_size);
   strncat_P(buff_out,(const char*)F("Hz"),buff_out_size - strlen(buff_out));
 }
