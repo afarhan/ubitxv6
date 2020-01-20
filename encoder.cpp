@@ -1,3 +1,9 @@
+#include <Arduino.h>
+#include <stdint.h>
+
+#include "ubitx.h"//Pin definitions
+
+
 /*
  * SmittyHalibut's encoder handling, using interrupts. Should be quicker, smoother handling.
  */
