@@ -46,7 +46,7 @@
  * the input and output from the USB port. We must keep a count of the bytes used while reading
  * the serial port as we can easily run out of buffer space. This is done in the serial_in_count variable.
  */
-char b[30];
+char b[128];
 char c[30];
 
 //during CAT commands, we will freeeze the display until CAT is disengaged

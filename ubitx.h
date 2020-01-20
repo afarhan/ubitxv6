@@ -56,7 +56,7 @@ it uses an ILI9341 display controller and an  XPT2046 touch controller.
  * the input and output from the USB port. We must keep a count of the bytes used while reading
  * the serial port as we can easily run out of buffer space. This is done in the serial_in_count variable.
  */
-extern char c[30], b[30];
+extern char c[30], b[128];
 
 /** 
  *  The second set of 16 pins on the Raduino's bottom connector are have the three clock outputs and the digital lines to control the rig.
