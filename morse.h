@@ -1,3 +1,3 @@
+#include "settings.h"
 //sends out morse code at the speed set by cwSpeed
-extern int cwSpeed;            //this is actuall the dot period in milliseconds
-void morseText(char *text);
+void morseText(char *text, uint16_t dit_duration_ms = globalSettings.cwDitDurationMs);

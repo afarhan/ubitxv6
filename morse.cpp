@@ -56,12 +56,12 @@ static const PROGMEM struct Morse morse_table[] = {
 {'?', 0x8c}, // 10001100
 };
 
-static void morseLetter(char c){
+static void morseLetter(char c, uint16_t dit_duration_ms){
   unsigned char mask = 0x80;
 
   //handle space character as three dashes
   if (c == ' '){
-    active_delay(9 * globalSettings.cwDitDurationMs);
+    active_delay(7 * dit_duration_ms);
     //Serial.print(' ');
     return;
   }
@@ -81,36 +81,28 @@ static void morseLetter(char c){
       while(mask){
         tone(CW_TONE, globalSettings.cwSideToneFreq,10000);
         if (mask & code){
-          delay(3 * globalSettings.cwDitDurationMs);
+          delay(3 * dit_duration_ms);
           //Serial.print('-');
         }
         else{
-          delay(globalSettings.cwDitDurationMs);
+          delay(dit_duration_ms);
           //Serial.print('.');
         }
         //Serial.print('#');
         noTone(CW_TONE);
-        delay(globalSettings.cwDitDurationMs); // space between dots and dashes
+        delay(dit_duration_ms); // space between dots and dashes
         mask = mask >> 1;
       }
       //Serial.println('@');
-      delay(2*globalSettings.cwDitDurationMs); // space between letters is a dash (3 dots), one dot's space has already been sent
+      delay(2*dit_duration_ms); // space between letters is a dash (3 dots), one dot's space has already been sent
       break;//We've played the letter, so don't bother checking the rest of the list
     }
   }
 }
 
-void morseText(char *text){
-//  while (1){
-  noTone(CW_TONE);
-  delay(1000);
-  tone(CW_TONE, 600);
-  delay(1000);
-//  }
-  
-  //Serial.println(globalSettings.cwSideToneFreq);
+void morseText(char *text, uint16_t dit_duration_ms){
   while(*text){
-    morseLetter(*text++);
+    morseLetter(*text++, dit_duration_ms);
   }
 }
 
