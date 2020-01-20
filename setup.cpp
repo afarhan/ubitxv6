@@ -334,32 +334,37 @@ const SettingScreen_t ssKeyer PROGMEM = {
 };
 void runKeyerSetting(){runSetting(&ssKeyer);}
 
-void setupCwSpeed()
+//CW Speed
+void ssCwSpeedInitialize(long int* start_value_out)
 {
-  //displayDialog(F("Set CW Speed (WPM)"),F("Press tune to Save"));
-
-  unsigned int wpm = 1200/globalSettings.cwDitDurationMs;
-
-  itoa(wpm, b, 10);
-  displayText(b, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
-
-  while (!btnDown()){
-    int knob = enc_read();
-
-    if (knob < 0 && wpm > 1)
-      --wpm;
-    else if (knob > 0 && wpm < 100)
-      ++wpm;
-    else
-      continue;//don't update the frequency or the display
-
-    itoa(wpm, b, 10);
-    displayText(b, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
-  }
-
-  globalSettings.cwDitDurationMs = 1200/wpm;
+  *start_value_out = 1200L/globalSettings.cwDitDurationMs;
+}
+void ssCwSpeedValidate(const long int candidate_value_in, long int* validated_value_out)
+{
+  *validated_value_out = LIMIT(candidate_value_in,1,100);
+}
+void ssCwSpeedChange(const long int new_value, char* buff_out, const size_t buff_out_size)
+{
+  ltoa(new_value, buff_out, 10);
+}
+void ssCwSpeedFinalize(const long int final_value)
+{
+  globalSettings.cwDitDurationMs = 1200L/final_value;
   SaveSettingsToEeprom();
 }
+const char SS_CW_SPEED_T [] PROGMEM = "Set CW Speed";
+const char SS_CW_SPEED_A [] PROGMEM = "Select speed to play CW\ncharacters";
+const SettingScreen_t ssCwSpeed PROGMEM = {
+  SS_CW_SPEED_T,
+  SS_CW_SPEED_A,
+  5,
+  1,
+  ssCwSpeedInitialize,
+  ssCwSpeedValidate,
+  ssCwSpeedChange,
+  ssCwSpeedFinalize
+};
+void runCwSpeedSetting(){runSetting(&ssCwSpeed);}
 
 void setupResetAll()
 {
@@ -430,7 +435,7 @@ const char MI_CW_DELAY [] PROGMEM = "Tx/Rx Switching Delay";
 const char MI_CW_KEYER [] PROGMEM = "Keyer Type";
 const MenuItem_t cwMenu [] PROGMEM {
   {MT_CW,nullptr},//Title
-  {MI_CW_SPEED,setupCwSpeed},
+  {MI_CW_SPEED,runCwSpeedSetting},
   {MI_CW_TONE,runToneSetting},
   {MI_CW_DELAY,runCwSwitchDelaySetting},
   {MI_CW_KEYER,runKeyerSetting},
