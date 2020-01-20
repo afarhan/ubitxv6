@@ -294,50 +294,45 @@ const SettingScreen_t ssCwSwitchDelay PROGMEM = {
 };
 void runCwSwitchDelaySetting(){runSetting(&ssCwSwitchDelay);}
 
-void formatKeyerEnum(char* output, const KeyerMode_e mode)
+//CW Keyer
+void ssKeyerInitialize(long int* start_value_out)
 {
-  if(KeyerMode_e::KEYER_STRAIGHT == mode){
-    strcpy_P(output,(const char*)F("< Hand Key >"));
+  *start_value_out = globalSettings.keyerMode;
+}
+void ssKeyerValidate(const long int candidate_value_in, long int* validated_value_out)
+{
+  *validated_value_out = LIMIT(candidate_value_in,KeyerMode_e::KEYER_STRAIGHT,KeyerMode_e::KEYER_IAMBIC_B);
+}
+void ssKeyerChange(const long int new_value, char* buff_out, const size_t buff_out_size)
+{
+  if(KeyerMode_e::KEYER_STRAIGHT == new_value){
+    strncpy_P(buff_out,(const char*)F("< Hand Key >"),buff_out_size);
   }
-  else if(KeyerMode_e::KEYER_IAMBIC_A == mode){
-    strcpy_P(output,(const char*)F("< Iambic A >"));
+  else if(KeyerMode_e::KEYER_IAMBIC_A == new_value){
+    strncpy_P(buff_out,(const char*)F("< Iambic A >"),buff_out_size);
   }
   else{
-    strcpy_P(output,(const char*)F("< Iambic B >"));
+    strncpy_P(buff_out,(const char*)F("< Iambic B >"),buff_out_size);
   }
 }
-
-void setupKeyer(){
-  //displayDialog(F("Set CW Keyer"),F("Press tune to Save")); 
-
-  int knob = 0;
-  uint32_t tmp_mode = globalSettings.keyerMode;
-  formatKeyerEnum(c, tmp_mode);
-  displayText(c, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
-
-  while (!btnDown())
-  {
-    knob = enc_read();
-    if(knob == 0){
-      active_delay(50);
-      continue;
-    }
-    if(knob < 0 && tmp_mode > KeyerMode_e::KEYER_STRAIGHT){
-      tmp_mode--;
-    }
-    if(knob > 0 && tmp_mode < KeyerMode_e::KEYER_IAMBIC_B){
-      tmp_mode++;
-    }
-
-    formatKeyerEnum(c,tmp_mode);
-    displayText(c, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
-  }
-
-  active_delay(500);
-
-  globalSettings.keyerMode = tmp_mode;
+void ssKeyerFinalize(const long int final_value)
+{
+  globalSettings.keyerMode = final_value;
   SaveSettingsToEeprom();
 }
+const char SS_KEYER_T [] PROGMEM = "Set CW Keyer Type";
+const char SS_KEYER_A [] PROGMEM = "Select which type of\nkeyer/paddle is being used";
+const SettingScreen_t ssKeyer PROGMEM = {
+  SS_KEYER_T,
+  SS_KEYER_A,
+  10,
+  1,
+  ssKeyerInitialize,
+  ssKeyerValidate,
+  ssKeyerChange,
+  ssKeyerFinalize
+};
+void runKeyerSetting(){runSetting(&ssKeyer);}
 
 void setupCwSpeed()
 {
@@ -464,7 +459,7 @@ const MenuItem_t cwMenu [] PROGMEM {
   {MI_CW_SPEED,setupCwSpeed},
   {MI_CW_TONE,runToneSetting},
   {MI_CW_DELAY,runCwSwitchDelaySetting},
-  {MI_CW_KEYER,setupKeyer},
+  {MI_CW_KEYER,runKeyerSetting},
 };
 void runCwMenu(){RUN_MENU(cwMenu);}
 
