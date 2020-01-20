@@ -23,7 +23,6 @@ void formatFreq(uint32_t freq, char* buff, uint16_t buff_size);
 /* touch functions */
 boolean readTouch();
 
-void setupTouch();
 void scaleTouch(struct Point *p);
 
 // Color definitions

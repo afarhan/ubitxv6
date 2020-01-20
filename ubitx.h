@@ -56,7 +56,7 @@ it uses an ILI9341 display controller and an  XPT2046 touch controller.
  * the input and output from the USB port. We must keep a count of the bytes used while reading
  * the serial port as we can easily run out of buffer space. This is done in the serial_in_count variable.
  */
-extern char c[30], b[30];
+extern char c[30], b[128];
 
 /** 
  *  The second set of 16 pins on the Raduino's bottom connector are have the three clock outputs and the digital lines to control the rig.
@@ -92,10 +92,6 @@ extern char c[30], b[30];
 #define HIGHEST_FREQ (30000000l)
 static const uint32_t THRESHOLD_USB_LSB = 10000000L;
 
-extern unsigned long firstIF;
-
-extern uint8_t menuOn;
-
 /* these are functions implemented in the main file named as ubitx_xxx.ino */
 void active_delay(int delay_by);
 void saveVFOs();
@@ -121,11 +117,6 @@ void drawTx();
 //getValueByKnob() provides a reusable dialog box to get a value from the encoder, the prefix and postfix 
 //are useful to concatanate the values with text like "Set Freq to " x " KHz"
 int getValueByKnob(int minimum, int maximum, int step_size,  int initial, char* prefix, char *postfix);
-
-//functions of the setup menu. implemented in seteup.cpp
-void doSetup2(); //main setup function, displays the setup menu, calls various dialog boxes
-void setupBFO();
-void setupFreq();
 
 //main functions to check if any button is pressed and other user interface events
 void doCommands();  //does the commands with encoder to jump from button to button
