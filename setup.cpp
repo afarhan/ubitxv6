@@ -141,42 +141,6 @@ void runSetting(const SettingScreen_t* const p_screen)
 
 #define LIMIT(val,min,max) ((val) < (min)) ? (min) : (((max) < (val)) ? (max) : (val))
 
-//CW Tone
-ssCwToneInitialize(long int* start_value_out)
-{
-  *start_value_out = globalSettings.cwSideToneFreq;
-}
-ssCwToneValidate(const long int candidate_value_in, long int* validated_value_out)
-{
-  *validated_value_out = LIMIT(candidate_value_in,100,2000);
-}
-ssCwToneChange(const long int new_value, char* buff_out, const size_t buff_out_size)
-{
-  globalSettings.cwSideToneFreq = new_value;
-  tone(CW_TONE, globalSettings.cwSideToneFreq);
-  ltoa(globalSettings.cwSideToneFreq,buff_out,10);
-  strncat_P(buff_out,(const char*)F("Hz"),buff_out_size - strlen(buff_out));
-}
-ssCwToneFinalize(const long int final_value)
-{
-  noTone(CW_TONE);
-  globalSettings.cwSideToneFreq = final_value;
-  SaveSettingsToEeprom();
-}
-const char SS_CW_TONE_T [] PROGMEM = "Set CW Tone";
-const char SS_CW_TONE_A [] PROGMEM = "Select a frequency that\nCW mode to tune for";
-const SettingScreen_t ssTone PROGMEM = {
-  SS_CW_TONE_T,
-  SS_CW_TONE_A,
-  1,
-  10,
-  ssCwToneInitialize,
-  ssCwToneValidate,
-  ssCwToneChange,
-  ssCwToneFinalize
-};
-void runToneSetting(){runSetting(&ssTone);}
-
 //Local Oscillator
 void ssLocalOscInitialize(long int* start_value_out){
   {
@@ -260,6 +224,42 @@ const SettingScreen_t ssBfo PROGMEM = {
   ssBfoFinalize
 };
 void runBfoSetting(){runSetting(&ssBfo);}
+
+//CW Tone
+ssCwToneInitialize(long int* start_value_out)
+{
+  *start_value_out = globalSettings.cwSideToneFreq;
+}
+ssCwToneValidate(const long int candidate_value_in, long int* validated_value_out)
+{
+  *validated_value_out = LIMIT(candidate_value_in,100,2000);
+}
+ssCwToneChange(const long int new_value, char* buff_out, const size_t buff_out_size)
+{
+  globalSettings.cwSideToneFreq = new_value;
+  tone(CW_TONE, globalSettings.cwSideToneFreq);
+  ltoa(globalSettings.cwSideToneFreq,buff_out,10);
+  strncat_P(buff_out,(const char*)F("Hz"),buff_out_size - strlen(buff_out));
+}
+ssCwToneFinalize(const long int final_value)
+{
+  noTone(CW_TONE);
+  globalSettings.cwSideToneFreq = final_value;
+  SaveSettingsToEeprom();
+}
+const char SS_CW_TONE_T [] PROGMEM = "Set CW Tone";
+const char SS_CW_TONE_A [] PROGMEM = "Select a frequency that\nCW mode to tune for";
+const SettingScreen_t ssTone PROGMEM = {
+  SS_CW_TONE_T,
+  SS_CW_TONE_A,
+  1,
+  10,
+  ssCwToneInitialize,
+  ssCwToneValidate,
+  ssCwToneChange,
+  ssCwToneFinalize
+};
+void runToneSetting(){runSetting(&ssTone);}
 
 void setupCwDelay(){
   int knob = 0;
