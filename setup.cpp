@@ -78,7 +78,7 @@ struct SettingScreen_t {
   const char* const Title;
   const char* const AdditionalText;
   const uint16_t KnobDivider;
-  const uint16_t StepSize;
+  const int16_t StepSize;//int so that it can be negative
   void (*Initialize)(long int* start_value_out);
   void (*Validate)(const long int candidate_value_in, long int* validated_value_out);
   void (*OnValueChange)(const long int new_value, char* buff_out, const size_t buff_out_size);
@@ -111,7 +111,7 @@ void runSetting(const SettingScreen_t* const p_screen)
   {
     int knob = enc_read();
     if(knob != 0){
-      raw_value += knob * (int32_t)screen.StepSize;
+      raw_value += knob * screen.StepSize;
     }
     else{
       continue;
@@ -141,6 +141,7 @@ void runSetting(const SettingScreen_t* const p_screen)
 
 #define LIMIT(val,min,max) ((val) < (min)) ? (min) : (((max) < (val)) ? (max) : (val))
 
+//CW Tone
 ssCwToneInitialize(long int* start_value_out)
 {
   *start_value_out = globalSettings.cwSideToneFreq;
@@ -176,11 +177,11 @@ const SettingScreen_t ssTone PROGMEM = {
 };
 void runToneSetting(){runSetting(&ssTone);}
 
+//Local Oscillator
 void ssLocalOscInitialize(long int* start_value_out){
-  //round off the current frequency the nearest kHz
   {
     uint32_t freq = GetActiveVfoFreq();
-    freq = (freq/1000L) * 1000L;
+    freq = (freq/1000L) * 1000L;//round off the current frequency the nearest kHz
     setFrequency(freq);
     si5351bx_setfreq(0, globalSettings.usbCarrierFreq); //set back the carrier oscillator, cw tx switches it off
   }
@@ -223,32 +224,42 @@ const SettingScreen_t ssLocalOsc PROGMEM = {
 };
 void runLocalOscSetting(){runSetting(&ssLocalOsc);}
 
-void setupBFO(){
-  //displayDialog(F("Set BFO"),F("Press TUNE to Save")); 
-
+//BFO
+void ssBfoInitialize(long int* start_value_out){
   si5351bx_setfreq(0, globalSettings.usbCarrierFreq);
-  //printCarrierFreq(globalSettings.usbCarrierFreq);
-
-  while (!btnDown()){
-    int knob = enc_read();
-    if(knob != 0){
-      globalSettings.usbCarrierFreq -= 50 * knob;
-    }
-    else{
-      continue; //don't update the frequency or the display
-    }
-      
-    si5351bx_setfreq(0, globalSettings.usbCarrierFreq);
-    setFrequency(GetActiveVfoFreq());
-    //printCarrierFreq(globalSettings.usbCarrierFreq);
-    
-    active_delay(100);
-  }
-
+  *start_value_out = globalSettings.usbCarrierFreq;
+}
+void ssBfoValidate(const long int candidate_value_in, long int* validated_value_out)
+{
+  *validated_value_out = LIMIT(candidate_value_in,11048000L,11060000L);
+}
+void ssBfoChange(const long int new_value, char* buff_out, const size_t buff_out_size)
+{
+  si5351bx_setfreq(0, new_value);
+  setFrequency(GetActiveVfoFreq());
+  formatFreq(new_value,buff_out,buff_out_size);
+  strncat_P(buff_out,(const char*)F("Hz"),buff_out_size - strlen(buff_out));
+}
+void ssBfoFinalize(const long int final_value)
+{
+  globalSettings.usbCarrierFreq = final_value;
   SaveSettingsToEeprom();
   si5351bx_setfreq(0, globalSettings.usbCarrierFreq);
   setFrequency(GetActiveVfoFreq());
 }
+const char SS_BFO_T [] PROGMEM = "Set BFO Calibration";
+const char SS_BFO_A [] PROGMEM = "Exit menu, tune to an unused\nfrequency, then tune here\nuntil the audio is between\n300-3000Hz";
+const SettingScreen_t ssBfo PROGMEM = {
+  SS_BFO_T,
+  SS_BFO_A,
+  1,
+  -50,//Negative to make dial more intuitive: turning clockwise increases the perceived audio frequency
+  ssBfoInitialize,
+  ssBfoValidate,
+  ssBfoChange,
+  ssBfoFinalize
+};
+void runBfoSetting(){runSetting(&ssBfo);}
 
 void setupCwDelay(){
   int knob = 0;
@@ -436,7 +447,7 @@ const char MI_TOUCH [] PROGMEM = "Touch Screen";
 const MenuItem_t calibrationMenu [] PROGMEM {
   {MT_CAL,nullptr},//Title
   {MI_SET_FREQ,runLocalOscSetting},
-  {MI_SET_BFO,setupBFO},
+  {MI_SET_BFO,runBfoSetting},
   {MI_TOUCH,setupTouch},
 };
 void runCalibrationMenu(){RUN_MENU(calibrationMenu);}

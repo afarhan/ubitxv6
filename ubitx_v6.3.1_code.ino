@@ -481,7 +481,7 @@ void setup()
     runLocalOscSetting();
     SetActiveVfoMode(VfoMode_e::VFO_MODE_LSB);
     setFrequency(7100000L);
-    setupBFO();
+    runBfoSetting();
   }
 
   guiUpdate();
