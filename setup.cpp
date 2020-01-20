@@ -366,47 +366,45 @@ const SettingScreen_t ssKeyer PROGMEM = {
 };
 void runKeyerSetting(){runSetting(&ssKeyer);}
 
-void setupResetAll()
+//Reset all settings
+void ssResetAllInitialize(long int* start_value_out)
 {
-  //displayDialog(F("Reset all cals and settings?"),F("Press tune to Confirm"));
-  strncpy_P(b,(const char*)F("No"),sizeof(b));
-  displayText(b, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
-
-  bool reset_all = false;
-  while(!btnDown()){
-    int knob = enc_read();
-    
-    if(knob > 0){
-      reset_all = true;
-    }
-    else if(knob < 0){
-      reset_all = false;
-    }
-    else{
-      continue;
-    }
-
-    if(reset_all){
-      strncpy_P(b,(const char*)F("Yes"),sizeof(b));
-    }
-    else{
-      strncpy_P(b,(const char*)F("No"),sizeof(b));
-    }
-    
-    displayText(b, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
+  *start_value_out = 0;//Default to NOT resetting
+}
+void ssResetAllValidate(const long int candidate_value_in, long int* validated_value_out)
+{
+  *validated_value_out = LIMIT(candidate_value_in,0,1);
+}
+void ssResetAllChange(const long int new_value, char* buff_out, const size_t buff_out_size)
+{
+  if(new_value){
+    strncpy_P(buff_out,(const char*)F("Yes"),buff_out_size);
   }
-
-  while(btnDown()){
-    active_delay(50);
+  else{
+    strncpy_P(buff_out,(const char*)F("No"),buff_out_size);
   }
-  active_delay(50);
-
-  if(reset_all){
+}
+void ssResetAllFinalize(const long int final_value)
+{
+  if(final_value){
     LoadDefaultSettings();
     SaveSettingsToEeprom();
     setup();
   }
 }
+const char SS_RESET_ALL_T [] PROGMEM = "Reset All Cals/Settings";
+const char SS_RESET_ALL_A [] PROGMEM = "WARNING: Selecting \"Yes\"\nwill reset all calibrations and\nsettings to their default\nvalues";
+const SettingScreen_t ssResetAll PROGMEM = {
+  SS_RESET_ALL_T,
+  SS_RESET_ALL_A,
+  20,
+  1,
+  ssResetAllInitialize,
+  ssResetAllValidate,
+  ssResetAllChange,
+  ssResetAllFinalize
+};
+void runResetAllSetting(){runSetting(&ssResetAll);}
 
 struct MenuItem_t {
   const char* const ItemName;
@@ -443,12 +441,11 @@ const MenuItem_t cwMenu [] PROGMEM {
 void runCwMenu(){RUN_MENU(cwMenu);}
 
 const char MT_SETTINGS [] PROGMEM = "Settings";
-const char MI_RESET [] PROGMEM = "Reset all Cals/Settings";
 const MenuItem_t mainMenu [] PROGMEM {
   {MT_SETTINGS,nullptr},//Title
   {MT_CAL,runCalibrationMenu},
   {MT_CW,runCwMenu},
-  {MI_RESET,setupResetAll},
+  {SS_RESET_ALL_T,runResetAllSetting},
 };
 
 const char MI_EXIT [] PROGMEM = "Exit";
