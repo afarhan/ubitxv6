@@ -1,9 +1,10 @@
 #include <Arduino.h>
-#include <EEPROM.h>
+#include "freeRam.h"
 #include "morse.h"
+#include "nano_gui.h"
+#include "setup.h"
 #include "settings.h"
 #include "ubitx.h"
-#include "nano_gui.h"
 
 /** Menus
  *  The Radio menus are accessed by tapping on the function button. 
@@ -85,43 +86,6 @@ struct SettingScreen_t {
   void (*Finalize)(const long int final_value);
 };
 
-#define LIMIT(val,min,max) ((val) < (min)) ? (min) : (((max) < (val)) ? (max) : (val))
-ssCwToneInitialize(long int* start_value_out)
-{
-  *start_value_out = globalSettings.cwSideToneFreq;
-}
-ssCwToneValidate(const long int candidate_value_in, long int* validated_value_out)
-{
-  *validated_value_out = LIMIT(candidate_value_in,100,2000);
-}
-ssCwToneChange(const long int new_value, char* buff_out, const size_t buff_out_size)
-{
-  globalSettings.cwSideToneFreq = new_value;
-  tone(CW_TONE, globalSettings.cwSideToneFreq);
-  ltoa(globalSettings.cwSideToneFreq,buff_out,10);
-}
-ssCwToneFinalize(const long int final_value)
-{
-  noTone(CW_TONE);
-  globalSettings.cwSideToneFreq = final_value;
-  SaveSettingsToEeprom();
-}
-const char SS_EMPTY [] PROGMEM = "";
-const char SS_CW_TONE [] PROGMEM = "Set CW Tone (Hz)";
-const char SS_LONG_TEXT [] PROGMEM = "This is a long string of text that should be wrapped at least once, possibly more.";
-const SettingScreen_t settingScreens [] PROGMEM = {
-  SS_CW_TONE,
-  SS_LONG_TEXT,
-  1,
-  10,
-  ssCwToneInitialize,
-  ssCwToneValidate,
-  ssCwToneChange,
-  ssCwToneFinalize
-};
-void runSetting(const SettingScreen_t* const screen);
-void runToneSetting(){runSetting(&settingScreens[0]);}
-
 void runSetting(const SettingScreen_t* const p_screen)
 {
   SettingScreen_t screen = {0};
@@ -142,7 +106,7 @@ void runSetting(const SettingScreen_t* const p_screen)
   screen.OnValueChange(last_value,b,sizeof(b));
   displayText(b, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_TITLE_BACKGROUND, COLOR_BACKGROUND);
 
-  raw_value = last_value * screen.KnobDivider;
+  raw_value = last_value * (int32_t)screen.KnobDivider;
 
   while (!btnDown())
   {
@@ -176,73 +140,96 @@ void runSetting(const SettingScreen_t* const p_screen)
   screen.Finalize(last_value);
 }
 
-void printCarrierFreq(unsigned long freq)
+#define LIMIT(val,min,max) ((val) < (min)) ? (min) : (((max) < (val)) ? (max) : (val))
+
+ssCwToneInitialize(long int* start_value_out)
 {
-  formatFreq(freq,c,sizeof(c));
-  displayText(c, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_TITLE_BACKGROUND, COLOR_BACKGROUND);
+  *start_value_out = globalSettings.cwSideToneFreq;
 }
+ssCwToneValidate(const long int candidate_value_in, long int* validated_value_out)
+{
+  *validated_value_out = LIMIT(candidate_value_in,100,2000);
+}
+ssCwToneChange(const long int new_value, char* buff_out, const size_t buff_out_size)
+{
+  globalSettings.cwSideToneFreq = new_value;
+  tone(CW_TONE, globalSettings.cwSideToneFreq);
+  ltoa(globalSettings.cwSideToneFreq,buff_out,10);
+  strcat_P(buff_out,(const char*)F("Hz"));
+}
+ssCwToneFinalize(const long int final_value)
+{
+  noTone(CW_TONE);
+  globalSettings.cwSideToneFreq = final_value;
+  SaveSettingsToEeprom();
+}
+const char SS_CW_TONE_T [] PROGMEM = "Set CW Tone";
+const char SS_CW_TONE_A [] PROGMEM = "Select a frequency that\nCW mode to tune for";
+const SettingScreen_t ssTone PROGMEM = {
+  SS_CW_TONE_T,
+  SS_CW_TONE_A,
+  1,
+  10,
+  ssCwToneInitialize,
+  ssCwToneValidate,
+  ssCwToneChange,
+  ssCwToneFinalize
+};
+void runToneSetting(){runSetting(&ssTone);}
 
-void setupFreq(){
-  //displayDialog(F("Set Frequency"),F("Push TUNE to Save"));
-
-  //round off the the nearest khz
+void ssLocalOscInitialize(long int* start_value_out){
+  //round off the current frequency the nearest kHz
   {
     uint32_t freq = GetActiveVfoFreq();
-    freq = (freq/1000l)* 1000l;
+    freq = (freq/1000L) * 1000L;
     setFrequency(freq);
+    si5351bx_setfreq(0, globalSettings.usbCarrierFreq); //set back the carrier oscillator, cw tx switches it off
   }
-
-  strcpy_P(c,(const char*)F("You should have a"));
-  displayText(c, LAYOUT_SETTING_VALUE_X, LAYOUT_ITEM_Y, LAYOUT_ITEM_WIDTH, LAYOUT_ITEM_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
-  strcpy_P(c,(const char*)F("signal exactly at"));
-  displayText(c, LAYOUT_SETTING_VALUE_X, LAYOUT_ITEM_Y + 1*LAYOUT_ITEM_PITCH_Y, LAYOUT_ITEM_WIDTH, LAYOUT_ITEM_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
-  ltoa(GetActiveVfoFreq()/1000L, c, 10);
-  strcat_P(c,(const char*)F(" KHz"));
-  displayText(c, LAYOUT_SETTING_VALUE_X, LAYOUT_ITEM_Y + 2*LAYOUT_ITEM_PITCH_Y, LAYOUT_ITEM_WIDTH, LAYOUT_ITEM_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
-  strcpy_P(c,(const char*)F("Rotate to zerobeat"));
-  displayText(c, LAYOUT_SETTING_VALUE_X, LAYOUT_ITEM_Y + 4*LAYOUT_ITEM_PITCH_Y, LAYOUT_ITEM_WIDTH, LAYOUT_ITEM_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
-  
-  ltoa(globalSettings.oscillatorCal, b, 10);
-  displayText(b, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_TITLE_BACKGROUND, COLOR_BACKGROUND);
-  //keep clear of any previous button press
-  while (btnDown())
-    active_delay(100);
-  active_delay(100);
-
-  while (!btnDown())
-  {
-    int knob = enc_read();
-    if(knob != 0){
-      globalSettings.oscillatorCal += knob * 875;
-    }
-    else{
-      continue; //don't update the frequency or the display
-    }
-
-    si5351bx_setfreq(0, globalSettings.usbCarrierFreq); //set back the carrier oscillator anyway, cw tx switches it off
-    si5351_set_calibration(globalSettings.oscillatorCal);
-    setFrequency(GetActiveVfoFreq());
-    
-    ltoa(globalSettings.oscillatorCal, b, 10);
-    displayText(b, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_TITLE_BACKGROUND, COLOR_BACKGROUND);
+  *start_value_out = globalSettings.oscillatorCal;
+  Serial.println(freeRam());
+}
+void ssLocalOscValidate(const long int candidate_value_in, long int* validated_value_out)
+{
+  *validated_value_out = candidate_value_in;//No check - allow anything
+}
+void ssLocalOscChange(const long int new_value, char* buff_out, const size_t buff_out_size)
+{
+  si5351_set_calibration(new_value);
+  setFrequency(GetActiveVfoFreq());
+  const long int u = abs(new_value);
+  if(new_value != u){
+    strcpy_P(buff_out,(const char*)F("-"));
+    ++buff_out;
   }
-
+  formatFreq(u,buff_out,buff_out_size);
+  strcat_P(buff_out,(const char*)F("Hz"));
+}
+void ssLocalOscFinalize(const long int final_value)
+{
+  globalSettings.oscillatorCal = final_value;
   SaveSettingsToEeprom();
-  initOscillators();
   si5351_set_calibration(globalSettings.oscillatorCal);
   setFrequency(GetActiveVfoFreq());
-
-  //debounce and delay
-  while(btnDown())
-    active_delay(50);
-  active_delay(100);
 }
+const char SS_LOCAL_OSC_T [] PROGMEM = "Set Local Osc Calibration";
+const char SS_LOCAL_OSC_A [] PROGMEM = "Exit menu, tune so that the\ndial displays the desired freq,\nthen tune here until the\nsignal is zerobeat";
+const SettingScreen_t ssLocalOsc PROGMEM = {
+  SS_LOCAL_OSC_T,
+  SS_LOCAL_OSC_A,
+  1,
+  875,
+  ssLocalOscInitialize,
+  ssLocalOscValidate,
+  ssLocalOscChange,
+  ssLocalOscFinalize
+};
+void runLocalOscSetting(){runSetting(&ssLocalOsc);}
 
 void setupBFO(){
   //displayDialog(F("Set BFO"),F("Press TUNE to Save")); 
 
   si5351bx_setfreq(0, globalSettings.usbCarrierFreq);
-  printCarrierFreq(globalSettings.usbCarrierFreq);
+  //printCarrierFreq(globalSettings.usbCarrierFreq);
 
   while (!btnDown()){
     int knob = enc_read();
@@ -255,7 +242,7 @@ void setupBFO(){
       
     si5351bx_setfreq(0, globalSettings.usbCarrierFreq);
     setFrequency(GetActiveVfoFreq());
-    printCarrierFreq(globalSettings.usbCarrierFreq);
+    //printCarrierFreq(globalSettings.usbCarrierFreq);
     
     active_delay(100);
   }
@@ -450,7 +437,7 @@ const char MI_SET_BFO [] PROGMEM = "Beat Frequency Osc (BFO)";
 const char MI_TOUCH [] PROGMEM = "Touch Screen";
 const MenuItem_t calibrationMenu [] PROGMEM {
   {MT_CAL,nullptr},//Title
-  {MI_SET_FREQ,setupFreq},
+  {MI_SET_FREQ,runLocalOscSetting},
   {MI_SET_BFO,setupBFO},
   {MI_TOUCH,setupTouch},
 };

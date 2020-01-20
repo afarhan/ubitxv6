@@ -1,7 +1,8 @@
 #include <Arduino.h>
-#include <EEPROM.h>
+#include "freeRam.h"
 #include "morse.h"
 #include "settings.h"
+#include "setup.h"
 #include "ubitx.h"
 #include "nano_gui.h"
 
@@ -900,6 +901,7 @@ void doCommand(Button* button){
     }
     case BUTTON_MNU:
     {
+      Serial.println(freeRam());
       doSetup2();
       break;
     }
@@ -953,20 +955,17 @@ void drawFocus(int ibtn, int color){
 }
 
 void doCommands(){
-  int select=0, i, prevButton, btnState;
+  int select = 0;
+  int prev_button = 0;
 
   //wait for the button to be raised up
   while(btnDown())
     active_delay(50);
   active_delay(50);  //debounce
 
-  menuOn = 2;
-
-  while (menuOn){
-
+  while (true){
     //check if the knob's button was pressed
-    btnState = btnDown();
-    if (btnState){
+    if (btnDown()){
       Button button;
       memcpy_P(&button, &(btn_set[select/10]), sizeof(Button));
     
@@ -986,27 +985,27 @@ void doCommands(){
       return;
     }
 
-    i = enc_read();
+    int knob = enc_read();
     
-    if (i == 0){
+    if (knob == 0){
       active_delay(50);
       continue;
     }
     
-    if (i > 0){
-      if (select + i < BUTTON_TOTAL * 10)
-        select += i;
+    if (knob > 0){
+      if (select + knob < BUTTON_TOTAL * 10)
+        select += knob;
     }
-    if (i < 0 && select + i >= 0)
-      select += i;      //caught ya, i is already -ve here, so you add it
+    if (knob < 0 && select + knob >= 0)
+      select += knob;      //caught ya, i is already -ve here, so you add it
     
-    if (prevButton == select / 10)
+    if (prev_button == select / 10)
       continue;
       
      //we are on a new button
-     drawFocus(prevButton, COLOR_INACTIVE_BORDER);
+     drawFocus(prev_button, COLOR_INACTIVE_BORDER);
      drawFocus(select/10, COLOR_ACTIVE_BORDER);
-     prevButton = select/10;
+     prev_button = select/10;
   }
 //  guiUpdate();
 
