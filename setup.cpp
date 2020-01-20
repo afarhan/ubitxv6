@@ -174,7 +174,7 @@ void ssLocalOscFinalize(const long int final_value)
   si5351_set_calibration(globalSettings.oscillatorCal);
   setFrequency(GetActiveVfoFreq());
 }
-const char SS_LOCAL_OSC_T [] PROGMEM = "Set Local Osc Calibration";
+const char SS_LOCAL_OSC_T [] PROGMEM = "Local Oscillator";
 const char SS_LOCAL_OSC_A [] PROGMEM = "Exit menu, tune so that the\ndial displays the desired freq,\nthen tune here until the\nsignal is zerobeat";
 const SettingScreen_t ssLocalOsc PROGMEM = {
   SS_LOCAL_OSC_T,
@@ -212,7 +212,7 @@ void ssBfoFinalize(const long int final_value)
   si5351bx_setfreq(0, globalSettings.usbCarrierFreq);
   setFrequency(GetActiveVfoFreq());
 }
-const char SS_BFO_T [] PROGMEM = "Set BFO Calibration";
+const char SS_BFO_T [] PROGMEM = "Beat Frequency Osc (BFO)";
 const char SS_BFO_A [] PROGMEM = "Exit menu, tune to an unused\nfrequency, then tune here\nuntil the audio is between\n300-3000Hz";
 const SettingScreen_t ssBfo PROGMEM = {
   SS_BFO_T,
@@ -244,7 +244,7 @@ void ssCwSpeedFinalize(const long int final_value)
   globalSettings.cwDitDurationMs = 1200L/final_value;
   SaveSettingsToEeprom();
 }
-const char SS_CW_SPEED_T [] PROGMEM = "Set CW Speed";
+const char SS_CW_SPEED_T [] PROGMEM = "CW Play Speed";
 const char SS_CW_SPEED_A [] PROGMEM = "Select speed to play CW\ncharacters";
 const SettingScreen_t ssCwSpeed PROGMEM = {
   SS_CW_SPEED_T,
@@ -280,7 +280,7 @@ void ssCwToneFinalize(const long int final_value)
   globalSettings.cwSideToneFreq = final_value;
   SaveSettingsToEeprom();
 }
-const char SS_CW_TONE_T [] PROGMEM = "Set CW Tone";
+const char SS_CW_TONE_T [] PROGMEM = "CW Tone Frequency";
 const char SS_CW_TONE_A [] PROGMEM = "Select a frequency that\nCW mode to tune for";
 const SettingScreen_t ssTone PROGMEM = {
   SS_CW_TONE_T,
@@ -313,7 +313,7 @@ void ssCwSwitchDelayFinalize(const long int final_value)
   globalSettings.cwActiveTimeoutMs = final_value;
   SaveSettingsToEeprom();
 }
-const char SS_CW_SWITCH_T [] PROGMEM = "Set CW Tx/Rx Switch Delay";
+const char SS_CW_SWITCH_T [] PROGMEM = "CW Tx -> Rx Switch Delay";
 const char SS_CW_SWITCH_A [] PROGMEM = "Select how long the radio\nshould wait before switching\nbetween TX and RX when in\nCW mode";
 const SettingScreen_t ssCwSwitchDelay PROGMEM = {
   SS_CW_SWITCH_T,
@@ -353,7 +353,7 @@ void ssKeyerFinalize(const long int final_value)
   globalSettings.keyerMode = final_value;
   SaveSettingsToEeprom();
 }
-const char SS_KEYER_T [] PROGMEM = "Set CW Keyer Type";
+const char SS_KEYER_T [] PROGMEM = "CW Keyer/Paddle Type";
 const char SS_KEYER_A [] PROGMEM = "Select which type of\nkeyer/paddle is being used";
 const SettingScreen_t ssKeyer PROGMEM = {
   SS_KEYER_T,
@@ -416,28 +416,22 @@ void runMenu(const MenuItem_t* const menu_items, const uint16_t num_items);
 #define RUN_MENU(menu) runMenu(menu,sizeof(menu)/sizeof(menu[0]))
 
 const char MT_CAL [] PROGMEM = "Calibrations";
-const char MI_SET_FREQ [] PROGMEM = "Local Oscillator";
-const char MI_SET_BFO [] PROGMEM = "Beat Frequency Osc (BFO)";
 const char MI_TOUCH [] PROGMEM = "Touch Screen";
 const MenuItem_t calibrationMenu [] PROGMEM {
   {MT_CAL,nullptr},//Title
-  {MI_SET_FREQ,runLocalOscSetting},
-  {MI_SET_BFO,runBfoSetting},
+  {SS_LOCAL_OSC_T,runLocalOscSetting},
+  {SS_BFO_T,runBfoSetting},
   {MI_TOUCH,setupTouch},
 };
 void runCalibrationMenu(){RUN_MENU(calibrationMenu);}
 
 const char MT_CW [] PROGMEM = "CW/Morse Setup";
-const char MI_CW_SPEED [] PROGMEM = "Play Speed (WPM)";
-const char MI_CW_TONE [] PROGMEM = "Tone Frequency";
-const char MI_CW_DELAY [] PROGMEM = "Tx/Rx Switching Delay";
-const char MI_CW_KEYER [] PROGMEM = "Keyer Type";
 const MenuItem_t cwMenu [] PROGMEM {
   {MT_CW,nullptr},//Title
-  {MI_CW_SPEED,runCwSpeedSetting},
-  {MI_CW_TONE,runToneSetting},
-  {MI_CW_DELAY,runCwSwitchDelaySetting},
-  {MI_CW_KEYER,runKeyerSetting},
+  {SS_CW_SPEED_T,runCwSpeedSetting},
+  {SS_CW_TONE_T,runToneSetting},
+  {SS_CW_SWITCH_T,runCwSwitchDelaySetting},
+  {SS_KEYER_T,runKeyerSetting},
 };
 void runCwMenu(){RUN_MENU(cwMenu);}
 
