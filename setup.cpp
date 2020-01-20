@@ -226,22 +226,22 @@ const SettingScreen_t ssBfo PROGMEM = {
 void runBfoSetting(){runSetting(&ssBfo);}
 
 //CW Tone
-ssCwToneInitialize(long int* start_value_out)
+void ssCwToneInitialize(long int* start_value_out)
 {
   *start_value_out = globalSettings.cwSideToneFreq;
 }
-ssCwToneValidate(const long int candidate_value_in, long int* validated_value_out)
+void ssCwToneValidate(const long int candidate_value_in, long int* validated_value_out)
 {
   *validated_value_out = LIMIT(candidate_value_in,100,2000);
 }
-ssCwToneChange(const long int new_value, char* buff_out, const size_t buff_out_size)
+void ssCwToneChange(const long int new_value, char* buff_out, const size_t buff_out_size)
 {
   globalSettings.cwSideToneFreq = new_value;
   tone(CW_TONE, globalSettings.cwSideToneFreq);
   ltoa(globalSettings.cwSideToneFreq,buff_out,10);
   strncat_P(buff_out,(const char*)F("Hz"),buff_out_size - strlen(buff_out));
 }
-ssCwToneFinalize(const long int final_value)
+void ssCwToneFinalize(const long int final_value)
 {
   noTone(CW_TONE);
   globalSettings.cwSideToneFreq = final_value;
@@ -261,36 +261,38 @@ const SettingScreen_t ssTone PROGMEM = {
 };
 void runToneSetting(){runSetting(&ssTone);}
 
-void setupCwDelay(){
-  int knob = 0;
-  int prev_cw_delay;
-
-  //displayDialog(F("Set CW T/R Delay"),F("Press tune to Save")); 
-
-  prev_cw_delay = globalSettings.cwActiveTimeoutMs;
-
-  ltoa(globalSettings.cwActiveTimeoutMs, b, 10);
-  strncat_P(b,(const char*)F(" msec"),sizeof(b) - strlen(b));
-  displayText(b, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
-
-  while (!btnDown()){
-    knob = enc_read();
-
-    if (knob < 0 && globalSettings.cwActiveTimeoutMs > 100)
-      globalSettings.cwActiveTimeoutMs -= 100;
-    else if (knob > 0 && globalSettings.cwActiveTimeoutMs < 1000)
-      globalSettings.cwActiveTimeoutMs += 100;
-    else
-      continue; //don't update the frequency or the display
-
-    ltoa(globalSettings.cwActiveTimeoutMs, b, 10);
-    strncat_P(b,(const char*)F(" msec"),sizeof(b) - strlen(b));
-    displayText(b, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
-      
-  }
-
+//CW Switch Delay
+void ssCwSwitchDelayInitialize(long int* start_value_out)
+{
+  *start_value_out = globalSettings.cwActiveTimeoutMs;
+}
+void ssCwSwitchDelayValidate(const long int candidate_value_in, long int* validated_value_out)
+{
+  *validated_value_out = LIMIT(candidate_value_in,100,1000);
+}
+void ssCwSwitchDelayChange(const long int new_value, char* buff_out, const size_t buff_out_size)
+{
+  ltoa(new_value,buff_out,10);
+  strncat_P(buff_out,(const char*)F("ms"),buff_out_size - strlen(buff_out));
+}
+void ssCwSwitchDelayFinalize(const long int final_value)
+{
+  globalSettings.cwActiveTimeoutMs = final_value;
   SaveSettingsToEeprom();
 }
+const char SS_CW_SWITCH_T [] PROGMEM = "Set CW Tx/Rx Switch Delay";
+const char SS_CW_SWITCH_A [] PROGMEM = "Select how long the radio\nshould wait before switching\nbetween TX and RX when in\nCW mode";
+const SettingScreen_t ssCwSwitchDelay PROGMEM = {
+  SS_CW_SWITCH_T,
+  SS_CW_SWITCH_A,
+  1,
+  100,
+  ssCwSwitchDelayInitialize,
+  ssCwSwitchDelayValidate,
+  ssCwSwitchDelayChange,
+  ssCwSwitchDelayFinalize
+};
+void runCwSwitchDelaySetting(){runSetting(&ssCwSwitchDelay);}
 
 void formatKeyerEnum(char* output, const KeyerMode_e mode)
 {
@@ -461,7 +463,7 @@ const MenuItem_t cwMenu [] PROGMEM {
   {MT_CW,nullptr},//Title
   {MI_CW_SPEED,setupCwSpeed},
   {MI_CW_TONE,runToneSetting},
-  {MI_CW_DELAY,setupCwDelay},
+  {MI_CW_DELAY,runCwSwitchDelaySetting},
   {MI_CW_KEYER,setupKeyer},
 };
 void runCwMenu(){RUN_MENU(cwMenu);}
