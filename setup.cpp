@@ -1,5 +1,4 @@
 #include <Arduino.h>
-#include "freeRam.h"
 #include "morse.h"
 #include "nano_gui.h"
 #include "setup.h"
@@ -67,11 +66,11 @@ void displayDialog(const char* title,
   displayClear(COLOR_BACKGROUND);
   displayRect(LAYOUT_OUTER_BORDER_X,LAYOUT_OUTER_BORDER_Y,LAYOUT_OUTER_BORDER_WIDTH,LAYOUT_OUTER_BORDER_HEIGHT, COLOR_ACTIVE_BORDER);
   displayRect(LAYOUT_INNER_BORDER_X,LAYOUT_INNER_BORDER_Y,LAYOUT_INNER_BORDER_WIDTH,LAYOUT_INNER_BORDER_HEIGHT, COLOR_ACTIVE_BORDER);
-  strcpy_P(b,title);
+  strncpy_P(b,title,sizeof(b));
   displayText(b, LAYOUT_TITLE_X, LAYOUT_TITLE_Y, LAYOUT_TITLE_WIDTH, LAYOUT_TITLE_HEIGHT, COLOR_TEXT, COLOR_TITLE_BACKGROUND, COLOR_ACTIVE_BORDER);
-  strcpy_P(b,instructions);
+  strncpy_P(b,instructions,sizeof(b));
   displayText(b, LAYOUT_INSTRUCTIONS_TEXT_X, LAYOUT_INSTRUCTIONS_TEXT_Y, LAYOUT_INSTRUCTIONS_TEXT_WIDTH, LAYOUT_INSTRUCTIONS_TEXT_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
-  strcpy_P(b,(const char*)F("Push Tune to Save"));
+  strncpy_P(b,(const char*)F("Push Tune to Save"),sizeof(b));
   displayText(b, LAYOUT_CONFIRM_TEXT_X, LAYOUT_CONFIRM_TEXT_Y, LAYOUT_CONFIRM_TEXT_WIDTH, LAYOUT_CONFIRM_TEXT_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
 }
 
@@ -155,7 +154,7 @@ ssCwToneChange(const long int new_value, char* buff_out, const size_t buff_out_s
   globalSettings.cwSideToneFreq = new_value;
   tone(CW_TONE, globalSettings.cwSideToneFreq);
   ltoa(globalSettings.cwSideToneFreq,buff_out,10);
-  strcat_P(buff_out,(const char*)F("Hz"));
+  strncat_P(buff_out,(const char*)F("Hz"),buff_out_size - strlen(buff_out));
 }
 ssCwToneFinalize(const long int final_value)
 {
@@ -186,7 +185,6 @@ void ssLocalOscInitialize(long int* start_value_out){
     si5351bx_setfreq(0, globalSettings.usbCarrierFreq); //set back the carrier oscillator, cw tx switches it off
   }
   *start_value_out = globalSettings.oscillatorCal;
-  Serial.println(freeRam());
 }
 void ssLocalOscValidate(const long int candidate_value_in, long int* validated_value_out)
 {
@@ -198,11 +196,11 @@ void ssLocalOscChange(const long int new_value, char* buff_out, const size_t buf
   setFrequency(GetActiveVfoFreq());
   const long int u = abs(new_value);
   if(new_value != u){
-    strcpy_P(buff_out,(const char*)F("-"));
+    strncpy_P(buff_out,(const char*)F("-"),buff_out_size);
     ++buff_out;
   }
-  formatFreq(u,buff_out,buff_out_size);
-  strcat_P(buff_out,(const char*)F("Hz"));
+  formatFreq(u,buff_out,buff_out_size - strlen(buff_out));
+  strncat_P(buff_out,(const char*)F("Hz"),buff_out_size - strlen(buff_out));
 }
 void ssLocalOscFinalize(const long int final_value)
 {
@@ -261,7 +259,7 @@ void setupCwDelay(){
   prev_cw_delay = globalSettings.cwActiveTimeoutMs;
 
   ltoa(globalSettings.cwActiveTimeoutMs, b, 10);
-  strcat_P(b,(const char*)F(" msec"));
+  strncat_P(b,(const char*)F(" msec"),sizeof(b) - strlen(b));
   displayText(b, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
 
   while (!btnDown()){
@@ -275,7 +273,7 @@ void setupCwDelay(){
       continue; //don't update the frequency or the display
 
     ltoa(globalSettings.cwActiveTimeoutMs, b, 10);
-    strcat_P(b,(const char*)F(" msec"));
+    strncat_P(b,(const char*)F(" msec"),sizeof(b) - strlen(b));
     displayText(b, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
       
   }
@@ -384,7 +382,7 @@ void setupCwTone(){
 void setupResetAll()
 {
   //displayDialog(F("Reset all cals and settings?"),F("Press tune to Confirm"));
-  strcpy_P(b,(const char*)F("No"));
+  strncpy_P(b,(const char*)F("No"),sizeof(b));
   displayText(b, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
 
   bool reset_all = false;
@@ -402,10 +400,10 @@ void setupResetAll()
     }
 
     if(reset_all){
-      strcpy_P(b,(const char*)F("Yes"));
+      strncpy_P(b,(const char*)F("Yes"),sizeof(b));
     }
     else{
-      strcpy_P(b,(const char*)F("No"));
+      strncpy_P(b,(const char*)F("No"),sizeof(b));
     }
     
     displayText(b, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND);
@@ -474,15 +472,15 @@ void drawMenu(const MenuItem_t* const items, const uint16_t num_items)
   displayClear(COLOR_BACKGROUND);
   MenuItem_t mi = {"",nullptr};
   memcpy_P(&mi,&items[0],sizeof(mi));
-  strcpy_P(b,mi.ItemName);
+  strncpy_P(b,mi.ItemName,sizeof(b));
   displayText(b, LAYOUT_TITLE_X, LAYOUT_TITLE_Y, LAYOUT_TITLE_WIDTH, LAYOUT_TITLE_HEIGHT, COLOR_TEXT, COLOR_TITLE_BACKGROUND, COLOR_ACTIVE_BORDER);
   for(unsigned int i = 1; i < num_items; ++i){
     memcpy_P(&mi,&items[i],sizeof(mi));
-    strcpy_P(b,mi.ItemName);
+    strncpy_P(b,mi.ItemName,sizeof(b));
     displayText(b, LAYOUT_ITEM_X, LAYOUT_ITEM_Y + (i-1)*LAYOUT_ITEM_PITCH_Y, LAYOUT_ITEM_WIDTH, LAYOUT_ITEM_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_INACTIVE_BORDER);
   }
   memcpy_P(&mi,&exitMenu,sizeof(mi));
-  strcpy_P(b,mi.ItemName);
+  strncpy_P(b,mi.ItemName,sizeof(b));
   displayText(b, LAYOUT_ITEM_X, LAYOUT_ITEM_Y + (num_items-1)*LAYOUT_ITEM_PITCH_Y, LAYOUT_ITEM_WIDTH, LAYOUT_ITEM_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_INACTIVE_BORDER);
 }
 

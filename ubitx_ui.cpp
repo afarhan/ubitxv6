@@ -1,5 +1,4 @@
 #include <Arduino.h>
-#include "freeRam.h"
 #include "morse.h"
 #include "settings.h"
 #include "setup.h"
@@ -166,10 +165,10 @@ int getValueByKnob(int minimum, int maximum, int step_size,  int initial, const 
   active_delay(200);
   knob_value = initial;
 
-  strcpy_P(b,(const char*)prefix);
+  strncpy_P(b,(const char*)prefix,sizeof(b));
   itoa(knob_value, c, 10);
-  strcat(b, c);
-  strcat_P(b, (const char*)postfix);
+  strncat(b, c, sizeof(b) - strlen(b));
+  strncat_P(b, (const char*)postfix, sizeof(b) - strlen(b));
   drawCommandbar(b);
 
   while(!btnDown() && digitalRead(PTT) == HIGH){
@@ -180,10 +179,10 @@ int getValueByKnob(int minimum, int maximum, int step_size,  int initial, const 
       if (knob_value < maximum && knob > 0)
         knob_value += step_size;
 
-      strcpy_P(b,(const char*)prefix);
+      strncpy_P(b,(const char*)prefix,sizeof(b));
       itoa(knob_value, c, 10);
-      strcat(b, c);
-      strcat_P(b,(const char*)postfix);
+      strncat(b, c, sizeof(b) - strlen(b));
+      strncat_P(b,(const char*)postfix, sizeof(b) - strlen(b));
       drawCommandbar(b);
     }
   checkCAT();
@@ -335,8 +334,8 @@ void displayRIT(){
   c[0] = 0;
   displayFillrect(LAYOUT_MODE_TEXT_X,LAYOUT_MODE_TEXT_Y,LAYOUT_MODE_TEXT_WIDTH,LAYOUT_MODE_TEXT_HEIGHT, COLOR_BACKGROUND);
   if(globalSettings.ritOn){
-    strcpy_P(c,(const char*)F("TX:"));
-    formatFreq(globalSettings.ritFrequency, c+3, sizeof(c)-3);
+    strncpy_P(c,(const char*)F("TX:"),sizeof(c));
+    formatFreq(globalSettings.ritFrequency, c+3, sizeof(c)-strlen(c));
     if (VFO_A == globalSettings.activeVfo)
       displayText(c, LAYOUT_VFO_LABEL_X + 0*LAYOUT_VFO_LABEL_PITCH_X, LAYOUT_MODE_TEXT_Y, LAYOUT_VFO_LABEL_WIDTH, LAYOUT_MODE_TEXT_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
     else
@@ -350,9 +349,9 @@ void fastTune(){
     active_delay(50);
   active_delay(300);
   
-  strcpy_P(c,(const char*)F("Fast tune"));
+  strncpy_P(c,(const char*)F("Fast tune"),sizeof(c));
   displayText(c, LAYOUT_MODE_TEXT_X, LAYOUT_MODE_TEXT_Y, LAYOUT_MODE_TEXT_WIDTH, LAYOUT_MODE_TEXT_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
-  while(1){
+  while(true){
     checkCAT();
 
     //exit after debouncing the btnDown
@@ -472,8 +471,8 @@ void enterFreq(){
         }//switch
       }//if button hit test
     }// end of the button scanning loop
-    strcpy(b, c);
-    strcat_P(b,(const char*)F(" KHz"));
+    strncpy(b, c, sizeof(b));
+    strncat_P(b,(const char*)F(" KHz"),sizeof(b) - strlen(b));
     displayText(b, LAYOUT_MODE_TEXT_X, LAYOUT_MODE_TEXT_Y, LAYOUT_MODE_TEXT_WIDTH, LAYOUT_MODE_TEXT_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
     active_delay(300);
     while(readTouch())
@@ -482,21 +481,21 @@ void enterFreq(){
 }
 
 void drawCWStatus(){
-  strcpy_P(b,(const char*)F(" cw: "));
+  strncpy_P(b,(const char*)F(" cw: "),sizeof(b));
   int wpm = 1200/globalSettings.cwDitDurationMs;
   itoa(wpm,c, 10);
-  strcat(b, c);
-  strcat_P(b,(const char*)F("wpm, "));
+  strncat(b, c, sizeof(b) - strlen(b));
+  strncat_P(b,(const char*)F("wpm, "), sizeof(b) - strlen(b));
   itoa(globalSettings.cwSideToneFreq, c, 10);
-  strcat(b, c);
-  strcat_P(b,(const char*)F("hz"));
+  strncat(b, c, sizeof(b) - strlen(b));
+  strncat_P(b,(const char*)F("hz"), sizeof(b) - strlen(b));
   displayText(b, LAYOUT_CW_TEXT_X, LAYOUT_CW_TEXT_Y, LAYOUT_CW_TEXT_WIDTH, LAYOUT_CW_TEXT_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
 }
 
 
 void drawTx(){
   if (globalSettings.txActive){
-    strcpy_P(b,(const char*)F("TX"));
+    strncpy_P(b,(const char*)F("TX"), sizeof(b));
     displayText(b, LAYOUT_TX_X, LAYOUT_TX_Y, LAYOUT_TX_WIDTH, LAYOUT_TX_HEIGHT, COLOR_ACTIVE_TEXT, COLOR_ACTIVE_BACKGROUND, COLOR_BACKGROUND);
   }
   else{
@@ -901,7 +900,6 @@ void doCommand(Button* button){
     }
     case BUTTON_MNU:
     {
-      Serial.println(freeRam());
       doSetup2();
       break;
     }

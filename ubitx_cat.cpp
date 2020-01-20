@@ -123,13 +123,6 @@ void catReadEEPRom(void)
   //for remove warnings
   byte temp0 = cat[0];
   byte temp1 = cat[1];
-/*
-  itoa((int) cat[0], b, 16);
-  strcat(b, ":");
-  itoa((int) cat[1], c, 16);
-  strcat(b, c);
-  printLine2(b);
-*/
 
   cat[0] = 0;
   cat[1] = 0;
@@ -385,10 +378,6 @@ void processCATCommand2(byte* cmd) {
   default:
     //somehow, get this to print the four bytes
     ultoa(*((unsigned long *)cmd), c, 16);
-    /*itoa(cmd[4], b, 16);
-    strcat(b, ">");
-    strcat(b, c);
-    printLine2(b);*/
     response[0] = 0x00;
     Serial.write(response[0]);
   }
