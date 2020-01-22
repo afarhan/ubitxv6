@@ -54,6 +54,8 @@ static const PROGMEM struct Morse morse_table[] = {
 {'.', 0x95}, // 10010101
 {',', 0xb3}, // 10110011
 {'?', 0x8c}, // 10001100
+{ 2 , 0xd5}, // 11010101 ASCII 0x02 is Start of Text - <CT>
+{ 4 , 0x85}, // 10000101 ASCII 0x04 is End of Transmission - <CL> is too long for our encoding scheme in 8 bits, but <SK> fits
 };
 
 static void morseLetter(char c, uint16_t dit_duration_ms){
