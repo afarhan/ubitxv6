@@ -397,7 +397,8 @@ void enterFreq(){
   int cursor_pos = 0;
   memset(c, 0, sizeof(c));
 
-  while(1){
+  bool exit = false;
+  while(!exit){
 
     checkCAT();
     if(btnDown()){
@@ -437,6 +438,7 @@ void enterFreq(){
               }
               saveVFOs();
             }
+            exit = true;
             break;
           }
           
@@ -451,6 +453,7 @@ void enterFreq(){
           }
           case KEYS_CANCEL:
           {
+            exit = true;
             break;
           }
           case KEYS_0:
@@ -483,7 +486,7 @@ void enterFreq(){
     active_delay(300);
     while(readTouch())
       checkCAT();
-  } // end of event loop : while(1)
+  } // end of event loop : while(!exit)
 
   guiUpdate();
   enc_read();//clear out any tuner turning that happened during entry
