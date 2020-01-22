@@ -238,6 +238,8 @@ void ssCwSpeedValidate(const long int candidate_value_in, long int* validated_va
 void ssCwSpeedChange(const long int new_value, char* buff_out, const size_t buff_out_size)
 {
   ltoa(new_value, buff_out, 10);
+  morseText(buff_out,1200L/new_value);
+  enc_read();//Consume any rotations during morse playback
 }
 void ssCwSpeedFinalize(const long int final_value)
 {
@@ -307,6 +309,8 @@ void ssCwSwitchDelayChange(const long int new_value, char* buff_out, const size_
 {
   ltoa(new_value,buff_out,10);
   strncat_P(buff_out,(const char*)F("ms"),buff_out_size - strlen(buff_out));
+  morseText(buff_out);
+  enc_read();//Consume any rotations during morse playback
 }
 void ssCwSwitchDelayFinalize(const long int final_value)
 {
@@ -338,15 +342,21 @@ void ssKeyerValidate(const long int candidate_value_in, long int* validated_valu
 }
 void ssKeyerChange(const long int new_value, char* buff_out, const size_t buff_out_size)
 {
+  char m;
   if(KeyerMode_e::KEYER_STRAIGHT == new_value){
-    strncpy_P(buff_out,(const char*)F("< Hand Key >"),buff_out_size);
+    strncpy_P(buff_out,(const char*)F("Hand Key"),buff_out_size);
+    m = 'S';
   }
   else if(KeyerMode_e::KEYER_IAMBIC_A == new_value){
-    strncpy_P(buff_out,(const char*)F("< Iambic A >"),buff_out_size);
+    strncpy_P(buff_out,(const char*)F("Iambic A"),buff_out_size);
+    m = 'A';
   }
   else{
-    strncpy_P(buff_out,(const char*)F("< Iambic B >"),buff_out_size);
+    strncpy_P(buff_out,(const char*)F("Iambic B"),buff_out_size);
+    m = 'B';
   }
+  morseLetter(m);
+  enc_read();//Consume any rotations during morse playback
 }
 void ssKeyerFinalize(const long int final_value)
 {
@@ -378,12 +388,17 @@ void ssResetAllValidate(const long int candidate_value_in, long int* validated_v
 }
 void ssResetAllChange(const long int new_value, char* buff_out, const size_t buff_out_size)
 {
+  char m;
   if(new_value){
     strncpy_P(buff_out,(const char*)F("Yes"),buff_out_size);
+    m = 'Y';
   }
   else{
     strncpy_P(buff_out,(const char*)F("No"),buff_out_size);
+    m = 'N';
   }
+  morseLetter(m);
+  enc_read();//Consume any rotations during morse playback
 }
 void ssResetAllFinalize(const long int final_value)
 {
@@ -406,6 +421,48 @@ const SettingScreen_t ssResetAll PROGMEM = {
   ssResetAllFinalize
 };
 void runResetAllSetting(){runSetting(&ssResetAll);}
+
+//Morse menu playback
+void ssMorseMenuInitialize(long int* start_value_out)
+{
+  *start_value_out = globalSettings.morseMenuOn;
+}
+void ssMorseMenuValidate(const long int candidate_value_in, long int* validated_value_out)
+{
+  *validated_value_out = LIMIT(candidate_value_in,0,1);
+}
+void ssMorseMenuChange(const long int new_value, char* buff_out, const size_t buff_out_size)
+{
+  char m;
+  if(new_value){
+    strncpy_P(buff_out,(const char*)F("Yes"),buff_out_size);
+    m = 'Y';
+  }
+  else{
+    strncpy_P(buff_out,(const char*)F("No"),buff_out_size);
+    m = 'N';
+  }
+  morseLetter(m);
+  enc_read();//Consume any rotations during morse playback
+}
+void ssMorseMenuFinalize(const long int final_value)
+{
+  globalSettings.morseMenuOn = final_value;
+  SaveSettingsToEeprom();
+}
+const char SS_MORSE_MENU_T [] PROGMEM = "Morse Menu Play";
+const char SS_MORSE_MENU_A [] PROGMEM = "When on, menu selections\nwill play morse code";
+const SettingScreen_t ssMorseMenu PROGMEM = {
+  SS_MORSE_MENU_T,
+  SS_MORSE_MENU_A,
+  10,
+  1,
+  ssMorseMenuInitialize,
+  ssMorseMenuValidate,
+  ssMorseMenuChange,
+  ssMorseMenuFinalize
+};
+void runMorseMenuSetting(){runSetting(&ssMorseMenu);}
 
 struct MenuItem_t {
   const char* const ItemName;
@@ -440,6 +497,7 @@ const MenuItem_t mainMenu [] PROGMEM {
   {MT_SETTINGS,nullptr},//Title
   {MT_CAL,runCalibrationMenu},
   {MT_CW,runCwMenu},
+  {SS_MORSE_MENU_T,runMorseMenuSetting},
   {SS_RESET_ALL_T,runResetAllSetting},
 };
 
@@ -482,10 +540,10 @@ void runMenu(const MenuItem_t* const menu_items, const uint16_t num_items)
   static const unsigned int COUNTS_PER_ITEM = 10;
   const unsigned int MAX_KNOB_VALUE = num_items*COUNTS_PER_ITEM - 1;
   int knob_sum = 0;
-  unsigned int old_index = 0;
+  unsigned int old_index = -1;
 
   drawMenu(menu_items,num_items);
-  movePuck(1,0);//Force draw of puck
+  movePuck(-1,0);//Force draw of puck
 
    //wait for the button to be raised up
   while(btnDown()){
@@ -504,6 +562,16 @@ void runMenu(const MenuItem_t* const menu_items, const uint16_t num_items)
 
     uint16_t index = knob_sum/COUNTS_PER_ITEM;
     movePuck(old_index,index);
+
+    if(globalSettings.morseMenuOn //Only spend cycles copying menu item into RAM if we actually need to
+     && (old_index != index)){
+      MenuItem_t mi = {"",nullptr};
+      memcpy_P(&mi,&menu_items[index+1],sizeof(mi));//The 0th element in the array is the title, so offset by 1
+      strncpy_P(b,mi.ItemName,sizeof(b));
+      morseText(b);
+      enc_read();//Consume any rotations during morse playback
+    }
+
     old_index = index;
 
     if (!btnDown()){
