@@ -30,10 +30,11 @@
  *  Si5351 object to control the clocks.
  */
 #include <Wire.h>
+#include "morse.h"
+#include "nano_gui.h"
 #include "settings.h"
 #include "setup.h"
 #include "ubitx.h"
-#include "nano_gui.h"
 
 /**
  * The Arduino, unlike C/C++ on a regular computer with gigabytes of RAM, has very little memory.
@@ -65,8 +66,6 @@ unsigned char doingCAT = 0;
 void active_delay(int delay_by){
   unsigned long timeStart = millis();
   while (millis() - timeStart <= (unsigned long)delay_by) {
-    delay(10);
-      //Background Work
     checkCAT();
   }
 }
@@ -322,13 +321,20 @@ void checkButton(){
     active_delay(10);
     downTime++;
     if (downTime > 300){
-      doSetup2();
+      if(!globalSettings.morseMenuOn){
+        globalSettings.morseMenuOn = true;//set before playing
+        morseLetter(2);
+      }
+      else{
+        morseLetter(4);
+        globalSettings.morseMenuOn = false;//unset after playing
+      }
+      SaveSettingsToEeprom();
       return;
     }
- }
- active_delay(100);
+  }
+  active_delay(100);
 
- 
   doCommands();
   //wait for the button to go up again
   while(btnDown())
