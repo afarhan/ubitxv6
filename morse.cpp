@@ -57,6 +57,9 @@ static const PROGMEM struct Morse morse_table[] = {
 };
 
 static void morseLetter(char c, uint16_t dit_duration_ms){
+  if(!globalSettings.morseMenuOn){
+    return;
+  }
   unsigned char mask = 0x80;
 
   //handle space character as three dashes
