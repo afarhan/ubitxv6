@@ -226,40 +226,6 @@ const SettingScreen_t ssBfo PROGMEM = {
 };
 void runBfoSetting(){runSetting(&ssBfo);}
 
-//CW Speed
-void ssCwSpeedInitialize(long int* start_value_out)
-{
-  *start_value_out = 1200L/globalSettings.cwDitDurationMs;
-}
-void ssCwSpeedValidate(const long int candidate_value_in, long int* validated_value_out)
-{
-  *validated_value_out = LIMIT(candidate_value_in,1,100);
-}
-void ssCwSpeedChange(const long int new_value, char* buff_out, const size_t buff_out_size)
-{
-  ltoa(new_value, buff_out, 10);
-  morseText(buff_out,1200L/new_value);
-  enc_read();//Consume any rotations during morse playback
-}
-void ssCwSpeedFinalize(const long int final_value)
-{
-  globalSettings.cwDitDurationMs = 1200L/final_value;
-  SaveSettingsToEeprom();
-}
-const char SS_CW_SPEED_T [] PROGMEM = "CW Play Speed";
-const char SS_CW_SPEED_A [] PROGMEM = "Select speed to play CW\ncharacters";
-const SettingScreen_t ssCwSpeed PROGMEM = {
-  SS_CW_SPEED_T,
-  SS_CW_SPEED_A,
-  5,
-  1,
-  ssCwSpeedInitialize,
-  ssCwSpeedValidate,
-  ssCwSpeedChange,
-  ssCwSpeedFinalize
-};
-void runCwSpeedSetting(){runSetting(&ssCwSpeed);}
-
 //CW Tone
 void ssCwToneInitialize(long int* start_value_out)
 {
@@ -282,7 +248,7 @@ void ssCwToneFinalize(const long int final_value)
   globalSettings.cwSideToneFreq = final_value;
   SaveSettingsToEeprom();
 }
-const char SS_CW_TONE_T [] PROGMEM = "CW Tone Frequency";
+const char SS_CW_TONE_T [] PROGMEM = "Tone";
 const char SS_CW_TONE_A [] PROGMEM = "Select a frequency that\nCW mode to tune for";
 const SettingScreen_t ssTone PROGMEM = {
   SS_CW_TONE_T,
@@ -317,7 +283,7 @@ void ssCwSwitchDelayFinalize(const long int final_value)
   globalSettings.cwActiveTimeoutMs = final_value;
   SaveSettingsToEeprom();
 }
-const char SS_CW_SWITCH_T [] PROGMEM = "CW Tx -> Rx Switch Delay";
+const char SS_CW_SWITCH_T [] PROGMEM = "Tx to Rx Delay";
 const char SS_CW_SWITCH_A [] PROGMEM = "Select how long the radio\nshould wait before switching\nbetween TX and RX when in\nCW mode";
 const SettingScreen_t ssCwSwitchDelay PROGMEM = {
   SS_CW_SWITCH_T,
@@ -363,7 +329,7 @@ void ssKeyerFinalize(const long int final_value)
   globalSettings.keyerMode = final_value;
   SaveSettingsToEeprom();
 }
-const char SS_KEYER_T [] PROGMEM = "CW Keyer/Paddle Type";
+const char SS_KEYER_T [] PROGMEM = "Keyer Type";
 const char SS_KEYER_A [] PROGMEM = "Select which type of\nkeyer/paddle is being used";
 const SettingScreen_t ssKeyer PROGMEM = {
   SS_KEYER_T,
@@ -376,6 +342,82 @@ const SettingScreen_t ssKeyer PROGMEM = {
   ssKeyerFinalize
 };
 void runKeyerSetting(){runSetting(&ssKeyer);}
+
+//Morse menu playback
+void ssMorseMenuInitialize(long int* start_value_out)
+{
+  *start_value_out = globalSettings.morseMenuOn;
+}
+void ssMorseMenuValidate(const long int candidate_value_in, long int* validated_value_out)
+{
+  *validated_value_out = LIMIT(candidate_value_in,0,1);
+}
+void ssMorseMenuChange(const long int new_value, char* buff_out, const size_t buff_out_size)
+{
+  char m;
+  if(new_value){
+    strncpy_P(buff_out,(const char*)F("Yes"),buff_out_size);
+    m = 'Y';
+  }
+  else{
+    strncpy_P(buff_out,(const char*)F("No"),buff_out_size);
+    m = 'N';
+  }
+  morseLetter(m);
+  enc_read();//Consume any rotations during morse playback
+}
+void ssMorseMenuFinalize(const long int final_value)
+{
+  globalSettings.morseMenuOn = final_value;
+  SaveSettingsToEeprom();
+}
+const char SS_MORSE_MENU_T [] PROGMEM = "Menu Audio";
+const char SS_MORSE_MENU_A [] PROGMEM = "When on, menu selections\nwill play morse code";
+const SettingScreen_t ssMorseMenu PROGMEM = {
+  SS_MORSE_MENU_T,
+  SS_MORSE_MENU_A,
+  10,
+  1,
+  ssMorseMenuInitialize,
+  ssMorseMenuValidate,
+  ssMorseMenuChange,
+  ssMorseMenuFinalize
+};
+void runMorseMenuSetting(){runSetting(&ssMorseMenu);}
+
+//CW Speed
+void ssCwSpeedInitialize(long int* start_value_out)
+{
+  *start_value_out = 1200L/globalSettings.cwDitDurationMs;
+}
+void ssCwSpeedValidate(const long int candidate_value_in, long int* validated_value_out)
+{
+  *validated_value_out = LIMIT(candidate_value_in,1,100);
+}
+void ssCwSpeedChange(const long int new_value, char* buff_out, const size_t buff_out_size)
+{
+  ltoa(new_value, buff_out, 10);
+  morseText(buff_out,1200L/new_value);
+  enc_read();//Consume any rotations during morse playback
+}
+void ssCwSpeedFinalize(const long int final_value)
+{
+  globalSettings.cwDitDurationMs = 1200L/final_value;
+  SaveSettingsToEeprom();
+}
+const char SS_CW_SPEED_T [] PROGMEM = "Play Speed";
+const char SS_CW_SPEED_A [] PROGMEM = "Select speed to play CW\ncharacters";
+const SettingScreen_t ssCwSpeed PROGMEM = {
+  SS_CW_SPEED_T,
+  SS_CW_SPEED_A,
+  5,
+  1,
+  ssCwSpeedInitialize,
+  ssCwSpeedValidate,
+  ssCwSpeedChange,
+  ssCwSpeedFinalize
+};
+void runCwSpeedSetting(){runSetting(&ssCwSpeed);}
 
 //Reset all settings
 void ssResetAllInitialize(long int* start_value_out)
@@ -408,7 +450,7 @@ void ssResetAllFinalize(const long int final_value)
     setup();
   }
 }
-const char SS_RESET_ALL_T [] PROGMEM = "Reset All Cals/Settings";
+const char SS_RESET_ALL_T [] PROGMEM = "Reset All";
 const char SS_RESET_ALL_A [] PROGMEM = "WARNING: Selecting \"Yes\"\nwill reset all calibrations and\nsettings to their default\nvalues";
 const SettingScreen_t ssResetAll PROGMEM = {
   SS_RESET_ALL_T,
@@ -421,48 +463,6 @@ const SettingScreen_t ssResetAll PROGMEM = {
   ssResetAllFinalize
 };
 void runResetAllSetting(){runSetting(&ssResetAll);}
-
-//Morse menu playback
-void ssMorseMenuInitialize(long int* start_value_out)
-{
-  *start_value_out = globalSettings.morseMenuOn;
-}
-void ssMorseMenuValidate(const long int candidate_value_in, long int* validated_value_out)
-{
-  *validated_value_out = LIMIT(candidate_value_in,0,1);
-}
-void ssMorseMenuChange(const long int new_value, char* buff_out, const size_t buff_out_size)
-{
-  char m;
-  if(new_value){
-    strncpy_P(buff_out,(const char*)F("Yes"),buff_out_size);
-    m = 'Y';
-  }
-  else{
-    strncpy_P(buff_out,(const char*)F("No"),buff_out_size);
-    m = 'N';
-  }
-  morseLetter(m);
-  enc_read();//Consume any rotations during morse playback
-}
-void ssMorseMenuFinalize(const long int final_value)
-{
-  globalSettings.morseMenuOn = final_value;
-  SaveSettingsToEeprom();
-}
-const char SS_MORSE_MENU_T [] PROGMEM = "Morse Menu Play";
-const char SS_MORSE_MENU_A [] PROGMEM = "When on, menu selections\nwill play morse code";
-const SettingScreen_t ssMorseMenu PROGMEM = {
-  SS_MORSE_MENU_T,
-  SS_MORSE_MENU_A,
-  10,
-  1,
-  ssMorseMenuInitialize,
-  ssMorseMenuValidate,
-  ssMorseMenuChange,
-  ssMorseMenuFinalize
-};
-void runMorseMenuSetting(){runSetting(&ssMorseMenu);}
 
 struct MenuItem_t {
   const char* const ItemName;
@@ -482,13 +482,14 @@ const MenuItem_t calibrationMenu [] PROGMEM {
 };
 void runCalibrationMenu(){RUN_MENU(calibrationMenu);}
 
-const char MT_CW [] PROGMEM = "CW/Morse Setup";
+const char MT_CW [] PROGMEM = "CW Setup";
 const MenuItem_t cwMenu [] PROGMEM {
   {MT_CW,nullptr},//Title
-  {SS_CW_SPEED_T,runCwSpeedSetting},
   {SS_CW_TONE_T,runToneSetting},
   {SS_CW_SWITCH_T,runCwSwitchDelaySetting},
   {SS_KEYER_T,runKeyerSetting},
+  {SS_MORSE_MENU_T,runMorseMenuSetting},
+  {SS_CW_SPEED_T,runCwSpeedSetting},
 };
 void runCwMenu(){RUN_MENU(cwMenu);}
 
@@ -497,7 +498,6 @@ const MenuItem_t mainMenu [] PROGMEM {
   {MT_SETTINGS,nullptr},//Title
   {MT_CAL,runCalibrationMenu},
   {MT_CW,runCwMenu},
-  {SS_MORSE_MENU_T,runMorseMenuSetting},
   {SS_RESET_ALL_T,runResetAllSetting},
 };
 
