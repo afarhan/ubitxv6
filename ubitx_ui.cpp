@@ -347,7 +347,7 @@ void fastTune(){
   //if the btn is down, wait until it is up
   while(btnDown())
     active_delay(50);
-  active_delay(300);
+  active_delay(50);
   
   strncpy_P(c,(const char*)F("Fast tune"),sizeof(c));
   displayText(c, LAYOUT_MODE_TEXT_X, LAYOUT_MODE_TEXT_Y, LAYOUT_MODE_TEXT_WIDTH, LAYOUT_MODE_TEXT_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
@@ -361,7 +361,7 @@ void fastTune(){
       //wait until the button is realsed and then return
       while(btnDown())
         active_delay(50);
-      active_delay(300);
+      active_delay(50);
       return;
     }
     
@@ -390,12 +390,22 @@ void enterFreq(){
     btnDraw(&button);
   }
 
+  while(btnDown())
+    active_delay(50);
+  active_delay(50);
+
   int cursor_pos = 0;
   memset(c, 0, sizeof(c));
 
   while(1){
 
     checkCAT();
+    if(btnDown()){
+      while(btnDown())
+        active_delay(50);
+      active_delay(50);
+      break;
+    }
     if(!readTouch())
       continue;
       
@@ -427,8 +437,6 @@ void enterFreq(){
               }
               saveVFOs();
             }
-            guiUpdate();
-            return;
             break;
           }
           
@@ -443,8 +451,6 @@ void enterFreq(){
           }
           case KEYS_CANCEL:
           {
-            guiUpdate();
-            return;
             break;
           }
           case KEYS_0:
@@ -478,6 +484,9 @@ void enterFreq(){
     while(readTouch())
       checkCAT();
   } // end of event loop : while(1)
+
+  guiUpdate();
+  enc_read();//clear out any tuner turning that happened during entry
 }
 
 void drawCWStatus(){
@@ -961,12 +970,13 @@ void doCommands(){
     active_delay(50);
   active_delay(50);  //debounce
 
+  Button button;
+  memcpy_P(&button, &(btn_set[select/10]), sizeof(Button));
+  morseLetter(button.morse);
+
   while (true){
     //check if the knob's button was pressed
     if (btnDown()){
-      Button button;
-      memcpy_P(&button, &(btn_set[select/10]), sizeof(Button));
-    
       doCommand(&button);
 
       //unfocus the buttons
@@ -999,11 +1009,14 @@ void doCommands(){
     
     if (prev_button == select / 10)
       continue;
-      
-     //we are on a new button
-     drawFocus(prev_button, COLOR_INACTIVE_BORDER);
-     drawFocus(select/10, COLOR_ACTIVE_BORDER);
-     prev_button = select/10;
+    
+    //we are on a new button
+    drawFocus(prev_button, COLOR_INACTIVE_BORDER);
+    drawFocus(select/10, COLOR_ACTIVE_BORDER);
+    memcpy_P(&button, &(btn_set[select/10]), sizeof(Button));
+    morseLetter(button.morse);
+    enc_read();//Clear any rotation that was done while the letter was playing
+    prev_button = select/10;
   }
 //  guiUpdate();
 
