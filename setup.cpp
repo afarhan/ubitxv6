@@ -565,9 +565,14 @@ void runMenu(const MenuItem_t* const menu_items, const uint16_t num_items)
 
     if(globalSettings.morseMenuOn //Only spend cycles copying menu item into RAM if we actually need to
      && (old_index != index)){
-      MenuItem_t mi = {"",nullptr};
-      memcpy_P(&mi,&menu_items[index+1],sizeof(mi));//The 0th element in the array is the title, so offset by 1
-      strncpy_P(b,mi.ItemName,sizeof(b));
+      if(num_items-1 > index){
+        MenuItem_t mi = {"",nullptr};
+        memcpy_P(&mi,&menu_items[index+1],sizeof(mi));//The 0th element in the array is the title, so offset by 1
+        strncpy_P(b,mi.ItemName,sizeof(b));
+      }
+      else{
+        strncpy_P(b,MI_EXIT,sizeof(b));
+      }
       morseText(b);
       enc_read();//Consume any rotations during morse playback
     }
