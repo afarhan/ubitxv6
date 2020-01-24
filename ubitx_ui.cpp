@@ -414,7 +414,7 @@ void drawCWStatus(){
   itoa(sideTone, c, 10);
   strcat(b, c);
   strcat(b, "hz");
-  displayRawText(b, 0, 201, DISPLAY_CYAN, DISPLAY_NAVY);  
+  displayRawText(b, 0, 210, DISPLAY_CYAN, DISPLAY_NAVY);  
 }
 
 
@@ -485,7 +485,7 @@ int enc_prev_state = 3;
  * were in the clockwise directions. Higher the pulses, greater the speed
  * at which the enccoder was spun
  */
-
+/*
 byte enc_state (void) {
     //Serial.print(digitalRead(ENC_A)); Serial.print(":");Serial.println(digitalRead(ENC_B));
     return (digitalRead(ENC_A) == 1 ? 1 : 0) + (digitalRead(ENC_B) == 1 ? 2: 0);
@@ -528,6 +528,7 @@ int enc_read(void) {
   //  Serial.println(result);
   return(result);
 }
+*/
 
 void ritToggle(struct Button *b){
   if (ritOn == 0){

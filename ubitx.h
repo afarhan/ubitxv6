@@ -208,15 +208,12 @@ void setupFreq();
 void displayDialog(char *title, char *instructions);
 void printCarrierFreq(unsigned long freq); //used to display the frequency in the command area (ex: fast tuning)
 
+void enc_setup(void);
+int enc_read(void);
 
 //main functions to check if any button is pressed and other user interface events
 void doCommands();  //does the commands with encoder to jump from button to button
 void  checkTouch(); //does the commands with a touch on the buttons
-
-
-
-
-
 
 
 /* these are functiosn implemented in ubitx_si5351.cpp */

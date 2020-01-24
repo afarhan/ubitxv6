@@ -221,51 +221,48 @@ void displayPixel(unsigned int x, unsigned int y, unsigned int c){
   digitalWrite(TFT_CS,HIGH);   
 }
 
-void displayHline(unsigned int x, unsigned int y, unsigned int l, unsigned int c){  
-  unsigned int i,j;
+#define MAX_VBUFF 64
+char vbuff[64];
+void quickFill(int x1, int y1, int x2, int y2, int color){
+  unsigned long ncount = (unsigned long)(x2 - x1+1) * (unsigned long)(y2-y1+1);
+  int k = 0;
 
+  //set the window
   digitalWrite(TFT_CS,LOW);
-  utftCmd(0x02c); //write_memory_start
-  l=l+x;
-  utftAddress(x,y,l,y);
-  j = l;
-  for(i=1;i<=j;i++)
-  {
-      utftData(c>>8);
-      utftData(c);
+  utftCmd(0x02c); //write_memory_start  
+  utftAddress(x1,y1,x2,y2);
+  *(portOutputRegister(digitalPinToPort(TFT_RS)))|=  digitalPinToBitMask(TFT_RS);//LCD_RS=1;  
+  
+  while(ncount){
+    k = 0;
+    for (int i = 0; i < MAX_VBUFF/2; i++){
+      vbuff[k++] = color >> 8;
+      vbuff[k++] = color & 0xff;
+    }
+
+    if (ncount > MAX_VBUFF/2){
+      SPI.transfer(vbuff, MAX_VBUFF);
+      ncount -= MAX_VBUFF/2;
+    }  
+    else{
+      SPI.transfer(vbuff, (int)ncount * 2);
+      ncount = 0;      
+    }
+    checkCAT();
   }
-  digitalWrite(TFT_CS,HIGH);   
-  checkCAT();
+  digitalWrite(TFT_CS, HIGH);
+}
+
+void displayHline(unsigned int x, unsigned int y, unsigned int l, unsigned int c){  
+  quickFill(x,y,x+l,y,c);
 }
 
 void displayVline(unsigned int x, unsigned int y, unsigned int l, unsigned int c){ 
-  unsigned int i,j;
-  digitalWrite(TFT_CS,LOW);
-  
-  utftCmd(0x02c); //write_memory_start
-  l=l+y;
-  utftAddress(x,y,x,l);
-  j = l;
-  for(i=1;i<=l;i++)
-  { 
-      utftData(c>>8);
-      utftData(c);
-  }
-  digitalWrite(TFT_CS,HIGH);   
-  checkCAT();
+  quickFill(x,y,x,y+l,c);
 }
 
 void displayClear(unsigned int color){  
-  unsigned int i,m;
-  
-  digitalWrite(TFT_CS,LOW);
-  utftAddress(0,0,320,240);
-  for(i=0;i<320;i++)
-    for(m=0;m<240;m++){
-      utftData(color>>8);
-      utftData(color);
-    }
-  digitalWrite(TFT_CS,HIGH);   
+  quickFill(0,0,319,239, color);
 }
 
 void displayRect(unsigned int x,unsigned int y,unsigned int w,unsigned int h,unsigned int c){
@@ -277,10 +274,7 @@ void displayRect(unsigned int x,unsigned int y,unsigned int w,unsigned int h,uns
 
 void displayFillrect(unsigned int x,unsigned int y,unsigned int w,unsigned int h,unsigned int c){
   unsigned int i;
-  
-  for(i=0;i<h;i++){
-    displayHline(x  , y+i, w, c);
-  }
+  quickFill(x,y,x+w,y+h, c);
 }
 
 bool xpt2046_Init(){
@@ -387,6 +381,65 @@ void displayInit(void){
     @param    size_y  Font magnification level in Y-axis, 1 is 'original' size
 */
 /**************************************************************************/
+
+
+
+void displayCharFaster(int16_t x, int16_t y, unsigned char c, uint16_t color, uint16_t bg){
+  GFXglyph *glyph  = pgm_read_glyph_ptr(gfxFont, c);
+  uint8_t  *bitmap = pgm_read_bitmap_ptr(gfxFont);  
+  uint16_t bo = pgm_read_word(&glyph->bitmapOffset);
+  uint8_t  w  = pgm_read_byte(&glyph->width),
+           h  = pgm_read_byte(&glyph->height);
+  int8_t   xo = pgm_read_byte(&glyph->xOffset),
+           yo = pgm_read_byte(&glyph->yOffset);
+  uint8_t  xx, yy, bits = 0, bit = 0;
+  int16_t  xo16 = 0, yo16 = 0;
+  char vbuff[100];
+      
+  int k = 0;
+  //Serial.print((char)(c  + 0x14));Serial.println(',');  
+    for(yy=0; yy<h; yy++) {
+      k = 0;
+      for(xx=0; xx<w; xx++) {
+        if(!(bit++ & 7)) {
+          bits = pgm_read_byte(&bitmap[bo++]);
+        }
+        if(bits & 0x80) {
+//          displayPixel(x+xo+xx, y+yo+yy, color);
+          vbuff[k++] = color >> 8;
+          vbuff[k++] = color & 0xff;
+        }
+        else {
+//          displayPixel(x+xo+xx, y+yo+yy, bg);
+          vbuff[k++] = bg >> 8;
+          vbuff[k++] = bg & 0xff;
+        }
+        bits <<= 1;
+      }
+/*      Serial.print((char)(c + (uint8_t)pgm_read_byte(&gfxFont->first))); Serial.print(':'); Serial.print(k); Serial.print('=');
+      for (int i = 0; i < k; i++){
+        Serial.print((uint8_t)vbuff[i], HEX);Serial.print(' ');
+      }
+      Serial.println("");
+*/      
+      utftAddress(x+xo,y+yo+yy,x+xo+w,y+yo+yy);
+      *(portOutputRegister(digitalPinToPort(TFT_RS)))|=  digitalPinToBitMask(TFT_RS);//LCD_RS=1;  
+      SPI.transfer(vbuff, k);
+
+//      utftBitBlt();
+    
+    checkCAT();
+  }
+  
+  digitalWrite(TFT_CS,LOW);
+
+//  utftCmd(0x02c); //write_memory_start
+
+
+}
+
+
+
 #define FAST_TEXT 1
 
 void displayChar(int16_t x, int16_t y, unsigned char c, uint16_t color, uint16_t bg) {
@@ -401,47 +454,31 @@ void displayChar(int16_t x, int16_t y, unsigned char c, uint16_t color, uint16_t
            yo = pgm_read_byte(&glyph->yOffset);
   uint8_t  xx, yy, bits = 0, bit = 0;
   int16_t  xo16 = 0, yo16 = 0;
-      
+  int k;
+  char vbuff[64]; // take a character that is upto 32 pixels wide (2 bytes per pixel)      
   digitalWrite(TFT_CS,LOW);
-
-#ifdef FAST_TEXT
-    uint16_t hpc = 0; // Horizontal foreground pixel count
-    for(yy=0; yy<h; yy++) {
-      for(xx=0; xx<w; xx++) {
-        if(bit == 0) {
-          bits = pgm_read_byte(&bitmap[bo++]);
-          bit  = 0x80;
-        }
-        if(bits & bit) hpc++;
-        else {
-          if (hpc) {
-             displayHline(x+xo+xx-hpc, y+yo+yy, hpc, color);
-            hpc=0;
-          }
-        }
-        bit >>= 1;
+  
+  for(yy=0; yy<h; yy++) {
+    k = 0;
+    for(xx=0; xx<w; xx++) {
+      if(!(bit++ & 7)) {
+        bits = pgm_read_byte(&bitmap[bo++]);
       }
-      // Draw pixels for this line as we are about to increment yy
-      if (hpc) {
-        displayHline(x+xo+xx-hpc, y+yo+yy, hpc, color);
-        hpc=0;
+      if(bits & 0x80) {
+        vbuff[k++] = color >> 8;
+        vbuff[k++] = color & 0xff;
       }
-      checkCAT();      
+      else {
+        vbuff[k++] = bg >> 8;
+        vbuff[k++] = bg & 0xff;
+      }
+      bits <<= 1;
     }
-#else
-    for(yy=0; yy<h; yy++) {
-      for(xx=0; xx<w; xx++) {
-        if(!(bit++ & 7)) {
-          bits = pgm_read_byte(&bitmap[bo++]);
-        }
-        if(bits & 0x80) {
-          utftPixel(x+xo+xx, y+yo+yy, color);
-        }
-        bits <<= 1;
-      }
-      checkCAT();
-    }
-#endif
+    utftAddress(x+xo,y+yo+yy,x+xo+w,y+yo+yy);
+    *(portOutputRegister(digitalPinToPort(TFT_RS)))|=  digitalPinToBitMask(TFT_RS);//LCD_RS=1;  
+    SPI.transfer(vbuff, k);    
+    checkCAT();
+  }
 }
 
 int displayTextExtent(char *text) {
