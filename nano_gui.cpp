@@ -9,7 +9,7 @@
 #include <avr/pgmspace.h>
 
 #define TFT_CS    10        
-#define TFT_RS    9      
+#define TFT_RS    9
 
 
 GFXfont *gfxFont = NULL;
@@ -382,65 +382,6 @@ void displayInit(void){
 */
 /**************************************************************************/
 
-
-
-void displayCharFaster(int16_t x, int16_t y, unsigned char c, uint16_t color, uint16_t bg){
-  GFXglyph *glyph  = pgm_read_glyph_ptr(gfxFont, c);
-  uint8_t  *bitmap = pgm_read_bitmap_ptr(gfxFont);  
-  uint16_t bo = pgm_read_word(&glyph->bitmapOffset);
-  uint8_t  w  = pgm_read_byte(&glyph->width),
-           h  = pgm_read_byte(&glyph->height);
-  int8_t   xo = pgm_read_byte(&glyph->xOffset),
-           yo = pgm_read_byte(&glyph->yOffset);
-  uint8_t  xx, yy, bits = 0, bit = 0;
-  int16_t  xo16 = 0, yo16 = 0;
-  char vbuff[100];
-      
-  int k = 0;
-  //Serial.print((char)(c  + 0x14));Serial.println(',');  
-    for(yy=0; yy<h; yy++) {
-      k = 0;
-      for(xx=0; xx<w; xx++) {
-        if(!(bit++ & 7)) {
-          bits = pgm_read_byte(&bitmap[bo++]);
-        }
-        if(bits & 0x80) {
-//          displayPixel(x+xo+xx, y+yo+yy, color);
-          vbuff[k++] = color >> 8;
-          vbuff[k++] = color & 0xff;
-        }
-        else {
-//          displayPixel(x+xo+xx, y+yo+yy, bg);
-          vbuff[k++] = bg >> 8;
-          vbuff[k++] = bg & 0xff;
-        }
-        bits <<= 1;
-      }
-/*      Serial.print((char)(c + (uint8_t)pgm_read_byte(&gfxFont->first))); Serial.print(':'); Serial.print(k); Serial.print('=');
-      for (int i = 0; i < k; i++){
-        Serial.print((uint8_t)vbuff[i], HEX);Serial.print(' ');
-      }
-      Serial.println("");
-*/      
-      utftAddress(x+xo,y+yo+yy,x+xo+w,y+yo+yy);
-      *(portOutputRegister(digitalPinToPort(TFT_RS)))|=  digitalPinToBitMask(TFT_RS);//LCD_RS=1;  
-      SPI.transfer(vbuff, k);
-
-//      utftBitBlt();
-    
-    checkCAT();
-  }
-  
-  digitalWrite(TFT_CS,LOW);
-
-//  utftCmd(0x02c); //write_memory_start
-
-
-}
-
-
-
-#define FAST_TEXT 1
 
 void displayChar(int16_t x, int16_t y, unsigned char c, uint16_t color, uint16_t bg) {
   c -= (uint8_t)pgm_read_byte(&gfxFont->first);
