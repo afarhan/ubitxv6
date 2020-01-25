@@ -238,7 +238,7 @@ void displayText(char *text, int x1, int y1, int w, int h, int color, int backgr
   uint16_t height_out;
   tft.getTextBounds(text,x1,y1,&x1_out,&y1_out,&width_out,&height_out,w);
   x1 += (w - ( (int32_t)width_out + (x1_out-x1)))/2;
-  y1 += (ubitx_font->yAdvance + h - ( (int32_t)height_out + (y1_out-y1)))/2;
+  y1 += (ubitx_font->yAdvance + h - ( (int32_t)height_out))/2;
   displayRawText(text,x1,y1,w,color,background);
 }
 
