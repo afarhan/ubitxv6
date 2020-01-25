@@ -109,6 +109,8 @@ void morseText(char *text, uint16_t dit_duration_ms){
   int16_t total_counts = 0;
   tone(CW_TONE, globalSettings.cwSideToneFreq-100);
   delay(100);
+  noTone(CW_TONE);
+  delay(100);
   enc_read();//Don't count initial tone against total_counts
   while(*text && (abs(total_counts) < 10)){
     morseLetter(*text++, dit_duration_ms);
