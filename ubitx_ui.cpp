@@ -415,16 +415,29 @@ void enterFreq(){
         switch(button.id){
           case KEYS_OK:
           {
-            long freq = atol(c);
-            if((LOWEST_FREQ/1000 <= freq) && (freq <= HIGHEST_FREQ/1000)){
-              freq *= 1000L;
-              setFrequency(freq);
+            long new_freq = atol(c);
+            if((LOWEST_FREQ/1000 <= new_freq) && (new_freq <= HIGHEST_FREQ/1000)){
+              new_freq *= 1000L;
+              
+              long prev_freq = GetActiveVfoFreq();
+              //Transition from below to above the traditional threshold for USB
+              if(prev_freq < THRESHOLD_USB_LSB && new_freq >= THRESHOLD_USB_LSB){
+                SetActiveVfoMode(VfoMode_e::VFO_MODE_USB);
+              }
+              
+              //Transition from aboveo to below the traditional threshold for USB
+              if(prev_freq >= THRESHOLD_USB_LSB && new_freq < THRESHOLD_USB_LSB){
+                SetActiveVfoMode(VfoMode_e::VFO_MODE_LSB);
+              }
+
               if (VFO_A == globalSettings.activeVfo){
-                globalSettings.vfoA.frequency = freq;
+                globalSettings.vfoA.frequency = new_freq;
               }
               else{
-                globalSettings.vfoB.frequency = freq;
+                globalSettings.vfoB.frequency = new_freq;
               }
+
+              setFrequency(new_freq);
               saveVFOs();
             }
             guiUpdate();
