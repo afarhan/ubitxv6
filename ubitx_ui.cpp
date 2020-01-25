@@ -619,10 +619,13 @@ void cwToggle(struct Button *b){
 }
 
 void sidebandToggle(Button* button){
-  if(BUTTON_LSB == button->id)
+  if(BUTTON_LSB == button->id){
     SetActiveVfoMode(VfoMode_e::VFO_MODE_LSB);
-  else
+  }
+  else{
     SetActiveVfoMode(VfoMode_e::VFO_MODE_USB);
+  }
+  setFrequency(GetActiveVfoFreq());
 
   struct Button button2;
   getButton(BUTTON_USB, &button2);
