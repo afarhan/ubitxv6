@@ -710,22 +710,18 @@ void doCommand(Button* button){
     }
     case BUTTON_VFOA:
     {
-      if(VFO_A == globalSettings.activeVfo){
-        fastTune();
-      }
-      else{
-        switchVFO(VFO_A);
-      }
+      switchVFO(VFO_A);
+      uint32_t freq = globalSettings.vfoA.frequency;
+      ltoa(freq,b,10);
+      morseText(b);
       break;
     }
     case BUTTON_VFOB:
     {
-      if(VFO_B == globalSettings.activeVfo){
-        fastTune();
-      }
-      else{
-        switchVFO(VFO_B);
-      }
+      switchVFO(VFO_B);
+      uint32_t freq = globalSettings.vfoB.frequency;
+      ltoa(freq,b,10);
+      morseText(b);
       break;
     }
     case BUTTON_80:
