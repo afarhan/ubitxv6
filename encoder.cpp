@@ -83,7 +83,7 @@ void enc_setup(void)
   TCCR1A = 0;//"normal" mode
   TCCR1B = 3;//clock divider of 64
   TCNT1  = 0;//start counting at 0
-  OCR1A  = F_CPU * CALLBACK_PERIOD_MS / 1000 / 64;//set target number
+  OCR1A  = F_CPU * (unsigned long)CALLBACK_PERIOD_MS / 1000 / 64;//set target number
   TIMSK1 |= (1 << OCIE1A);//enable interrupt
 }
 

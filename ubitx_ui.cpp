@@ -193,8 +193,9 @@ int getValueByKnob(int minimum, int maximum, int step_size,  int initial, const 
 }
 
 void displayVFO(Vfo_e vfo){
-  int x, y;
-  int displayColor, displayBackground, displayBorder;
+  uint16_t displayColor = COLOR_INACTIVE_TEXT;
+  uint16_t displayBackground = COLOR_INACTIVE_BACKGROUND;
+  uint16_t displayBorder = COLOR_INACTIVE_BORDER;
   Button button;
 
   if (globalSettings.splitOn){

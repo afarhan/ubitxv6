@@ -66,12 +66,11 @@ void i2cWriten(uint8_t reg, uint8_t *vals, uint8_t vcnt) {  // write array
 
 
 void si5351bx_init() {                  // Call once at power-up, start PLLA
-  uint8_t reg;  uint32_t msxp1;
   Wire.begin();
   i2cWrite(149, 0);                     // SpreadSpectrum off
   i2cWrite(3, si5351bx_clken);          // Disable all CLK output drivers
   i2cWrite(183, SI5351BX_XTALPF << 6);  // Set 25mhz crystal load capacitance
-  msxp1 = 128 * SI5351BX_MSA - 512;     // and msxp2=0, msxp3=1, not fractional
+  uint32_t msxp1 = 128 * SI5351BX_MSA - 512;     // and msxp2=0, msxp3=1, not fractional
   uint8_t  vals[8] = {0, 1, BB2(msxp1), BB1(msxp1), BB0(msxp1), 0, 0, 0};
   i2cWriten(26, vals, 8);               // Write to 8 PLLA msynth regs
   i2cWrite(177, 0x20);                  // Reset PLLA  (0x80 resets PLLB)

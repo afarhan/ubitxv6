@@ -29,7 +29,7 @@
  */
 
  //CW ADC Range
-static const unsigned int cwAdcSTFrom = 0;
+//static const unsigned int cwAdcSTFrom = 0;
 static const unsigned int cwAdcSTTo = 50;
 static const unsigned int cwAdcBothFrom = cwAdcSTTo + 1;
 static const unsigned int cwAdcBothTo = 300;
@@ -79,7 +79,7 @@ uint8_t keyerControl = 0;
 char update_PaddleLatch(bool isUpdateKeyState) {
   unsigned char tmpKeyerControl = 0;
   
-  int paddle = analogRead(ANALOG_KEYER);
+  unsigned int paddle = analogRead(ANALOG_KEYER);
 
   //use the PTT as the key for tune up, quick QSOs
   if (digitalRead(PTT) == 0)
@@ -93,7 +93,7 @@ char update_PaddleLatch(bool isUpdateKeyState) {
   else{
     if (KeyerMode_e::KEYER_STRAIGHT != globalSettings.keyerMode)
       tmpKeyerControl = 0 ;
-    else if (paddle >= cwAdcSTFrom && paddle <= cwAdcSTTo)
+    else if (paddle <= cwAdcSTTo)
       tmpKeyerControl = DIT_L ;
      else
        tmpKeyerControl = 0 ;
