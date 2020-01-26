@@ -117,6 +117,9 @@ void morseText(char *text, uint16_t dit_duration_ms){
 }
 
 void morseBool(bool val){
+  if(!globalSettings.morseMenuOn){
+    return;
+  }
   tone(CW_TONE, globalSettings.cwSideToneFreq + (val ? RELATIVE_OFFSET_HZ : -RELATIVE_OFFSET_HZ));
   delay(3*globalSettings.cwDitDurationMs);
   noTone(CW_TONE);
