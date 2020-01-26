@@ -416,16 +416,29 @@ void enterFreq(){
         switch(button.id){
           case KEYS_OK:
           {
-            long freq = atol(c);
-            if((LOWEST_FREQ/1000 <= freq) && (freq <= HIGHEST_FREQ/1000)){
-              freq *= 1000L;
-              setFrequency(freq);
+            uint32_t new_freq = atol(c);
+            if((LOWEST_FREQ/1000 <= new_freq) && (new_freq <= HIGHEST_FREQ/1000)){
+              new_freq *= 1000L;
+              
+              uint32_t prev_freq = GetActiveVfoFreq();
+              //Transition from below to above the traditional threshold for USB
+              if(prev_freq < THRESHOLD_USB_LSB && new_freq >= THRESHOLD_USB_LSB){
+                SetActiveVfoMode(VfoMode_e::VFO_MODE_USB);
+              }
+              
+              //Transition from aboveo to below the traditional threshold for USB
+              if(prev_freq >= THRESHOLD_USB_LSB && new_freq < THRESHOLD_USB_LSB){
+                SetActiveVfoMode(VfoMode_e::VFO_MODE_LSB);
+              }
+
               if (VFO_A == globalSettings.activeVfo){
-                globalSettings.vfoA.frequency = freq;
+                globalSettings.vfoA.frequency = new_freq;
               }
               else{
-                globalSettings.vfoB.frequency = freq;
+                globalSettings.vfoB.frequency = new_freq;
               }
+
+              setFrequency(new_freq);
               saveVFOs();
             }
             guiUpdate();
@@ -607,10 +620,13 @@ void cwToggle(struct Button *b){
 }
 
 void sidebandToggle(Button* button){
-  if(BUTTON_LSB == button->id)
+  if(BUTTON_LSB == button->id){
     SetActiveVfoMode(VfoMode_e::VFO_MODE_LSB);
-  else
+  }
+  else{
     SetActiveVfoMode(VfoMode_e::VFO_MODE_USB);
+  }
+  setFrequency(GetActiveVfoFreq());
 
   struct Button button2;
   getButton(BUTTON_USB, &button2);
