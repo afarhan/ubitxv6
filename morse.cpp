@@ -105,12 +105,10 @@ static void morseLetter(char c, uint16_t dit_duration_ms){
   }
 }
 
+static const uint8_t RELATIVE_OFFSET_HZ = 100;
 void morseText(char *text, uint16_t dit_duration_ms){
   int16_t total_counts = 0;
-  tone(CW_TONE, globalSettings.cwSideToneFreq-100);
-  delay(100);
-  noTone(CW_TONE);
-  delay(100);
+  morseBool(false);
   enc_read();//Don't count initial tone against total_counts
   while(*text && (abs(total_counts) < 10)){
     morseLetter(*text++, dit_duration_ms);
@@ -118,3 +116,9 @@ void morseText(char *text, uint16_t dit_duration_ms){
   }
 }
 
+void morseBool(bool val){
+  tone(CW_TONE, globalSettings.cwSideToneFreq + (val ? RELATIVE_OFFSET_HZ : -RELATIVE_OFFSET_HZ));
+  delay(3*globalSettings.cwDitDurationMs);
+  noTone(CW_TONE);
+  delay(3*globalSettings.cwDitDurationMs);
+}
