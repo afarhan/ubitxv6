@@ -416,11 +416,11 @@ void enterFreq(){
         switch(button.id){
           case KEYS_OK:
           {
-            long new_freq = atol(c);
+            uint32_t new_freq = atol(c);
             if((LOWEST_FREQ/1000 <= new_freq) && (new_freq <= HIGHEST_FREQ/1000)){
               new_freq *= 1000L;
               
-              long prev_freq = GetActiveVfoFreq();
+              uint32_t prev_freq = GetActiveVfoFreq();
               //Transition from below to above the traditional threshold for USB
               if(prev_freq < THRESHOLD_USB_LSB && new_freq >= THRESHOLD_USB_LSB){
                 SetActiveVfoMode(VfoMode_e::VFO_MODE_USB);
