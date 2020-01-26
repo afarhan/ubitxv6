@@ -38,7 +38,7 @@ static const unsigned int cwAdcDotTo = 600;
 static const unsigned int cwAdcDashFrom = cwAdcDotTo + 1;
 static const unsigned int cwAdcDashTo = 800;
 
-static const unsigned int delayBeforeCWStartTime = 50;
+static const unsigned int delayBeforeCWStartTime = 0;
 
 /**
  * Starts transmitting the carrier with the sidetone
@@ -93,7 +93,7 @@ char update_PaddleLatch(bool isUpdateKeyState) {
   else{
     if (KeyerMode_e::KEYER_STRAIGHT != globalSettings.keyerMode)
       tmpKeyerControl = 0 ;
-    else if (paddle <= cwAdcSTTo)
+    else if (paddle <= cwAdcDashTo)
       tmpKeyerControl = DIT_L ;
      else
        tmpKeyerControl = 0 ;
@@ -209,7 +209,7 @@ void cwKeyer(void){
           //DelayTime Option
           active_delay(delayBeforeCWStartTime * 2);
 
-          globalSettings.cwExpirationTimeMs = millis() + globalSettings.cwDitDurationMs;
+          globalSettings.cwExpirationTimeMs = millis() + globalSettings.cwActiveTimeoutMs;
         }
         cwKeydown();
         
