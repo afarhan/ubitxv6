@@ -87,7 +87,7 @@ struct SettingScreen_t {
 
 void runSetting(const SettingScreen_t* const p_screen)
 {
-  SettingScreen_t screen = {0};
+  SettingScreen_t screen = {nullptr,nullptr,0,0,nullptr,nullptr,nullptr,nullptr};
   memcpy_P(&screen,p_screen,sizeof(screen));
   displayDialog(screen.Title,
                 screen.AdditionalText);
@@ -235,7 +235,7 @@ void ssCwSpeedValidate(const long int candidate_value_in, long int* validated_va
 {
   *validated_value_out = LIMIT(candidate_value_in,1,100);
 }
-void ssCwSpeedChange(const long int new_value, char* buff_out, const size_t buff_out_size)
+void ssCwSpeedChange(const long int new_value, char* buff_out, const size_t /*buff_out_size*/)
 {
   ltoa(new_value, buff_out, 10);
 }
@@ -334,7 +334,7 @@ void ssKeyerInitialize(long int* start_value_out)
 }
 void ssKeyerValidate(const long int candidate_value_in, long int* validated_value_out)
 {
-  *validated_value_out = LIMIT(candidate_value_in,KeyerMode_e::KEYER_STRAIGHT,KeyerMode_e::KEYER_IAMBIC_B);
+  *validated_value_out = LIMIT(candidate_value_in,(uint8_t)KeyerMode_e::KEYER_STRAIGHT,(uint8_t)KeyerMode_e::KEYER_IAMBIC_B);
 }
 void ssKeyerChange(const long int new_value, char* buff_out, const size_t buff_out_size)
 {
@@ -350,7 +350,7 @@ void ssKeyerChange(const long int new_value, char* buff_out, const size_t buff_o
 }
 void ssKeyerFinalize(const long int final_value)
 {
-  globalSettings.keyerMode = final_value;
+  globalSettings.keyerMode = (KeyerMode_e)final_value;
   SaveSettingsToEeprom();
 }
 const char SS_KEYER_T [] PROGMEM = "CW Keyer/Paddle Type";
@@ -409,7 +409,7 @@ void runResetAllSetting(){runSetting(&ssResetAll);}
 
 struct MenuItem_t {
   const char* const ItemName;
-  const void (*OnSelect)();
+  void (*OnSelect)();
 };
 
 void runMenu(const MenuItem_t* const menu_items, const uint16_t num_items);
@@ -480,7 +480,7 @@ void movePuck(unsigned int old_index, unsigned int new_index)
 void runMenu(const MenuItem_t* const menu_items, const uint16_t num_items)
 {
   static const unsigned int COUNTS_PER_ITEM = 10;
-  const unsigned int MAX_KNOB_VALUE = num_items*COUNTS_PER_ITEM - 1;
+  const int MAX_KNOB_VALUE = num_items*COUNTS_PER_ITEM - 1;
   int knob_sum = 0;
   unsigned int old_index = 0;
 
