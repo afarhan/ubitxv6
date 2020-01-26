@@ -304,8 +304,6 @@ void checkPTT(){
 
 //check if the encoder button was pressed
 void checkButton(){
-  int i, t1, t2, knob, new_knob;
-  
   //only if the button is pressed
   if (!btnDown())
     return;

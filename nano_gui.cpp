@@ -162,7 +162,7 @@ PDQ_ILI9341 tft;
 #include "nano_font.h"
 
 
-bool xpt2046_Init(){
+void xpt2046_Init(){
   pinMode(CS_PIN, OUTPUT);
   digitalWrite(CS_PIN, HIGH);
 }
@@ -246,7 +246,8 @@ void setupTouch(){
   int x1, y1, x2, y2, x3, y3, x4, y4;
   
   displayClear(DISPLAY_BLACK);
-  displayText("Click on the cross", 20,100, 200, 50, DISPLAY_WHITE, DISPLAY_BLACK, DISPLAY_BLACK);
+  strncpy_P(b,(const char*)F("Click on the cross"),sizeof(b));
+  displayText(b, 20,100, 200, 50, DISPLAY_WHITE, DISPLAY_BLACK, DISPLAY_BLACK);
 
   // TOP-LEFT
   displayHline(10,20,20,DISPLAY_WHITE);

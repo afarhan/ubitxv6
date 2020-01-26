@@ -58,7 +58,7 @@ static const PROGMEM struct Morse morse_table[] = {
 { 4 , 0b10000101}, // ASCII 0x04 is End of Transmission - <CL> is too long for our encoding scheme in 8 bits, but <SK> fits
 };
 
-static void morseLetter(char c, uint16_t dit_duration_ms){
+void morseLetter(char c, uint16_t dit_duration_ms){
   if(!globalSettings.morseMenuOn){
     return;
   }
@@ -71,7 +71,7 @@ static void morseLetter(char c, uint16_t dit_duration_ms){
     return;
   }
 
-  for (int i = 0; i < sizeof(morse_table)/ sizeof(struct Morse); i++){
+  for (unsigned int i = 0; i < sizeof(morse_table)/ sizeof(struct Morse); i++){
     struct Morse m;
     memcpy_P(&m, morse_table + i, sizeof(struct Morse));
 

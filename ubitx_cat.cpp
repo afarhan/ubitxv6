@@ -19,7 +19,6 @@ static byte rxBufferCheckCount = 0;
 #define CAT_RECEIVE_TIMEOUT 500
 static byte cat[5]; 
 static byte insideCat = 0; 
-static byte useOpenRadioControl = 0;
 
 //for broken protocol
 #define CAT_RECEIVE_TIMEOUT 500

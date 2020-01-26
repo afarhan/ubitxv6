@@ -99,7 +99,7 @@ void LoadSettingsFromEeprom()
   LoadSane(globalSettings.vfoB.mode,EEPROM_ADDR_VFO_B_MODE,VFO_MODE_LSB,VFO_MODE_USB);
   LoadSane(globalSettings.keyerMode,EEPROM_ADDR_CW_KEY_TYPE,KEYER_STRAIGHT,KEYER_IAMBIC_B);
 
-  uint8_t morse_on;
+  uint8_t morse_on = 0;
   LoadSane(morse_on,EEPROM_ADDR_MORSE_MENU,(uint8_t)0,(uint8_t)1);
   globalSettings.morseMenuOn = morse_on;
 
