@@ -66,7 +66,7 @@ static void morseLetter(char c, uint16_t dit_duration_ms){
     return;
   }
 
-  for (int i = 0; i < sizeof(morse_table)/ sizeof(struct Morse); i++){
+  for (unsigned int i = 0; i < sizeof(morse_table)/ sizeof(struct Morse); i++){
     struct Morse m;
     memcpy_P(&m, morse_table + i, sizeof(struct Morse));
 
