@@ -839,7 +839,7 @@ void PDQ_GFX<HW>::drawChar(coord_t x, coord_t y, unsigned char c, color_t color,
 
 // Draw a character with GFX font
 template<class HW>
-void PDQ_GFX<HW>::drawCharGFX(coord_t x, coord_t y, unsigned char c, color_t color, color_t bg, uint8_t size)
+void PDQ_GFX<HW>::drawCharGFX(coord_t x, coord_t y, unsigned char c, color_t color, color_t /*bg*/, uint8_t size)
 {
   // Character is assumed previously filtered by write() to eliminate
   // newlines, returns, non-printable characters, etc.	Calling drawChar()
