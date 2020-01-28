@@ -214,13 +214,6 @@ void displayChar(int16_t x, int16_t y, unsigned char c, uint16_t color, uint16_t
   tft.drawCharGFX(x,y,c,color,bg,1);
 }
 
-void displayRawText(char *text, int x1, int y1, int color, int background){
-  tft.setTextColor(color,background);
-  tft.setCursor(x1,y1);
-  tft.setBound(0,320);
-  tft.print(text);
-}
-
 void displayRawText(char *text, int x1, int y1, int w, int color, int background){
   tft.setTextColor(color,background);
   tft.setCursor(x1,y1);
