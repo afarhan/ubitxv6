@@ -1,9 +1,10 @@
 #include <Arduino.h>
 #include "morse.h"
+#include "nano_gui.h"
 #include "settings.h"
 #include "setup.h"
 #include "ubitx.h"
-#include "nano_gui.h"
+#include "version.h"
 
 static const unsigned int COLOR_TEXT = DISPLAY_WHITE;
 static const unsigned int COLOR_BACKGROUND = DISPLAY_NAVY;
@@ -21,6 +22,8 @@ static const unsigned int COLOR_INACTIVE_BORDER = DISPLAY_DARKGREY;
 static const unsigned int COLOR_ACTIVE_TEXT = DISPLAY_BLACK;
 static const unsigned int COLOR_ACTIVE_BACKGROUND = DISPLAY_ORANGE;
 static const unsigned int COLOR_ACTIVE_BORDER = DISPLAY_WHITE;
+
+static const unsigned int COLOR_VERSION_TEXT = DISPLAY_LIGHTGREY;
 
 static const unsigned int LAYOUT_VFO_LABEL_X = 0;
 static const unsigned int LAYOUT_VFO_LABEL_Y = 10;
@@ -42,8 +45,13 @@ static const unsigned int LAYOUT_BUTTON_PITCH_Y = 40;
 
 static const unsigned int LAYOUT_CW_TEXT_X = 0;
 static const unsigned int LAYOUT_CW_TEXT_Y = LAYOUT_BUTTON_Y + 3*LAYOUT_BUTTON_PITCH_Y + 1;
-static const unsigned int LAYOUT_CW_TEXT_WIDTH = 320;
+static const unsigned int LAYOUT_CW_TEXT_WIDTH = 220;
 static const unsigned int LAYOUT_CW_TEXT_HEIGHT = 36;
+
+static const unsigned int LAYOUT_VERSION_TEXT_X = LAYOUT_CW_TEXT_X + LAYOUT_CW_TEXT_WIDTH + 1;
+static const unsigned int LAYOUT_VERSION_TEXT_Y = LAYOUT_CW_TEXT_Y;
+static const unsigned int LAYOUT_VERSION_TEXT_WIDTH = 320 - LAYOUT_CW_TEXT_WIDTH - 1;
+static const unsigned int LAYOUT_VERSION_TEXT_HEIGHT = LAYOUT_CW_TEXT_HEIGHT;
 
 static const unsigned int LAYOUT_TX_X = 280;
 static const unsigned int LAYOUT_TX_Y = LAYOUT_MODE_TEXT_Y;
@@ -506,6 +514,11 @@ void drawCWStatus(){
   displayText(b, LAYOUT_CW_TEXT_X, LAYOUT_CW_TEXT_Y, LAYOUT_CW_TEXT_WIDTH, LAYOUT_CW_TEXT_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
 }
 
+void drawVersion()
+{
+  strncpy_P(b,VERSION_STRING,sizeof(b));
+  displayText(b, LAYOUT_VERSION_TEXT_X, LAYOUT_VERSION_TEXT_Y, LAYOUT_VERSION_TEXT_WIDTH, LAYOUT_VERSION_TEXT_HEIGHT, COLOR_VERSION_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
+}
 
 void drawTx(){
   if (globalSettings.txActive){
@@ -518,6 +531,7 @@ void drawTx(){
 }
 void drawStatusbar(){
   drawCWStatus();
+  drawVersion();
 }
 
 void guiUpdate(){
