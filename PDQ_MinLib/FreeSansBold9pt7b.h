@@ -205,12 +205,14 @@ const GFXglyph FreeSansBold9pt7bGlyphs[] PROGMEM = {
   {  1219,   4,  17,   7,    2,  -12 },   // 0x7D '}'
   {  1228,   8,   2,   9,    0,   -4 },   // 0x7E '~'
   {  1231,  20,  20,  22,    1,  -12 },   // 0x7F gear icon
+  {  1231,   0,   0,  10,    0,    1 },   // 0x80 10px space to match numbers
+  {  1231,   0,   0,   4,    0,    1 },   // 0x81 4px space to match period
 };
 
 const GFXfont FreeSansBold9pt7b PROGMEM = {
   (uint8_t  *)FreeSansBold9pt7bBitmaps,
   (GFXglyph *)FreeSansBold9pt7bGlyphs,
   0x20, //first character
-  0x7F, //last character
+  0x81, //last character
   22 //yAdvance (newline)
 };
