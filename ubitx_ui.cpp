@@ -230,7 +230,7 @@ void displayVFO(Vfo_e vfo){
 
   if (VFO_A == vfo){
     getButton(BUTTON_VFOA, &button);
-    formatFreq(globalSettings.vfoA.frequency, c+2, sizeof(c)-2);
+    formatFreq(globalSettings.vfoA.frequency, c+2, sizeof(c)-2, 10);
 
     if (VFO_A == globalSettings.activeVfo){
       displayColor = COLOR_ACTIVE_VFO_TEXT;
@@ -245,7 +245,7 @@ void displayVFO(Vfo_e vfo){
 
   if (VFO_B == vfo){
     getButton(BUTTON_VFOB, &button);
-    formatFreq(globalSettings.vfoB.frequency, c+2, sizeof(c)-2);
+    formatFreq(globalSettings.vfoB.frequency, c+2, sizeof(c)-2, 10);
 
     if (VFO_B == globalSettings.activeVfo){
       displayColor = COLOR_ACTIVE_VFO_TEXT;
