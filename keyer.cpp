@@ -38,8 +38,6 @@ static const unsigned int cwAdcDotTo = 600;
 static const unsigned int cwAdcDashFrom = cwAdcDotTo + 1;
 static const unsigned int cwAdcDashTo = 800;
 
-static const unsigned int delayBeforeCWStartTime = 0;
-
 /**
  * Starts transmitting the carrier with the sidetone
  * It assumes that we have called cwTxStart and not called cwTxStop
@@ -156,8 +154,6 @@ void cwKeyer(void){
         case KEYED_PREP:
           //modified KD8CEC
           if (!globalSettings.txActive){
-            //DelayTime Option
-            active_delay(delayBeforeCWStartTime * 2);
             globalSettings.cwExpirationTimeMs = millis() + globalSettings.cwActiveTimeoutMs;
             startTx(TuningMode_e::TUNE_CW);
           }
@@ -205,10 +201,6 @@ void cwKeyer(void){
         // if we are here, it is only because the key is pressed
         if (!globalSettings.txActive){
           startTx(TuningMode_e::TUNE_CW);
-
-          //DelayTime Option
-          active_delay(delayBeforeCWStartTime * 2);
-
           globalSettings.cwExpirationTimeMs = millis() + globalSettings.cwActiveTimeoutMs;
         }
         cwKeydown();
