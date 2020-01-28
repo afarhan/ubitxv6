@@ -7,6 +7,13 @@ struct Point {
 };
 extern struct Point ts_point;
 
+enum TextJustification_e : uint8_t
+{
+  Left,
+  Right,
+  Center
+};
+
 void displayInit();
 void displayClear(unsigned int color);
 void displayPixel(unsigned int x, unsigned int y, unsigned int c);
@@ -16,7 +23,7 @@ void displayRect(unsigned int x,unsigned int y,unsigned int w,unsigned int h,uns
 void displayFillrect(unsigned int x,unsigned int y,unsigned int w,unsigned int h,unsigned int c);
 void displayChar(int16_t x, int16_t y, unsigned char c, uint16_t color, uint16_t bg);
 void displayRawText(char *text, int x1, int y1, int color, int background);
-void displayText(char *text, int x1, int y1, int w, int h, int color, int background, int border);
+void displayText(char *text, int x1, int y1, int w, int h, int color, int background, int border, TextJustification_e justification = TextJustification_e::Center);
 
 void formatFreq(uint32_t freq, char* buff, uint16_t buff_size);
 
