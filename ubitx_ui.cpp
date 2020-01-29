@@ -226,11 +226,12 @@ void displayVFO(Vfo_e vfo){
     }
   }
   c[1] = ':';
+  c[2] = ' ';
 
 
   if (VFO_A == vfo){
     getButton(BUTTON_VFOA, &button);
-    formatFreq(globalSettings.vfoA.frequency, c+2, sizeof(c)-2, 10);
+    formatFreq(globalSettings.vfoA.frequency, c+3, sizeof(c)-3, 10);
 
     if (VFO_A == globalSettings.activeVfo){
       displayColor = COLOR_ACTIVE_VFO_TEXT;
@@ -245,7 +246,7 @@ void displayVFO(Vfo_e vfo){
 
   if (VFO_B == vfo){
     getButton(BUTTON_VFOB, &button);
-    formatFreq(globalSettings.vfoB.frequency, c+2, sizeof(c)-2, 10);
+    formatFreq(globalSettings.vfoB.frequency, c+3, sizeof(c)-3, 10);
 
     if (VFO_B == globalSettings.activeVfo){
       displayColor = COLOR_ACTIVE_VFO_TEXT;
