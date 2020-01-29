@@ -105,7 +105,7 @@ constexpr Button btn_set[BUTTON_TOTAL] PROGMEM = {
   {LAYOUT_BUTTON_X + 0*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_15 ,  "15", '5'},
   {LAYOUT_BUTTON_X + 1*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_10 ,  "10", '1'},
   {LAYOUT_BUTTON_X + 2*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_BLANK_1, "", '\0'},
-  {LAYOUT_BUTTON_X + 3*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_MNU, "MNU", 'M'},
+  {LAYOUT_BUTTON_X + 3*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_MNU, "\x7F", 'M'},
   {LAYOUT_BUTTON_X + 4*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_FRQ, "FRQ", 'F'},
 };
 
@@ -226,11 +226,12 @@ void displayVFO(Vfo_e vfo){
     }
   }
   c[1] = ':';
+  c[2] = ' ';
 
 
   if (VFO_A == vfo){
     getButton(BUTTON_VFOA, &button);
-    formatFreq(globalSettings.vfoA.frequency, c+2, sizeof(c)-2);
+    formatFreq(globalSettings.vfoA.frequency, c+3, sizeof(c)-3, 10);
 
     if (VFO_A == globalSettings.activeVfo){
       displayColor = COLOR_ACTIVE_VFO_TEXT;
@@ -245,7 +246,7 @@ void displayVFO(Vfo_e vfo){
 
   if (VFO_B == vfo){
     getButton(BUTTON_VFOB, &button);
-    formatFreq(globalSettings.vfoB.frequency, c+2, sizeof(c)-2);
+    formatFreq(globalSettings.vfoB.frequency, c+3, sizeof(c)-3, 10);
 
     if (VFO_B == globalSettings.activeVfo){
       displayColor = COLOR_ACTIVE_VFO_TEXT;
