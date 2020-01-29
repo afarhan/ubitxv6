@@ -232,7 +232,8 @@ void displayRawText(char *text, int x1, int y1, int w, int color, int background
   tft.print(text);
 }
 
-void displayText(char *text, int x1, int y1, int w, int h, int color, int background, int border) {
+void displayText(char *text, int x1, int y1, int w, int h, int color, int background, int border, TextJustification_e justification)
+{
   displayFillrect(x1, y1, w ,h, background);
   displayRect(x1, y1, w ,h, border);
 
@@ -241,7 +242,15 @@ void displayText(char *text, int x1, int y1, int w, int h, int color, int backgr
   uint16_t width_out;
   uint16_t height_out;
   tft.getTextBounds(text,x1,y1,&x1_out,&y1_out,&width_out,&height_out,w);
-  x1 += (w - ( (int32_t)width_out + (x1_out-x1)))/2;
+  if(TextJustification_e::Center == justification){
+    x1 += (w - ( (int32_t)width_out + (x1_out-x1)))/2;
+  }
+  else if(TextJustification_e::Right == justification){
+    x1 += w - ((int32_t)width_out + (x1_out-x1));
+  }
+  else{
+    x1 += 2;//Give a little bit of padding from the border
+  }
   y1 += (ubitx_font->yAdvance + h - ( (int32_t)height_out))/2;
   displayRawText(text,x1,y1,w,color,background);
 }
