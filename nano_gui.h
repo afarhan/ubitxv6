@@ -15,10 +15,9 @@ void displayVline(unsigned int x, unsigned int y, unsigned int l, unsigned int c
 void displayRect(unsigned int x,unsigned int y,unsigned int w,unsigned int h,unsigned int c);
 void displayFillrect(unsigned int x,unsigned int y,unsigned int w,unsigned int h,unsigned int c);
 void displayChar(int16_t x, int16_t y, unsigned char c, uint16_t color, uint16_t bg);
-void displayRawText(char *text, int x1, int y1, int color, int background);
 void displayText(char *text, int x1, int y1, int w, int h, int color, int background, int border);
 
-void formatFreq(uint32_t freq, char* buff, uint16_t buff_size);
+void formatFreq(uint32_t freq, char* buff, uint16_t buff_size, uint8_t fixed_width = 0);
 
 /* touch functions */
 boolean readTouch();
