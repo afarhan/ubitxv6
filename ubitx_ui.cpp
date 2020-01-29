@@ -1,9 +1,10 @@
 #include <Arduino.h>
 #include "morse.h"
+#include "nano_gui.h"
 #include "settings.h"
 #include "setup.h"
 #include "ubitx.h"
-#include "nano_gui.h"
+#include "version.h"
 
 static const unsigned int COLOR_TEXT = DISPLAY_WHITE;
 static const unsigned int COLOR_BACKGROUND = DISPLAY_NAVY;
@@ -21,6 +22,8 @@ static const unsigned int COLOR_INACTIVE_BORDER = DISPLAY_DARKGREY;
 static const unsigned int COLOR_ACTIVE_TEXT = DISPLAY_BLACK;
 static const unsigned int COLOR_ACTIVE_BACKGROUND = DISPLAY_ORANGE;
 static const unsigned int COLOR_ACTIVE_BORDER = DISPLAY_WHITE;
+
+static const unsigned int COLOR_VERSION_TEXT = DISPLAY_LIGHTGREY;
 
 static const unsigned int LAYOUT_VFO_LABEL_X = 0;
 static const unsigned int LAYOUT_VFO_LABEL_Y = 10;
@@ -42,8 +45,13 @@ static const unsigned int LAYOUT_BUTTON_PITCH_Y = 40;
 
 static const unsigned int LAYOUT_CW_TEXT_X = 0;
 static const unsigned int LAYOUT_CW_TEXT_Y = LAYOUT_BUTTON_Y + 3*LAYOUT_BUTTON_PITCH_Y + 1;
-static const unsigned int LAYOUT_CW_TEXT_WIDTH = 320;
+static const unsigned int LAYOUT_CW_TEXT_WIDTH = 220;
 static const unsigned int LAYOUT_CW_TEXT_HEIGHT = 36;
+
+static const unsigned int LAYOUT_VERSION_TEXT_X = LAYOUT_CW_TEXT_X + LAYOUT_CW_TEXT_WIDTH + 1;
+static const unsigned int LAYOUT_VERSION_TEXT_Y = LAYOUT_CW_TEXT_Y;
+static const unsigned int LAYOUT_VERSION_TEXT_WIDTH = 320 - LAYOUT_CW_TEXT_WIDTH - 1;
+static const unsigned int LAYOUT_VERSION_TEXT_HEIGHT = LAYOUT_CW_TEXT_HEIGHT;
 
 static const unsigned int LAYOUT_TX_X = 280;
 static const unsigned int LAYOUT_TX_Y = LAYOUT_MODE_TEXT_Y;
@@ -123,7 +131,7 @@ constexpr Button btn_set[BUTTON_TOTAL] PROGMEM = {
   {LAYOUT_BUTTON_X + 0*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_15 ,  "15", '5', msIgnore},
   {LAYOUT_BUTTON_X + 1*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_10 ,  "10", '1', msIgnore},
   {LAYOUT_BUTTON_X + 2*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_BLANK_1, "", '\0', msIgnore},
-  {LAYOUT_BUTTON_X + 3*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_MNU, "MNU", 'M', msIgnore},
+  {LAYOUT_BUTTON_X + 3*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_MNU, "\x7F", 'M', msIgnore},
   {LAYOUT_BUTTON_X + 4*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_FRQ, "FRQ", 'F', msIgnore},
 };
 
@@ -244,11 +252,12 @@ void displayVFO(Vfo_e vfo){
     }
   }
   c[1] = ':';
+  c[2] = ' ';
 
 
   if (VFO_A == vfo){
     getButton(BUTTON_VFOA, &button);
-    formatFreq(globalSettings.vfoA.frequency, c+2, sizeof(c)-2);
+    formatFreq(globalSettings.vfoA.frequency, c+3, sizeof(c)-3, 10);
 
     if (VFO_A == globalSettings.activeVfo){
       displayColor = COLOR_ACTIVE_VFO_TEXT;
@@ -263,7 +272,7 @@ void displayVFO(Vfo_e vfo){
 
   if (VFO_B == vfo){
     getButton(BUTTON_VFOB, &button);
-    formatFreq(globalSettings.vfoB.frequency, c+2, sizeof(c)-2);
+    formatFreq(globalSettings.vfoB.frequency, c+3, sizeof(c)-3, 10);
 
     if (VFO_B == globalSettings.activeVfo){
       displayColor = COLOR_ACTIVE_VFO_TEXT;
@@ -453,16 +462,29 @@ void enterFreq(){
         switch(button.id){
           case KEYS_OK:
           {
-            long freq = atol(c);
-            if((LOWEST_FREQ/1000 <= freq) && (freq <= HIGHEST_FREQ/1000)){
-              freq *= 1000L;
-              setFrequency(freq);
+            uint32_t new_freq = atol(c);
+            if((LOWEST_FREQ/1000 <= new_freq) && (new_freq <= HIGHEST_FREQ/1000)){
+              new_freq *= 1000L;
+              
+              uint32_t prev_freq = GetActiveVfoFreq();
+              //Transition from below to above the traditional threshold for USB
+              if(prev_freq < THRESHOLD_USB_LSB && new_freq >= THRESHOLD_USB_LSB){
+                SetActiveVfoMode(VfoMode_e::VFO_MODE_USB);
+              }
+              
+              //Transition from aboveo to below the traditional threshold for USB
+              if(prev_freq >= THRESHOLD_USB_LSB && new_freq < THRESHOLD_USB_LSB){
+                SetActiveVfoMode(VfoMode_e::VFO_MODE_LSB);
+              }
+
               if (VFO_A == globalSettings.activeVfo){
-                globalSettings.vfoA.frequency = freq;
+                globalSettings.vfoA.frequency = new_freq;
               }
               else{
-                globalSettings.vfoB.frequency = freq;
+                globalSettings.vfoB.frequency = new_freq;
               }
+
+              setFrequency(new_freq);
               saveVFOs();
             }
             exit = true;
@@ -528,9 +550,14 @@ void drawCWStatus(){
   itoa(globalSettings.cwSideToneFreq, c, 10);
   strncat(b, c, sizeof(b) - strlen(b));
   strncat_P(b,(const char*)F("hz"), sizeof(b) - strlen(b));
-  displayText(b, LAYOUT_CW_TEXT_X, LAYOUT_CW_TEXT_Y, LAYOUT_CW_TEXT_WIDTH, LAYOUT_CW_TEXT_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
+  displayText(b, LAYOUT_CW_TEXT_X, LAYOUT_CW_TEXT_Y, LAYOUT_CW_TEXT_WIDTH, LAYOUT_CW_TEXT_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND, TextJustification_e::Left);
 }
 
+void drawVersion()
+{
+  strncpy_P(b,VERSION_STRING,sizeof(b));
+  displayText(b, LAYOUT_VERSION_TEXT_X, LAYOUT_VERSION_TEXT_Y, LAYOUT_VERSION_TEXT_WIDTH, LAYOUT_VERSION_TEXT_HEIGHT, COLOR_VERSION_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND, TextJustification_e::Right);
+}
 
 void drawTx(){
   if (globalSettings.txActive){
@@ -543,6 +570,7 @@ void drawTx(){
 }
 void drawStatusbar(){
   drawCWStatus();
+  drawVersion();
 }
 
 void guiUpdate(){
@@ -645,10 +673,13 @@ void cwToggle(struct Button *b){
 }
 
 void sidebandToggle(Button* button){
-  if(BUTTON_LSB == button->id)
+  if(BUTTON_LSB == button->id){
     SetActiveVfoMode(VfoMode_e::VFO_MODE_LSB);
-  else
+  }
+  else{
     SetActiveVfoMode(VfoMode_e::VFO_MODE_USB);
+  }
+  setFrequency(GetActiveVfoFreq());
 
   struct Button button2;
   getButton(BUTTON_USB, &button2);

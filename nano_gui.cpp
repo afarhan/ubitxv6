@@ -11,7 +11,8 @@ struct Point ts_point;
 /*
  * This formats the frequency given in f 
  */
-void formatFreq(uint32_t freq, char* buff, uint16_t buff_size) {
+void formatFreq(uint32_t freq, char* buff, uint16_t buff_size, uint8_t fixed_width)
+{
   memset(buff, 0, buff_size);
 
   ultoa(freq, buff, DEC);
@@ -20,10 +21,20 @@ void formatFreq(uint32_t freq, char* buff, uint16_t buff_size) {
   const uint8_t num_leading_digits_raw = num_digits % 3;
   const uint8_t num_leading_digits = (0 == num_leading_digits_raw) ? 3 : num_leading_digits_raw;
 
-  if(0 == num_spacers){
-    return;
+  if(0 < fixed_width){
+    while(0 < fixed_width - num_digits - num_spacers){
+      if(0 == fixed_width % 4){
+        buff[0] = '\x81';//separator size
+      }
+      else{
+        buff[0] = '\x80';//digit size
+      }
+      --fixed_width;
+      ++buff;
+    }
   }
 
+  ultoa(freq, buff, DEC);
   buff += num_leading_digits;
   num_digits -= num_leading_digits;
   for(int i = num_digits-1; i >= 0; --i){
@@ -214,13 +225,6 @@ void displayChar(int16_t x, int16_t y, unsigned char c, uint16_t color, uint16_t
   tft.drawCharGFX(x,y,c,color,bg,1);
 }
 
-void displayRawText(char *text, int x1, int y1, int color, int background){
-  tft.setTextColor(color,background);
-  tft.setCursor(x1,y1);
-  tft.setBound(0,320);
-  tft.print(text);
-}
-
 void displayRawText(char *text, int x1, int y1, int w, int color, int background){
   tft.setTextColor(color,background);
   tft.setCursor(x1,y1);
@@ -228,7 +232,8 @@ void displayRawText(char *text, int x1, int y1, int w, int color, int background
   tft.print(text);
 }
 
-void displayText(char *text, int x1, int y1, int w, int h, int color, int background, int border) {
+void displayText(char *text, int x1, int y1, int w, int h, int color, int background, int border, TextJustification_e justification)
+{
   displayFillrect(x1, y1, w ,h, background);
   displayRect(x1, y1, w ,h, border);
 
@@ -237,7 +242,15 @@ void displayText(char *text, int x1, int y1, int w, int h, int color, int backgr
   uint16_t width_out;
   uint16_t height_out;
   tft.getTextBounds(text,x1,y1,&x1_out,&y1_out,&width_out,&height_out,w);
-  x1 += (w - ( (int32_t)width_out + (x1_out-x1)))/2;
+  if(TextJustification_e::Center == justification){
+    x1 += (w - ( (int32_t)width_out + (x1_out-x1)))/2;
+  }
+  else if(TextJustification_e::Right == justification){
+    x1 += w - ((int32_t)width_out + (x1_out-x1));
+  }
+  else{
+    x1 += 2;//Give a little bit of padding from the border
+  }
   y1 += (ubitx_font->yAdvance + h - ( (int32_t)height_out))/2;
   displayRawText(text,x1,y1,w,color,background);
 }
