@@ -167,7 +167,7 @@ void cwKeyer(void){
         case KEYED:
           if (millis() > ktimer) { // are we at end of key down ?
             cwKeyUp();
-            ktimer = millis() + (globalSettings.cwDitDurationMs / 10); // inter-element time
+            ktimer = millis() + globalSettings.cwDitDurationMs; // inter-element time
             keyerState = INTER_ELEMENT; // next state
           }
           else if(KeyerMode_e::KEYER_IAMBIC_B == globalSettings.keyerMode){
