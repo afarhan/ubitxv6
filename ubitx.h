@@ -95,7 +95,7 @@ static const uint32_t THRESHOLD_USB_LSB = 10000000L;
 /* these are functions implemented in the main file named as ubitx_xxx.ino */
 void active_delay(int delay_by);
 void saveVFOs();
-void setFrequency(unsigned long f);
+void setFrequency(const unsigned long freq, const bool transmit = false);
 void startTx(TuningMode_e tx_mode);
 void stopTx();
 void ritEnable(unsigned long f);
