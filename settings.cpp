@@ -20,10 +20,11 @@ static const uint16_t EEPROM_ADDR_TOUCH_SLOPE_X  = 32;//int16_t
 static const uint16_t EEPROM_ADDR_TOUCH_SLOPE_Y  = 36;//int16_t
 static const uint16_t EEPROM_ADDR_TOUCH_OFFSET_X  = 40;//int16_t
 static const uint16_t EEPROM_ADDR_TOUCH_OFFSET_Y  = 44;//int16_t
-static const uint16_t EEPROM_ADDR_CW_DELAYTIME  = 48;
-static const uint16_t EEPROM_ADDR_VFO_A_MODE = 256;
-static const uint16_t EEPROM_ADDR_VFO_B_MODE = 257;
-static const uint16_t EEPROM_ADDR_CW_KEY_TYPE = 358;
+static const uint16_t EEPROM_ADDR_MORSE_MENU = 46;//uint8_t
+static const uint16_t EEPROM_ADDR_CW_DELAYTIME  = 48;//uint16_t
+static const uint16_t EEPROM_ADDR_VFO_A_MODE = 256;//uint8_t
+static const uint16_t EEPROM_ADDR_VFO_B_MODE = 257;//uint8_t
+static const uint16_t EEPROM_ADDR_CW_KEY_TYPE = 358;//uint8_t
 
 template<typename T>
 bool LoadSane(T& dest,uint16_t addr, T min, T max)
@@ -81,6 +82,7 @@ void LoadDefaultSettings()
   globalSettings.txActive = false;
   globalSettings.txCatActive = false;
   globalSettings.cwExpirationTimeMs = 0;
+  globalSettings.morseMenuOn = false;
 }
 
 void LoadSettingsFromEeprom()
@@ -96,6 +98,10 @@ void LoadSettingsFromEeprom()
   LoadSane(globalSettings.vfoA.mode,EEPROM_ADDR_VFO_A_MODE,VFO_MODE_LSB,VFO_MODE_USB);
   LoadSane(globalSettings.vfoB.mode,EEPROM_ADDR_VFO_B_MODE,VFO_MODE_LSB,VFO_MODE_USB);
   LoadSane(globalSettings.keyerMode,EEPROM_ADDR_CW_KEY_TYPE,KEYER_STRAIGHT,KEYER_IAMBIC_B);
+
+  uint8_t morse_on = 0;
+  LoadSane(morse_on,EEPROM_ADDR_MORSE_MENU,(uint8_t)0,(uint8_t)1);
+  globalSettings.morseMenuOn = morse_on;
 
   //No sanity check on these - cal your heart out
   EEPROM.get(EEPROM_ADDR_MASTER_CAL,globalSettings.oscillatorCal);
@@ -122,6 +128,7 @@ void SaveSettingsToEeprom()
   EEPROM.put(EEPROM_ADDR_VFO_A_MODE,globalSettings.vfoA.mode);
   EEPROM.put(EEPROM_ADDR_VFO_B_MODE,globalSettings.vfoB.mode);
   EEPROM.put(EEPROM_ADDR_CW_KEY_TYPE,globalSettings.keyerMode);
+  EEPROM.put(EEPROM_ADDR_MORSE_MENU,(uint8_t)globalSettings.morseMenuOn);
 }
 
 uint32_t GetActiveVfoFreq()

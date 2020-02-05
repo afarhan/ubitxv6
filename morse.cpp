@@ -15,48 +15,53 @@ struct Morse {
  * The first zero after the 1s indicates the start of the letter, it MUST be discarded
  */
 static const PROGMEM struct Morse morse_table[] = { 
-{'a', 0xf9}, // 11111001
-{'b', 0xe8}, // 11101000
-{'c', 0xea}, // 11101010
-{'d', 0xf4}, // 11110100
-{'e', 0xfc}, // 11111100
-{'f', 0xe2}, // 11100010
-{'g', 0xf6}, // 11110110
-{'h', 0xe0}, // 11100000
-{'i', 0xf8}, // 11111000
-{'j', 0xe7}, // 11100111
-{'k', 0xf6}, // 11110101
-{'l', 0xe4}, // 11100100
-{'m', 0xfb}, // 11111011
-{'n', 0xfa}, // 11111010
-{'o', 0xf7}, // 11110111
-{'p', 0xe6}, // 11100110
-{'q', 0xed}, // 11101101
-{'r', 0xf2}, // 11110010
-{'s', 0xf0}, // 11110000
-{'t', 0xfd}, // 11111101
-{'u', 0xf1}, // 11110001
-{'v', 0xe1}, // 11100001
-{'w', 0xf3}, // 11110011
-{'x', 0xe9}, // 11101001
-{'y', 0xe3}, // 11101011
-{'z', 0xec}, // 11101100
-{'1', 0xcf}, // 11001111
-{'2', 0xc7}, // 11000111
-{'3', 0xc3}, // 11000011
-{'4', 0xc1}, // 11000001
-{'5', 0xc0}, // 11000000
-{'6', 0xd0}, // 11010000
-{'7', 0xd8}, // 11011000
-{'8', 0xdc}, // 11011100
-{'9', 0xde}, // 11011110
-{'0', 0xdf}, // 11011111
-{'.', 0x95}, // 10010101
-{',', 0xb3}, // 10110011
-{'?', 0x8c}, // 10001100
+{'a', 0b11111001},
+{'b', 0b11101000},
+{'c', 0b11101010},
+{'d', 0b11110100},
+{'e', 0b11111100},
+{'f', 0b11100010},
+{'g', 0b11110110},
+{'h', 0b11100000},
+{'i', 0b11111000},
+{'j', 0b11100111},
+{'k', 0b11110101},
+{'l', 0b11100100},
+{'m', 0b11111011},
+{'n', 0b11111010},
+{'o', 0b11110111},
+{'p', 0b11100110},
+{'q', 0b11101101},
+{'r', 0b11110010},
+{'s', 0b11110000},
+{'t', 0b11111101},
+{'u', 0b11110001},
+{'v', 0b11100001},
+{'w', 0b11110011},
+{'x', 0b11101001},
+{'y', 0b11101011},
+{'z', 0b11101100},
+{'1', 0b11001111},
+{'2', 0b11000111},
+{'3', 0b11000011},
+{'4', 0b11000001},
+{'5', 0b11000000},
+{'6', 0b11010000},
+{'7', 0b11011000},
+{'8', 0b11011100},
+{'9', 0b11011110},
+{'0', 0b11011111},
+{'.', 0b10010101},
+{',', 0b10110011},
+{'?', 0b10001100},
+{ 2 , 0b11010101}, // ASCII 0x02 is Start of Text - <CT>
+{ 4 , 0b10000101}, // ASCII 0x04 is End of Transmission - <CL> is too long for our encoding scheme in 8 bits, but <SK> fits
 };
 
-static void morseLetter(char c, uint16_t dit_duration_ms){
+void morseLetter(char c, uint16_t dit_duration_ms){
+  if(!globalSettings.morseMenuOn){
+    return;
+  }
   unsigned char mask = 0x80;
 
   //handle space character as three dashes
@@ -100,9 +105,23 @@ static void morseLetter(char c, uint16_t dit_duration_ms){
   }
 }
 
+static const uint8_t RELATIVE_OFFSET_HZ = 100;
 void morseText(char *text, uint16_t dit_duration_ms){
-  while(*text){
+  int16_t total_counts = 0;
+  morseBool(false);
+  enc_read();//Don't count initial tone against total_counts
+  while(*text && (abs(total_counts) < 10)){
     morseLetter(*text++, dit_duration_ms);
+    total_counts += enc_read();
   }
 }
 
+void morseBool(bool val){
+  if(!globalSettings.morseMenuOn){
+    return;
+  }
+  tone(CW_TONE, globalSettings.cwSideToneFreq + (val ? RELATIVE_OFFSET_HZ : -RELATIVE_OFFSET_HZ));
+  delay(3*globalSettings.cwDitDurationMs);
+  noTone(CW_TONE);
+  delay(3*globalSettings.cwDitDurationMs);
+}
