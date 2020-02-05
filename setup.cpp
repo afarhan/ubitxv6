@@ -147,7 +147,6 @@ void ssLocalOscInitialize(long int* start_value_out){
     uint32_t freq = GetActiveVfoFreq();
     freq = (freq/1000L) * 1000L;//round off the current frequency the nearest kHz
     setFrequency(freq);
-    si5351bx_setfreq(0, globalSettings.usbCarrierFreq); //set back the carrier oscillator, cw tx switches it off
   }
   *start_value_out = globalSettings.oscillatorCal;
 }

@@ -154,29 +154,48 @@ void setTXFilters_v5(unsigned long freq){
  * through mixing of the second local oscillator.
  */
  
-void setFrequency(unsigned long freq){
-  static const unsigned long firstIF = 45005000L;
+void setFrequency(const unsigned long freq,
+                  const bool transmit){
+  static const unsigned long FIRST_IF = 45005000UL;
  
   setTXFilters(freq);
 
-  uint32_t local_osc_freq;
-  if(TuningMode_e::TUNE_CW == globalSettings.tuningMode){
-    local_osc_freq = firstIF + freq + globalSettings.cwSideToneFreq;
-  }
-  else{
-    local_osc_freq = firstIF + freq;
-  }
+  //Nominal values for the oscillators
+  uint32_t local_osc_freq = FIRST_IF + freq;
+  uint32_t ssb_osc_freq = FIRST_IF;//will be changed depending on sideband
+  uint32_t bfo_osc_freq = globalSettings.usbCarrierFreq;
 
-  uint32_t ssb_osc_freq;
-  if(VfoMode_e::VFO_MODE_USB == GetActiveVfoMode()){
-    ssb_osc_freq = firstIF + globalSettings.usbCarrierFreq;
+  if(TuningMode_e::TUNE_CW == globalSettings.tuningMode){
+    if(transmit){
+      //We don't do any mixing or converting when transmitting
+      local_osc_freq = freq;
+      ssb_osc_freq = 0;
+      bfo_osc_freq = 0;
+    }
+    else{
+      //We offset when receiving CW so that it's audible
+      if(VfoMode_e::VFO_MODE_USB == GetActiveVfoMode()){
+        local_osc_freq -= globalSettings.cwSideToneFreq;
+        ssb_osc_freq += globalSettings.usbCarrierFreq;
+      }
+      else{
+        local_osc_freq += globalSettings.cwSideToneFreq;
+        ssb_osc_freq -= globalSettings.usbCarrierFreq;
+      }
+    }
   }
-  else{
-    ssb_osc_freq = firstIF - globalSettings.usbCarrierFreq;
+  else{//SSB mode
+    if(VfoMode_e::VFO_MODE_USB == GetActiveVfoMode()){
+      ssb_osc_freq += globalSettings.usbCarrierFreq;
+    }
+    else{
+      ssb_osc_freq -= globalSettings.usbCarrierFreq;
+    }
   }
 
   si5351bx_setfreq(2, local_osc_freq);
   si5351bx_setfreq(1, ssb_osc_freq);
+  si5351bx_setfreq(0, bfo_osc_freq);
 
   SetActiveVfoFreq(freq);
 }
@@ -195,7 +214,7 @@ void startTx(TuningMode_e tx_mode){
     //save the current as the rx frequency
     uint32_t rit_tx_freq = globalSettings.ritFrequency;
     globalSettings.ritFrequency = GetActiveVfoFreq();
-    setFrequency(rit_tx_freq);
+    setFrequency(rit_tx_freq,true);
   }
   else{
     if(globalSettings.splitOn){
@@ -206,26 +225,9 @@ void startTx(TuningMode_e tx_mode){
         globalSettings.activeVfo = Vfo_e::VFO_B;
       }
     }
-    setFrequency(GetActiveVfoFreq());
+    setFrequency(GetActiveVfoFreq(),true);
   }
 
-  if(TuningMode_e::TUNE_CW == globalSettings.tuningMode){
-    //turn off the second local oscillator and the bfo
-    si5351bx_setfreq(0, 0);
-    si5351bx_setfreq(1, 0);
-
-    //shift the first oscillator to the tx frequency directly
-    //the key up and key down will toggle the carrier unbalancing
-    //the exact cw frequency is the tuned frequency + sidetone
-    if(VfoMode_e::VFO_MODE_USB == GetActiveVfoMode()){
-      si5351bx_setfreq(2, GetActiveVfoFreq() + globalSettings.cwSideToneFreq);
-    }
-    else{
-      si5351bx_setfreq(2, GetActiveVfoFreq() - globalSettings.cwSideToneFreq);
-    }
-
-    delay(20);
-  }
   digitalWrite(TX_RX, 1);//turn on the tx
   globalSettings.txActive = true;
   drawTx();
@@ -234,9 +236,6 @@ void startTx(TuningMode_e tx_mode){
 void stopTx(){
   digitalWrite(TX_RX, 0);//turn off the tx
   globalSettings.txActive = false;
-
-  //set back the carrier oscillator - cw tx switches it off
-  si5351bx_setfreq(0, globalSettings.usbCarrierFreq);
 
   if(globalSettings.ritOn){
     uint32_t rit_rx_freq = globalSettings.ritFrequency;
