@@ -4,6 +4,7 @@
 #include "setup.h"
 #include "settings.h"
 #include "ubitx.h"
+#include "utils.h"
 
 /** Menus
  *  The Radio menus are accessed by tapping on the function button. 
@@ -138,8 +139,6 @@ void runSetting(const SettingScreen_t* const p_screen)
 
   screen.Finalize(last_value);
 }
-
-#define LIMIT(val,min,max) ((val) < (min)) ? (min) : (((max) < (val)) ? (max) : (val))
 
 //Local Oscillator
 void ssLocalOscInitialize(long int* start_value_out){
