@@ -27,7 +27,7 @@ void displayText(char *text, int x1, int y1, int w, int h, int color, int backgr
 void formatFreq(uint32_t freq, char* buff, uint16_t buff_size, uint8_t fixed_width = 0);
 
 /* touch functions */
-boolean readTouch();
+bool readTouch();
 
 void scaleTouch(struct Point *p);
 
