@@ -1,11 +1,11 @@
 #include "menu.h"
 
-bool runSubmenu(Menu_t* current_menu,
-                void(*redraw_callback)(),
-                ButtonPress_e tuner_button,
-                ButtonPress_e touch_button,
-                Point touch_point,
-                int16_t knob){
+bool runSubmenu(Menu_t* const current_menu,
+                void(*const redraw_callback)(),
+                const ButtonPress_e tuner_button,
+                const ButtonPress_e touch_button,
+                const Point touch_point,
+                const int16_t knob){
   if(nullptr != current_menu->active_submenu){
     auto ret = current_menu->active_submenu->runMenu(tuner_button,touch_button,touch_point,knob);
     switch(ret){

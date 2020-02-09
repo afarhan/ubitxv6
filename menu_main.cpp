@@ -1,20 +1,22 @@
 #include "menu_main.h"
 
+#include "button.h"
 #include "morse.h"
 #include "settings.h"
+#include "ubitx.h"//THRESHOLD_USB_LSB
 #include "utils.h"
 
-MenuReturn_e runMainMenu(ButtonPress_e tuner_button,
-                         ButtonPress_e touch_button,
-                         Point touch_point,
-                         int16_t knob);
+MenuReturn_e runMainMenu(const ButtonPress_e tuner_button,
+                         const ButtonPress_e touch_button,
+                         const Point touch_point,
+                         const int16_t knob);
 
 Menu_t mainMenu = {
-  runMainMenu
+  runMainMenu,
   nullptr
 };
 
-static Menu_t* const rootMenu = &mainMenu;
+Menu_t* const rootMenu = &mainMenu;
 
 bool mainMenuSelecting = false;//Tracks if we're selecting buttons with knob, or adjusting frequency
 uint8_t mainMenuSelectedItemRaw = 0;
@@ -50,10 +52,10 @@ void mainMenuTune(int16_t knob)
   current_freq = new_freq;
 }
 
-MenuReturn_e runMainMenu(ButtonPress_e tuner_button,
-                         ButtonPress_e touch_button,
-                         Point touch_point,
-                         int16_t knob)
+MenuReturn_e runMainMenu(const ButtonPress_e tuner_button,
+                         const ButtonPress_e touch_button,
+                         const Point touch_point,
+                         const int16_t knob)
 {
   if(runSubmenu(&mainMenu,
                 drawMainMenu,
