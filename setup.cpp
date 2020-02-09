@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include "colors.h"
 #include "morse.h"
 #include "nano_gui.h"
 #include "setup.h"

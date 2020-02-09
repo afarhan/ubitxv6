@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include "colors.h"
 #include "settings.h"
 #include "ubitx.h"
 #include "nano_gui.h"

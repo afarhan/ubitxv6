@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include "button.h"
 #include "nano_gui.h"//Point
 
 enum MenuReturn_e : uint8_t {
@@ -32,3 +33,6 @@ bool runSubmenu(Menu_t* current_menu,
                 const ButtonPress_e touch_button,
                 const Point touch_point,
                 const int16_t knob);
+
+void movePuck(const Button *const b_old,
+              const Button *const b_new);

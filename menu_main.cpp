@@ -1,5 +1,7 @@
 #include "menu_main.h"
 
+#include <avr/pgmspace.h>
+
 #include "button.h"
 #include "morse.h"
 #include "settings.h"
@@ -20,6 +22,8 @@ Menu_t* const rootMenu = &mainMenu;
 
 bool mainMenuSelecting = false;//Tracks if we're selecting buttons with knob, or adjusting frequency
 uint8_t mainMenuSelectedItemRaw = 0;
+
+const Button mainMenuButtons [] PROGMEM = {};
 
 void drawMainMenu(void)
 {
@@ -64,6 +68,8 @@ MenuReturn_e runMainMenu(const ButtonPress_e tuner_button,
                 touch_point,
                 knob)){
     //Submenu processed the input, so return now
+    mainMenuSelectedItemRaw = 0;
+    mainMenuSelecting = false;
     return MenuReturn_e::StillActive;//main menu always returns StillActive
   }//end submenu
 
@@ -83,6 +89,9 @@ MenuReturn_e runMainMenu(const ButtonPress_e tuner_button,
         if(mainMenuSelecting){
           uint8_t menu_index = mainMenuSelectedItemRaw/MENU_KNOB_COUNTS_PER_ITEM;
           //TODO: activate button
+        }
+        else{
+          movePuck(nullptr,&mainMenuButtons[0]);
         }
         mainMenuSelecting = !mainMenuSelecting;
 
@@ -125,7 +134,7 @@ MenuReturn_e runMainMenu(const ButtonPress_e tuner_button,
       mainMenuSelectedItemRaw += LIMIT(mainMenuSelectedItemRaw+knob,0,MAIN_MENU_NUM_BUTTONS*MENU_KNOB_COUNTS_PER_ITEM);
       const uint8_t new_select = mainMenuSelectedItemRaw/MENU_KNOB_COUNTS_PER_ITEM;
       if(prev_select != new_select){
-        movePuck(/*button[prev],button[new]*/);//TODO
+        movePuck(&mainMenuButtons[prev_select],&mainMenuButtons[new_select]);//TODO
       }
     }
     else{

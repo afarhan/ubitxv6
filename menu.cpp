@@ -1,4 +1,7 @@
 #include "menu.h"
+
+#include "button.h"
+#include "color_theme.h"
 #include "nano_gui.h"
 
 bool runSubmenu(Menu_t* const current_menu,
