@@ -119,7 +119,12 @@ MenuReturn_e runMainMenu(ButtonPress_e tuner_button,
 
   else{//Neither button input type found, so handle the knob
     if(mainMenuSelecting){
+      const uint8_t prev_select = mainMenuSelectedItemRaw/MENU_KNOB_COUNTS_PER_ITEM;
       mainMenuSelectedItemRaw += LIMIT(mainMenuSelectedItemRaw+knob,0,MAIN_MENU_NUM_BUTTONS*MENU_KNOB_COUNTS_PER_ITEM);
+      const uint8_t new_select = mainMenuSelectedItemRaw/MENU_KNOB_COUNTS_PER_ITEM;
+      if(prev_select != new_select){
+        movePuck(/*button[prev],button[new]*/);//TODO
+      }
     }
     else{
       mainMenuTune(knob);
