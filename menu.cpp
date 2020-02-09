@@ -1,4 +1,5 @@
 #include "menu.h"
+#include "nano_gui.h"
 
 bool runSubmenu(Menu_t* const current_menu,
                 void(*const redraw_callback)(),
@@ -28,3 +29,15 @@ bool runSubmenu(Menu_t* const current_menu,
   }//end submenu
   return false;
 }
+
+void movePuck(const Button *const b_old,
+              const Button *const b_new)
+{
+  if(nullptr != b_old){
+    displayRect(b_old->x,b_old->y,b_old->w,b_old->h,COLOR_INACTIVE_BORDER);
+  }
+  if(nullptr != b_new){
+    displayRect(b_new->x,b_new->y,b_new->w,b_new->h,COLOR_ACTIVE_BORDER);
+  }
+}
+
