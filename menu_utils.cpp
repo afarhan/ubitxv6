@@ -76,12 +76,11 @@ void playButtonMorse(const Button *const button,
     morseLetter(button->morse);
   }
 
-  int8_t morse_status = 0;
-  button->morse_status(&morse_status);
-  if(morse_status < 0){
+  const ButtonStatus_e bs = button->status();
+  if(ButtonStatus_e::Inactive == bs){
     morseBool(false);
   }
-  else if(morse_status > 0){
+  else if(ButtonStatus_e::Active == bs){
     morseBool(true);
   }
 }
