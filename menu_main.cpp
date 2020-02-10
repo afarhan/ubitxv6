@@ -34,7 +34,7 @@ void drawMainMenu(void)
   displayClear(COLOR_BACKGROUND);
   Button button;
   for(uint8_t i = 0; i < MAIN_MENU_NUM_BUTTONS; ++i){
-    memcpy_P(&button, &(mainMenuButtons[i]), sizeof(Button));
+    memcpy_P(&button, mainMenuButtons[i], sizeof(Button));
     displayText(button.text, button.x, button.y, button.w, button.h, COLOR_INACTIVE_TEXT, COLOR_INACTIVE_BACKGROUND, COLOR_INACTIVE_BORDER);
     Serial.println(button.text);
   }
@@ -74,7 +74,7 @@ void mainMenuTune(int16_t knob)
   current_freq = new_freq;
 
   Button button;
-  memcpy_P(&button, &(mainMenuButtons[0]), sizeof(button));
+  memcpy_P(&button, mainMenuButtons[0], sizeof(button));
   displayText(button.text, button.x, button.y, button.w, button.h, COLOR_INACTIVE_TEXT, COLOR_INACTIVE_BACKGROUND, COLOR_INACTIVE_BORDER);
 }
 
@@ -111,7 +111,7 @@ MenuReturn_e runMainMenu(const ButtonPress_e tuner_button,
         if(mainMenuSelecting){
           uint8_t menu_index = mainMenuSelectedItemRaw/MENU_KNOB_COUNTS_PER_ITEM;
           Button button;
-          memcpy_P(&button,&mainMenuButtons[menu_index],sizeof(button));
+          memcpy_P(&button,mainMenuButtons[menu_index],sizeof(button));
           endSelector(&button);
 
           //TODO: activate button
