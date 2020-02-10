@@ -22,7 +22,7 @@ Menu_t mainMenu = {
 Menu_t* const rootMenu = &mainMenu;
 
 bool mainMenuSelecting = false;//Tracks if we're selecting buttons with knob, or adjusting frequency
-uint8_t mainMenuSelectedItemRaw = 0;
+int16_t mainMenuSelectedItemRaw = 0;//Allow negative only for easier checks on wrap around
 
 const Button mainMenuButtons [] PROGMEM = {};
 static constexpr uint8_t MAIN_MENU_NUM_BUTTONS = sizeof(mainMenuButtons) / sizeof(mainMenuButtons[0]);
@@ -93,7 +93,10 @@ MenuReturn_e runMainMenu(const ButtonPress_e tuner_button,
           //TODO: activate button
         }
         else{
-          movePuck(nullptr,&mainMenuButtons[0]);
+          initSelector(&mainMenuSelectedItemRaw,
+                       mainMenuButtons,
+                       MAIN_MENU_NUM_BUTTONS,
+                       MorsePlaybackType_e::PlayChar);
         }
         mainMenuSelecting = !mainMenuSelecting;
 
@@ -132,21 +135,11 @@ MenuReturn_e runMainMenu(const ButtonPress_e tuner_button,
 
   else{//Neither button input type found, so handle the knob
     if(mainMenuSelecting){
-      const uint8_t prev_select = mainMenuSelectedItemRaw/MENU_KNOB_COUNTS_PER_ITEM;
-      mainMenuSelectedItemRaw += LIMIT(mainMenuSelectedItemRaw+knob,0,MAIN_MENU_NUM_BUTTONS*MENU_KNOB_COUNTS_PER_ITEM);
-      const uint8_t new_select = mainMenuSelectedItemRaw/MENU_KNOB_COUNTS_PER_ITEM;
-      if(prev_select != new_select){
-        movePuck(&mainMenuButtons[prev_select],&mainMenuButtons[new_select]);//TODO
-        morseLetter(mainMenuButtons[new_select].morse);
-        int8_t morse_status = 0;
-        mainMenuButtons[new_select].morse_status(morse_status);
-        if(morse_status < 0){
-          morseBool(false);
-        }
-        else if(morse_status > 0){
-          morseBool(true);
-        }
-      }
+      adjustSelector(&mainMenuSelectedItemRaw,
+                     knob,
+                     mainMenuButtons,
+                     MAIN_MENU_NUM_BUTTONS,
+                     MorsePlaybackType_e::PlayChar);
     }
     else{
       mainMenuTune(knob);

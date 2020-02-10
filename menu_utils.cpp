@@ -1,10 +1,12 @@
-#include "menu.h"
+#include "menu_utils.h"
 
 #include <avr/pgmspace.h>
 
 #include "button.h"
 #include "color_theme.h"
+#include "morse.h"
 #include "nano_gui.h"
+#include "utils.h"
 
 bool runSubmenu(Menu_t* const current_menu,
                 void(*const redraw_callback)(),
@@ -35,17 +37,6 @@ bool runSubmenu(Menu_t* const current_menu,
   return false;
 }
 
-void movePuck(const Button *const b_old,
-              const Button *const b_new)
-{
-  if(nullptr != b_old){
-    displayRect(b_old->x,b_old->y,b_old->w,b_old->h,COLOR_INACTIVE_BORDER);
-  }
-  if(nullptr != b_new){
-    displayRect(b_new->x,b_new->y,b_new->w,b_new->h,COLOR_ACTIVE_BORDER);
-  }
-}
-
 bool findPressedButton(const Button *const buttons,
                        const uint8_t num_buttons,
                        Button *const button_out,
@@ -62,4 +53,61 @@ bool findPressedButton(const Button *const buttons,
   }
 
   return false;
+}
+
+void movePuck(const Button *const b_old,
+              const Button *const b_new)
+{
+  if(nullptr != b_old){
+    displayRect(b_old->x,b_old->y,b_old->w,b_old->h,COLOR_INACTIVE_BORDER);
+  }
+  if(nullptr != b_new){
+    displayRect(b_new->x,b_new->y,b_new->w,b_new->h,COLOR_ACTIVE_BORDER);
+  }
+}
+
+void playButtonMorse(const Button *const button,
+                     const MorsePlaybackType_e play_type)
+{
+  if(MorsePlaybackType_e::PlayText == play_type){
+    morseText(button->text);
+  }
+  else{
+    morseLetter(button->morse);
+  }
+
+  int8_t morse_status = 0;
+  button->morse_status(&morse_status);
+  if(morse_status < 0){
+    morseBool(false);
+  }
+  else if(morse_status > 0){
+    morseBool(true);
+  }
+}
+
+void initSelector(int16_t *const raw_select_val_in_out,
+                  const Button *const buttons,
+                  const uint8_t num_buttons,
+                  const MorsePlaybackType_e play_type)
+{
+  *raw_select_val_in_out = 0;
+  if(0 < num_buttons){
+    playButtonMorse(&buttons[0],play_type);
+  }
+}
+
+void adjustSelector(int16_t *const raw_select_val_in_out,
+                    const int16_t knob,
+                    const Button *const buttons,
+                    const uint8_t num_buttons,
+                    const MorsePlaybackType_e play_type)
+{
+  const uint8_t prev_select = (*raw_select_val_in_out)/MENU_KNOB_COUNTS_PER_ITEM;
+  *raw_select_val_in_out += LIMIT((*raw_select_val_in_out)+knob,0,num_buttons*MENU_KNOB_COUNTS_PER_ITEM - 1);
+  const uint8_t new_select = (*raw_select_val_in_out)/MENU_KNOB_COUNTS_PER_ITEM;
+  if(prev_select != new_select){
+    movePuck(&buttons[prev_select],&buttons[new_select]);
+    playButtonMorse(&buttons[new_select],play_type);
+  }
 }
