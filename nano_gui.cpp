@@ -64,14 +64,14 @@ void displayChar(int16_t x, int16_t y, unsigned char c, uint16_t color, uint16_t
   tft.drawCharGFX(x,y,c,color,bg,1);
 }
 
-void displayRawText(char *text, int x1, int y1, int w, int color, int background){
+void displayRawText(const char *text, int x1, int y1, int w, int color, int background){
   tft.setTextColor(color,background);
   tft.setCursor(x1,y1);
   tft.setBound(x1,x1+w);
   tft.print(text);
 }
 
-void displayText(char *text, int x1, int y1, int w, int h, int color, int background, int border, TextJustification_e justification)
+void displayText(const char *const text, int x1, int y1, int w, int h, int color, int background, int border, TextJustification_e justification)
 {
   displayFillrect(x1, y1, w ,h, background);
   displayRect(x1, y1, w ,h, border);

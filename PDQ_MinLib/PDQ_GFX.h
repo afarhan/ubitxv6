@@ -158,7 +158,7 @@ public:
 	static inline uint8_t getRotation() __attribute__ ((always_inline))		{ return rotation; }
 	static inline coord_t getCursorX() __attribute__ ((always_inline))		{ return cursor_x; }
 	static inline coord_t getCursorY() __attribute__ ((always_inline))		{ return cursor_y; }
-	static inline void getTextBounds(char *string, coord_t x, coord_t y, int16_t *x1, int16_t *y1, uint16_t *w, uint16_t *h, coord_t wi = _width);
+	static inline void getTextBounds(const char *string, coord_t x, coord_t y, int16_t *x1, int16_t *y1, uint16_t *w, uint16_t *h, coord_t wi = _width);
 	static inline void getTextBounds(const __FlashStringHelper *s, coord_t x, coord_t y, int16_t *x1, int16_t *y1, uint16_t *w, uint16_t *h, coord_t wi = _width);
 
 	virtual size_t write(uint8_t);		// used by Arduino "Print.h" (and the one required virtual function)
@@ -1061,7 +1061,7 @@ void PDQ_GFX<HW>::setFont(const GFXfont *f)
 
 // Pass string and a cursor position, returns UL corner and W,H.
 template<class HW>
-void PDQ_GFX<HW>::getTextBounds(char *str, coord_t x, coord_t y, int16_t *x1, int16_t *y1, uint16_t *w, uint16_t *h, coord_t wi)
+void PDQ_GFX<HW>::getTextBounds(const char *str, coord_t x, coord_t y, int16_t *x1, int16_t *y1, uint16_t *w, uint16_t *h, coord_t wi)
 {
 	uint8_t c; // Current character
 

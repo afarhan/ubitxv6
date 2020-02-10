@@ -16,7 +16,7 @@ void displayVline(unsigned int x, unsigned int y, unsigned int l, unsigned int c
 void displayRect(unsigned int x,unsigned int y,unsigned int w,unsigned int h,unsigned int c);
 void displayFillrect(unsigned int x,unsigned int y,unsigned int w,unsigned int h,unsigned int c);
 void displayChar(int16_t x, int16_t y, unsigned char c, uint16_t color, uint16_t bg);
-void displayText(char *text, int x1, int y1, int w, int h, int color, int background, int border, TextJustification_e justification = TextJustification_e::Center);
+void displayText(const char *const text, int x1, int y1, int w, int h, int color, int background, int border, TextJustification_e justification = TextJustification_e::Center);
 
 #define TEXT_LINE_HEIGHT 18
 #define TEXT_LINE_INDENT 5
