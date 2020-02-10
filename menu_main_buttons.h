@@ -38,55 +38,173 @@ static const unsigned int LAYOUT_TX_Y = LAYOUT_MODE_TEXT_Y;
 static const unsigned int LAYOUT_TX_WIDTH = 40;
 static const unsigned int LAYOUT_TX_HEIGHT = 36;
 
-enum btn_set_e {
-  BUTTON_VFOA,
-  BUTTON_VFOB,
-  BUTTON_RIT,
-  BUTTON_USB,
-  BUTTON_LSB,
-  BUTTON_CW,
-  BUTTON_SPL,
-  BUTTON_80,
-  BUTTON_40,
-  BUTTON_30,
-  BUTTON_20,
-  BUTTON_17,
-  BUTTON_15,
-  BUTTON_10,
-  BUTTON_BLANK_1,
-  BUTTON_MNU,
-  BUTTON_FRQ,
-  BUTTON_TOTAL
+void toVfo(char* text_out, const uint16_t max_text_size, const Vfo_e vfo)
+{
+  if(max_text_size < 2){
+    return;//Can't do much with that space
+  }
+  if(max_text_size < (3+10+1)){
+    //Give an indicator that's debuggable
+    text_out[0] = 'X';
+    text_out[1] = '\0';
+    return;
+  }
+
+  //Normal operation
+  if (globalSettings.splitOn){
+    if(vfo == globalSettings.activeVfo){
+      text_out[0] = 'R';
+    }
+    else{
+      text_out[0] = 'T';
+    }
+  }
+  else{
+    if(VFO_A == vfo){
+      text_out[0] = 'A';
+    }
+    else if(VFO_B == vfo){
+      text_out[0] = 'B';
+    }
+    else{
+      text_out[0] = '?';
+    }
+  }
+  text_out[1] = ':';
+  text_out[2] = ' ';
+  if(VFO_A == vfo){
+    formatFreq(globalSettings.vfoA.frequency, text_out+3, max_text_size-3, 10);
+  }
+  else if(VFO_B == vfo){
+    formatFreq(globalSettings.vfoB.frequency, text_out+3, max_text_size-3, 10);
+  }
+  else{
+    text_out[3] = '?';
+    text_out[4] = '\0';
+  }
+}
+
+void bsVfo(const Vfo_e vfo){
+  (vfo == globalSettings.activeVfo) ? ButtonStatus_e::Active : ButtonStatus_e::Inactive;
+}
+
+void osVfo(const Vfo_e vfo){
+  globalSettings.activeVfo = vfo;
+}
+
+void toVfoA(char* text_out, const uint16_t max_text_size){
+  toVfo(text_out,max_text_size,Vfo_e::VFO_A);
+}
+ButtonStatus_e bsVfoA(){
+  bsVfo(Vfo_e::VFO_A);
+}
+void osVfoA(){
+  osVfo(Vfo_e::VFO_A);
+}
+constexpr Button bVfoA = {
+  LAYOUT_VFO_LABEL_X + 0*LAYOUT_VFO_LABEL_PITCH_X,
+  LAYOUT_VFO_LABEL_Y,
+  LAYOUT_VFO_LABEL_WIDTH,
+  LAYOUT_VFO_LABEL_HEIGHT,
+  nullptr,
+  toVfoA,
+  bsVfoA,
+  osVfoA,
+  'A'
 };
 
-void msVfoA(int8_t* val_out){
-  *val_out = (Vfo_e::VFO_A == globalSettings.activeVfo) ? 1 : -1;
+void toVfoB(char* text_out, const uint16_t max_text_size){
+  toVfo(text_out,max_text_size,Vfo_e::VFO_B);
 }
-void msVfoB(int8_t* val_out){
-  *val_out = (Vfo_e::VFO_B == globalSettings.activeVfo) ? 1 : -1;
+ButtonStatus_e bsVfoB(){
+  bsVfo(Vfo_e::VFO_B);
 }
-void msRit(int8_t* val_out){
+void osVfoB(){
+  osVfo(Vfo_e::VFO_B);
+}
+constexpr Button bVfoB = {
+  LAYOUT_VFO_LABEL_X + 1*LAYOUT_VFO_LABEL_PITCH_X,
+  LAYOUT_VFO_LABEL_Y,
+  LAYOUT_VFO_LABEL_WIDTH,
+  LAYOUT_VFO_LABEL_HEIGHT,
+  nullptr,
+  toVfoB,
+  bsVfoB,
+  osVfoB,
+  'B'
+};
+
+constexpr char txtRit [] PROGMEM = "RIT";
+ButtonStatus_e bsRit(){
   *val_out = globalSettings.ritOn ? 1 : -1;
 }
-void msUsb(int8_t* val_out){
+void osRit(){
+  Button button;
+  if(!globalSettings.ritOn){
+    globalSettings.ritOn = true;
+    globalSettings.ritFrequency = GetActiveVfoFreq();
+
+    strncpy_P(b,(const char*)F("TX: "),sizeof(b));
+    formatFreq(globalSettings.ritFrequency, b+3, sizeof(b)-strlen(c));
+    if (VFO_A == globalSettings.activeVfo){
+      displayText(b, LAYOUT_VFO_LABEL_X + 0*LAYOUT_VFO_LABEL_PITCH_X, LAYOUT_MODE_TEXT_Y, LAYOUT_VFO_LABEL_WIDTH, LAYOUT_MODE_TEXT_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
+    }
+    else{
+      displayText(b, LAYOUT_VFO_LABEL_X + 1*LAYOUT_VFO_LABEL_PITCH_X, LAYOUT_MODE_TEXT_Y, LAYOUT_VFO_LABEL_WIDTH, LAYOUT_MODE_TEXT_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
+    }
+  }
+  else{
+    globalSettings.ritOn = false;
+    setFrequency(globalSettings.ritFrequency);
+
+    displayFillrect(LAYOUT_MODE_TEXT_X,LAYOUT_MODE_TEXT_Y,LAYOUT_MODE_TEXT_WIDTH,LAYOUT_MODE_TEXT_HEIGHT, COLOR_BACKGROUND);
+    if(Vfo_e::VFO_A == globalSettings.activeVfo){
+      memcpy_P(&button,bVfoA,sizeof(button));
+      drawButton(&button);
+    }
+    else{
+      memcpy_P(&button,bVfoB,sizeof(button));
+      drawButton(&button);
+    }
+  }
+  
+  memcpy_P(&button,bRit,sizeof(button));
+  drawButton(button);
+}
+constexpr Button bRit = {
+  LAYOUT_BUTTON_X + 0*LAYOUT_BUTTON_PITCH_X,
+  LAYOUT_BUTTON_Y + 0*LAYOUT_BUTTON_PITCH_Y,
+  LAYOUT_BUTTON_WIDTH,
+  LAYOUT_BUTTON_HEIGHT,
+  txtRit,
+  nullptr,
+  bsRit,
+  osRit,
+  'R'
+};
+
+
+ButtonStatus_e bsUsb(){
   *val_out = (VfoMode_e::VFO_MODE_USB == GetActiveVfoMode()) ? 1 : -1;
 }
-void msLsb(int8_t* val_out){
+ButtonStatus_e bsLsb(){
   *val_out = (VfoMode_e::VFO_MODE_LSB == GetActiveVfoMode()) ? 1 : -1;
 }
-void msCw(int8_t* val_out){
+ButtonStatus_e bsCw(){
   *val_out = (TuningMode_e::TUNE_CW == globalSettings.tuningMode) ? 1 : -1;
 }
-void msSpl(int8_t* val_out){
+ButtonStatus_e bsSpl(){
   *val_out = globalSettings.splitOn ? 1 : -1;
 }
-void msIgnore(int8_t* val_out){
+ButtonStatus_e bsIgnore(){
   *val_out = 0;
 }
 
 constexpr Button mainMenuButtons[] PROGMEM = {
-  {LAYOUT_VFO_LABEL_X + 0*LAYOUT_VFO_LABEL_PITCH_X, LAYOUT_VFO_LABEL_Y, LAYOUT_VFO_LABEL_WIDTH, LAYOUT_VFO_LABEL_HEIGHT, BUTTON_VFOA, "VFOA", 'A', msVfoA},
-  {LAYOUT_VFO_LABEL_X + 1*LAYOUT_VFO_LABEL_PITCH_X, LAYOUT_VFO_LABEL_Y, LAYOUT_VFO_LABEL_WIDTH, LAYOUT_VFO_LABEL_HEIGHT, BUTTON_VFOB, "VFOB", 'B', msVfoB},
+  bVfoA,
+  bVfoB,
+
+  bRit,
   
   {LAYOUT_BUTTON_X + 0*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 0*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_RIT, "RIT", 'R', msRit},
   {LAYOUT_BUTTON_X + 1*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 0*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_USB, "USB", 'U', msUsb},
