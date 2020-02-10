@@ -1,3 +1,10 @@
+#include "utils.h"
+
+#include <avr/pgmspace.h>
+#include <stdlib.h>//ultoa
+#include <string.h>//memset, strlen
+#include <WString.h>//F()
+
 /*
  * Formats the frequency given
  */
@@ -5,7 +12,7 @@ void formatFreq(uint32_t freq, char* buff, uint16_t buff_size, uint8_t fixed_wid
 {
   memset(buff, 0, buff_size);
 
-  ultoa(freq, buff, DEC);
+  ultoa(freq, buff, 10);
   uint8_t num_digits = strlen(buff);
   const uint8_t num_spacers = (num_digits-1) / 3;
   const uint8_t num_leading_digits_raw = num_digits % 3;
@@ -24,7 +31,7 @@ void formatFreq(uint32_t freq, char* buff, uint16_t buff_size, uint8_t fixed_wid
     }
   }
 
-  ultoa(freq, buff, DEC);
+  ultoa(freq, buff, 10);
   buff += num_leading_digits;
   num_digits -= num_leading_digits;
   for(int i = num_digits-1; i >= 0; --i){
