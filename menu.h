@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-#include "nano_gui.h"//Point
+#include "point.h"
 
 enum MenuReturn_e : uint8_t {
   StillActive,
