@@ -1,10 +1,16 @@
 //This file is only meant to be included by menu_main.cpp
 
 #include <avr/pgmspace.h>
+#include <string.h>
+#include <WString.h>//F()
 
 #include "bands.h"
 #include "button.h"
+#include "color_theme.h"
+#include "nano_gui.h"
 #include "settings.h"
+#include "ubitx.h"//setFrequency
+#include "utils.h"
 
 static const unsigned int LAYOUT_VFO_LABEL_X = 0;
 static const unsigned int LAYOUT_VFO_LABEL_Y = 10;
@@ -85,8 +91,8 @@ void toVfo(char* text_out, const uint16_t max_text_size, const Vfo_e vfo)
   }
 }
 
-void bsVfo(const Vfo_e vfo){
-  (vfo == globalSettings.activeVfo) ? ButtonStatus_e::Active : ButtonStatus_e::Inactive;
+ButtonStatus_e bsVfo(const Vfo_e vfo){
+  return (vfo == globalSettings.activeVfo) ? ButtonStatus_e::Active : ButtonStatus_e::Inactive;
 }
 
 void osVfo(const Vfo_e vfo){
@@ -138,7 +144,7 @@ constexpr Button bVfoB PROGMEM = {
 constexpr char txtRit [] PROGMEM = "RIT";
 
 ButtonStatus_e bsRit(){
-  *val_out = globalSettings.ritOn ? 1 : -1;
+  return globalSettings.ritOn ? ButtonStatus_e::Active : ButtonStatus_e::Inactive;
 }
 void osRit(){
   Button button;
@@ -147,7 +153,7 @@ void osRit(){
     globalSettings.ritFrequency = GetActiveVfoFreq();
 
     strncpy_P(b,(const char*)F("TX: "),sizeof(b));
-    formatFreq(globalSettings.ritFrequency, b+3, sizeof(b)-strlen(c));
+    formatFreq(globalSettings.ritFrequency, b + strlen(b), sizeof(b)-strlen(b));
     if (VFO_A == globalSettings.activeVfo){
       displayText(b, LAYOUT_VFO_LABEL_X + 0*LAYOUT_VFO_LABEL_PITCH_X, LAYOUT_MODE_TEXT_Y, LAYOUT_VFO_LABEL_WIDTH, LAYOUT_MODE_TEXT_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
     }
@@ -161,17 +167,17 @@ void osRit(){
 
     displayFillrect(LAYOUT_MODE_TEXT_X,LAYOUT_MODE_TEXT_Y,LAYOUT_MODE_TEXT_WIDTH,LAYOUT_MODE_TEXT_HEIGHT, COLOR_BACKGROUND);
     if(Vfo_e::VFO_A == globalSettings.activeVfo){
-      memcpy_P(&button,bVfoA,sizeof(button));
+      memcpy_P(&button,&bVfoA,sizeof(button));
       drawButton(&button);
     }
     else{
-      memcpy_P(&button,bVfoB,sizeof(button));
+      memcpy_P(&button,&bVfoB,sizeof(button));
       drawButton(&button);
     }
   }
   
-  memcpy_P(&button,bRit,sizeof(button));
-  drawButton(button);
+  memcpy_P(&button,&bRit,sizeof(button));
+  drawButton(&button);
 }
 constexpr Button bRit PROGMEM = {
   LAYOUT_BUTTON_X + 0*LAYOUT_BUTTON_PITCH_X,
@@ -255,7 +261,7 @@ void osCw(){
 
   Button button;
   memcpy_P(&button,&bCw,sizeof(button));
-  drawButton(button);
+  drawButton(&button);
 }
 
 constexpr Button bCw PROGMEM = {
@@ -282,9 +288,9 @@ void osSpl(){
   Button button;
   memcpy_P(&button,&bSpl,sizeof(button));
   drawButton(&button);
-  memcpy_P(&button,&bsVfoA,sizeof(button));
+  memcpy_P(&button,&bVfoA,sizeof(button));
   drawButton(&button);
-  memcpy_P(&button,&bsVfoB,sizeof(button));
+  memcpy_P(&button,&bVfoB,sizeof(button));
   drawButton(&button);
 }
 
@@ -466,7 +472,7 @@ ButtonStatus_e bsIgnore(){
   return ButtonStatus_e::Stateless;
 }
 
-constexpr char txtMenu PROGMEM = "\x7F";//gear icon
+constexpr char txtMenu [] PROGMEM = "\x7F";//gear icon
 
 void osMenu(){
   //TODO
@@ -486,7 +492,7 @@ constexpr Button bMenu = {
   'M'
 };
 
-constexpr char txtNumpad PROGMEM = "FRQ";
+constexpr char txtNumpad [] PROGMEM = "FRQ";
 
 void osNumpad(){
   //TODO
@@ -506,12 +512,13 @@ constexpr Button bNumpad = {
   'F'
 };
 
-constexpr Button *const mainMenuButtons[] PROGMEM = {
-  bVfoA,                     bVfoB,
+constexpr const Button *const mainMenuButtons[] PROGMEM = {
+  &bVfoA,                        &bVfoB,
 
-   bRit, bUsb, bLsb,   bCw,   bSpl,
-    b80,  b40,  b30,   b20,    b17,
-    b15,  b10,       bMenu, bNumpad
+   &bRit, &bUsb, &bLsb,   &bCw,   &bSpl,
+    &b80,  &b40,  &b30,   &b20,    &b17,
+    &b15,  &b10,        &bMenu, &bNumpad
+
 };
 
 static constexpr uint8_t MAIN_MENU_NUM_BUTTONS = sizeof(mainMenuButtons) / sizeof(mainMenuButtons[0]);
