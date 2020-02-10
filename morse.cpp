@@ -106,7 +106,7 @@ void morseLetter(char c, uint16_t dit_duration_ms){
 }
 
 static const uint8_t RELATIVE_OFFSET_HZ = 100;
-void morseText(char *text, uint16_t dit_duration_ms){
+void morseText(const char *text, uint16_t dit_duration_ms){
   int16_t total_counts = 0;
   morseBool(false);
   enc_read();//Don't count initial tone against total_counts
