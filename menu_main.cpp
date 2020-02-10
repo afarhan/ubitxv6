@@ -121,8 +121,8 @@ MenuReturn_e runMainMenu(const ButtonPress_e tuner_button,
 
   else if(ButtonPress_e::NotPressed != touch_button){
     //We treat long and short presses the same, so no need to have a switch
-    Button b;
-    if(findPressedButton(mainMenuButtons,MAIN_MENU_NUM_BUTTONS,&b,touch_point)){
+    Button button;
+    if(findPressedButton(mainMenuButtons,MAIN_MENU_NUM_BUTTONS,&button,touch_point)){
       //TODO: activate button
     }
     else{
@@ -137,6 +137,15 @@ MenuReturn_e runMainMenu(const ButtonPress_e tuner_button,
       const uint8_t new_select = mainMenuSelectedItemRaw/MENU_KNOB_COUNTS_PER_ITEM;
       if(prev_select != new_select){
         movePuck(&mainMenuButtons[prev_select],&mainMenuButtons[new_select]);//TODO
+        morseLetter(mainMenuButtons[new_select].morse);
+        int8_t morse_status = 0;
+        mainMenuButtons[new_select].morse_status(morse_status);
+        if(morse_status < 0){
+          morseBool(false);
+        }
+        else if(morse_status > 0){
+          morseBool(true);
+        }
       }
     }
     else{
