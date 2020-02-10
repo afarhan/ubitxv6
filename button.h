@@ -2,10 +2,17 @@
 
 #include <stdint.h>
 
+enum ButtonStatus_e : uint8_t {
+  Stateless,
+  Inactive,
+  Active
+};
+
 struct Button {
-  int x, y, w, h;
-  unsigned int id;
-  char text[5];
+  int16_t x, y, w, h;
+  const char* text;
+  void (*text_override)(char* text_out, uint16_t max_text_size);
   char morse;
-  void (*morse_status)(int8_t* val_out);//-1 if a low tone should play, +1 if a high tone should play
+  ButtonStatus_e (*status)();
+  void (*on_select)();//Action to take when selected
 };
