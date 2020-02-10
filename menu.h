@@ -16,6 +16,7 @@ enum ButtonPress_e : uint8_t {
 };
 
 struct Menu_t {
+  void (*const initMenu)();//Any initial draw routines or state initialization
   MenuReturn_e (*const runMenu)(const ButtonPress_e tuner_button,
                                 const ButtonPress_e touch_button,
                                 const Point touch_point,

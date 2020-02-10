@@ -479,7 +479,7 @@ void setup()
     runBfoSetting();
   }
 
-  guiUpdate();
+  rootMenu->initMenu();
 }
 
 

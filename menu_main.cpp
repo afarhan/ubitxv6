@@ -13,23 +13,15 @@
 #include "ubitx.h"//THRESHOLD_USB_LSB
 #include "utils.h"
 
-//The startup menu stuff is a little hack to render the main screen on boot
-MenuReturn_e runStartupMenu(const ButtonPress_e tuner_button,
-                            const ButtonPress_e touch_button,
-                            const Point touch_point,
-                            const int16_t knob);
-Menu_t startupMenu = {
-  runStartupMenu,
-  nullptr
-};
-
+void drawMainMenu(void);
 MenuReturn_e runMainMenu(const ButtonPress_e tuner_button,
                          const ButtonPress_e touch_button,
                          const Point touch_point,
                          const int16_t knob);
 Menu_t mainMenu = {
+  drawMainMenu,
   runMainMenu,
-  &startupMenu
+  nullptr
 };
 
 Menu_t* const rootMenu = &mainMenu;
