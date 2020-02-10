@@ -1,3 +1,5 @@
+#pragma once
+
 #include "settings.h"
 
 /* The ubitx is powered by an arduino nano. The pin assignment is as folows 
