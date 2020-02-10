@@ -469,8 +469,9 @@ ButtonStatus_e bsIgnore(){
 constexpr char txtMenu PROGMEM = "\x7F";//gear icon
 
 void osMenu(){
-  rootSettingsMenu->initMenu();
-  mainmenu.active_submenu = rootSettingsMenu;
+  //TODO
+  //rootSettingsMenu->initMenu();
+  //mainmenu.active_submenu = rootSettingsMenu;
 }
 
 constexpr Button bMenu = {
@@ -488,8 +489,9 @@ constexpr Button bMenu = {
 constexpr char txtNumpad PROGMEM = "FRQ";
 
 void osNumpad(){
-  numpadMenu->initMenu();
-  mainMenu.active_submenu = numpadMenu;
+  //TODO
+  //numpadMenu->initMenu();
+  //mainMenu.active_submenu = numpadMenu;
 }
 
 constexpr Button bNumpad = {
