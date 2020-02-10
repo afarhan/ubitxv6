@@ -16,3 +16,5 @@ struct Button {
   void (*on_select)();//Action to take when selected
   char morse;
 };
+
+void drawButton(Button* button);
