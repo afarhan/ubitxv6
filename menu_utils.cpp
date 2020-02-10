@@ -1,5 +1,7 @@
 #include "menu.h"
 
+#include <avr/pgmspace.h>
+
 #include "button.h"
 #include "color_theme.h"
 #include "nano_gui.h"
@@ -44,3 +46,20 @@ void movePuck(const Button *const b_old,
   }
 }
 
+bool findPressedButton(const Button *const buttons,
+                       const uint8_t num_buttons,
+                       Button *const button_out,
+                       const Point touch_point)
+{
+  for(uint16_t i = 0; i < num_buttons; ++i){
+    if((buttons[i].x <= touch_point.x)
+     &&(touch_point.x <= buttons[i].x + buttons[i].w)
+     &&(buttons[i].y <= touch_point.y)
+     &&(touch_point.y <= buttons[i].y + buttons[i].h)){
+       memcpy_P(button_out,&buttons[i],sizeof(button_out));
+       return true;
+     }
+  }
+
+  return false;
+}
