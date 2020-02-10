@@ -27,9 +27,9 @@ void displayText(char *text, int x1, int y1, int w, int h, int color, int backgr
 void formatFreq(uint32_t freq, char* buff, uint16_t buff_size, uint8_t fixed_width = 0);
 
 /* touch functions */
-bool readTouch();
+bool readTouch(Point *const p);
 
-void scaleTouch(struct Point *p);
+void scaleTouch(Point *const p);
 
 #define TEXT_LINE_HEIGHT 18
 #define TEXT_LINE_INDENT 5

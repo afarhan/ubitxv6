@@ -145,18 +145,18 @@ static void touch_update(){
 }
 
 
-bool readTouch(){
+bool readTouch(Point *const touch_point_out){
   touch_update();
   if (zraw >= Z_THRESHOLD) {
-    ts_point.x = xraw;
-    ts_point.y = yraw;
+    touch_point_out->x = xraw;
+    touch_point_out->y = yraw;
     //Serial.print(ts_point.x); Serial.print(",");Serial.println(ts_point.y);
     return true;
   }
   return false;
 }
 
-void scaleTouch(struct Point *p){
+void scaleTouch(Point *const p){
   p->x = ((long)(p->x - globalSettings.touchOffsetX) * 10L)/ (long)globalSettings.touchSlopeX;
   p->y = ((long)(p->y - globalSettings.touchOffsetY) * 10L)/ (long)globalSettings.touchSlopeY;
 
@@ -267,9 +267,9 @@ void setupTouch(){
   displayHline(10,20,20,DISPLAY_WHITE);
   displayVline(20,10,20, DISPLAY_WHITE);
 
-  while(!readTouch())
+  while(!readTouch(&ts_point))
     delay(100);
-  while(readTouch())
+  while(readTouch(&ts_point))
     delay(100);
    x1 = ts_point.x;
    y1 = ts_point.y; 
@@ -284,9 +284,9 @@ void setupTouch(){
   displayHline(290,20,20,DISPLAY_WHITE);
   displayVline(300,10,20, DISPLAY_WHITE);
 
-  while(!readTouch())
+  while(!readTouch(&ts_point))
     delay(100); 
-  while(readTouch())
+  while(readTouch(&ts_point))
     delay(100);
    x2 = ts_point.x;
    y2 = ts_point.y; 
@@ -300,12 +300,12 @@ void setupTouch(){
   displayHline(10,220,20,DISPLAY_WHITE);
   displayVline(20,210,20, DISPLAY_WHITE);
   
-  while(!readTouch())
+  while(!readTouch(&ts_point))
     delay(100);
    x3 = ts_point.x;
    y3 = ts_point.y; 
      
-  while(readTouch())
+  while(readTouch(&ts_point))
     delay(100);
   displayHline(10,220,20,DISPLAY_BLACK);
   displayVline(20,210,20, DISPLAY_BLACK);
@@ -316,7 +316,7 @@ void setupTouch(){
   displayHline(290,220,20,DISPLAY_WHITE);
   displayVline(300,210,20, DISPLAY_WHITE);
 
-  while(!readTouch())
+  while(!readTouch(&ts_point))
     delay(100);
    x4 = ts_point.x;
    y4 = ts_point.y; 
