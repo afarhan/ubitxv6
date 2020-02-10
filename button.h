@@ -10,9 +10,9 @@ enum ButtonStatus_e : uint8_t {
 
 struct Button {
   int16_t x, y, w, h;
-  const char* text;
-  void (*text_override)(char* text_out, uint16_t max_text_size);
-  char morse;
-  ButtonStatus_e (*status)();
+  const char* text;//nullptr if text_override should be used
+  void (*text_override)(char* text_out, uint16_t max_text_size);//nullptr if text should be used
+  ButtonStatus_e (*status)();//Used for coloring and morse menu
   void (*on_select)();//Action to take when selected
+  char morse;
 };
