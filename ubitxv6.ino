@@ -30,12 +30,14 @@
  *  Si5351 object to control the clocks.
  */
 #include <Wire.h>
+#include "button_timing.h"
 #include "menu.h"
 #include "menu_main.h"
 #include "morse.h"
 #include "nano_gui.h"
 #include "settings.h"
 #include "setup.h"
+#include "touch.h"
 #include "ubitx.h"
 
 /**
@@ -304,9 +306,6 @@ void checkPTT(){
 }
 
 //check if the encoder button was pressed
-static const uint8_t DEBOUNCE_DELAY_MS = 50;
-static const uint16_t LONG_PRESS_TIME_MS = 3000;
-static const uint8_t LONG_PRESS_POLL_TIME_MS = 10;
 ButtonPress_e checkButton(){
   if (!btnDown()){
     return ButtonPress_e::NotPressed;
@@ -462,6 +461,7 @@ void setup()
 
   initSettings();
   displayInit();
+  initTouch();
   initPorts();
   initOscillators();
   setFrequency(globalSettings.vfoA.frequency);

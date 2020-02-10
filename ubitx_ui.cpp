@@ -5,6 +5,7 @@
 #include "nano_gui.h"
 #include "settings.h"
 #include "setup.h"
+#include "touch.h"
 #include "ubitx.h"
 #include "version.h"
 
@@ -394,6 +395,8 @@ void fastTune(){
 void enterFreq(){
   //force the display to refresh everything
   //display all the buttons
+
+  Point ts_point;
   
   for (int i = 0; i < KEYS_TOTAL; i++){
     Button button;
@@ -808,35 +811,6 @@ void doCommand(Button* button){
       //Serial.println(button.id);
       break;
     }
-  }
-}
-
-#include "menu.h"
-static const uint8_t DEBOUNCE_DELAY_MS = 50;
-static const uint16_t LONG_PRESS_TIME_MS = 3000;
-static const uint8_t LONG_PRESS_POLL_TIME_MS = 10;
-ButtonPress_e checkTouch(Point *const touch_point_out){
-  if (!readTouch(touch_point_out)){
-    return ButtonPress_e::NotPressed;
-  }
-  delay(DEBOUNCE_DELAY_MS);
-  if (!readTouch(touch_point_out)){//debounce
-    return ButtonPress_e::NotPressed;
-  }
-  
-  uint16_t down_time = 0;
-  while(readTouch(touch_point_out) && (down_time < LONG_PRESS_TIME_MS)){
-    delay(LONG_PRESS_POLL_TIME_MS);
-    down_time += LONG_PRESS_POLL_TIME_MS;
-  }
-
-  scaleTouch(touch_point_out);
-
-  if(down_time < LONG_PRESS_TIME_MS){
-    return ButtonPress_e::ShortPress;
-  }
-  else{
-    return ButtonPress_e::LongPress;
   }
 }
 
