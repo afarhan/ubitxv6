@@ -3,6 +3,7 @@
 #include <avr/pgmspace.h>
 
 #include "button.h"
+#include "menu_utils.h"
 #include "morse.h"
 #include "settings.h"
 #include "ubitx.h"//THRESHOLD_USB_LSB
@@ -24,6 +25,7 @@ bool mainMenuSelecting = false;//Tracks if we're selecting buttons with knob, or
 uint8_t mainMenuSelectedItemRaw = 0;
 
 const Button mainMenuButtons [] PROGMEM = {};
+static constexpr uint8_t MAIN_MENU_NUM_BUTTONS = sizeof(mainMenuButtons) / sizeof(mainMenuButtons[0]);
 
 void drawMainMenu(void)
 {
