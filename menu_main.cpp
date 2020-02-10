@@ -1,23 +1,35 @@
 #include "menu_main.h"
+#include "menu_main_buttons.h"
 
 #include <avr/pgmspace.h>
 #include <Arduino.h>
 
 #include "button.h"
+#include "color_theme.h"
 #include "menu_utils.h"
 #include "morse.h"
+#include "nano_gui.h"
 #include "settings.h"
 #include "ubitx.h"//THRESHOLD_USB_LSB
 #include "utils.h"
+
+//The startup menu stuff is a little hack to render the main screen on boot
+MenuReturn_e runStartupMenu(const ButtonPress_e tuner_button,
+                            const ButtonPress_e touch_button,
+                            const Point touch_point,
+                            const int16_t knob);
+Menu_t startupMenu = {
+  runStartupMenu,
+  nullptr
+};
 
 MenuReturn_e runMainMenu(const ButtonPress_e tuner_button,
                          const ButtonPress_e touch_button,
                          const Point touch_point,
                          const int16_t knob);
-
 Menu_t mainMenu = {
   runMainMenu,
-  nullptr
+  &startupMenu
 };
 
 Menu_t* const rootMenu = &mainMenu;
@@ -25,12 +37,23 @@ Menu_t* const rootMenu = &mainMenu;
 bool mainMenuSelecting = false;//Tracks if we're selecting buttons with knob, or adjusting frequency
 int16_t mainMenuSelectedItemRaw = 0;//Allow negative only for easier checks on wrap around
 
-const Button mainMenuButtons [] PROGMEM = {};
-static constexpr uint8_t MAIN_MENU_NUM_BUTTONS = sizeof(mainMenuButtons) / sizeof(mainMenuButtons[0]);
-
 void drawMainMenu(void)
 {
-  //TODO
+  displayClear(COLOR_BACKGROUND);
+  Button button;
+  for(uint8_t i = 0; i < MAIN_MENU_NUM_BUTTONS; ++i){
+    memcpy_P(&button, &(mainMenuButtons[i]), sizeof(Button));
+    displayText(button.text, button.x, button.y, button.w, button.h, COLOR_INACTIVE_TEXT, COLOR_INACTIVE_BACKGROUND, COLOR_INACTIVE_BORDER);
+    Serial.println(button.text);
+  }
+}
+
+MenuReturn_e runStartupMenu(const ButtonPress_e,
+                            const ButtonPress_e,
+                            const Point,
+                            const int16_t)
+{
+  return MenuReturn_e::ExitedRedraw;
 }
 
 void mainMenuTune(int16_t knob)
@@ -57,6 +80,10 @@ void mainMenuTune(int16_t knob)
 
   setFrequency(new_freq);
   current_freq = new_freq;
+
+  Button button;
+  memcpy_P(&button, &(mainMenuButtons[0]), sizeof(Button));
+  displayText(button.text, button.x, button.y, button.w, button.h, COLOR_INACTIVE_TEXT, COLOR_INACTIVE_BACKGROUND, COLOR_INACTIVE_BORDER);
 }
 
 MenuReturn_e runMainMenu(const ButtonPress_e tuner_button,
