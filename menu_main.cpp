@@ -74,7 +74,7 @@ void mainMenuTune(int16_t knob)
   current_freq = new_freq;
 
   Button button;
-  memcpy_P(&button, &(mainMenuButtons[0]), sizeof(Button));
+  memcpy_P(&button, &(mainMenuButtons[0]), sizeof(button));
   displayText(button.text, button.x, button.y, button.w, button.h, COLOR_INACTIVE_TEXT, COLOR_INACTIVE_BACKGROUND, COLOR_INACTIVE_BORDER);
 }
 
