@@ -1,6 +1,7 @@
 #include "menu_main.h"
 
 #include <avr/pgmspace.h>
+#include <Arduino.h>
 
 #include "button.h"
 #include "menu_utils.h"
@@ -91,6 +92,10 @@ MenuReturn_e runMainMenu(const ButtonPress_e tuner_button,
         if(mainMenuSelecting){
           uint8_t menu_index = mainMenuSelectedItemRaw/MENU_KNOB_COUNTS_PER_ITEM;
           //TODO: activate button
+          Serial.print(F("Select button "));
+          Serial.print(menu_index);
+          Serial.print(F(":"));
+          Serial.println(mainMenuButtons[menu_index].text);
         }
         else{
           initSelector(&mainMenuSelectedItemRaw,
@@ -127,9 +132,12 @@ MenuReturn_e runMainMenu(const ButtonPress_e tuner_button,
     Button button;
     if(findPressedButton(mainMenuButtons,MAIN_MENU_NUM_BUTTONS,&button,touch_point)){
       //TODO: activate button
+      Serial.print(F("Touch button "));
+      Serial.println(button.text);
     }
     else{
       //Touch detected, but not on our buttons, so ignore
+      Serial.println(F("Touch not on button"));
     }
   }//touch_button
 
