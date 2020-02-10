@@ -95,6 +95,7 @@ void initSelector(int16_t *const raw_select_val_in_out,
   if(0 < num_buttons){
     Button button;
     memcpy_P(&button,&buttons[0],sizeof(button));
+    movePuck(nullptr,&button);
     playButtonMorse(&button,play_type);
   }
 }
