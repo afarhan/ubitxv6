@@ -96,12 +96,12 @@ void toVfoA(char* text_out, const uint16_t max_text_size){
   toVfo(text_out,max_text_size,Vfo_e::VFO_A);
 }
 ButtonStatus_e bsVfoA(){
-  bsVfo(Vfo_e::VFO_A);
+  return bsVfo(Vfo_e::VFO_A);
 }
 void osVfoA(){
   osVfo(Vfo_e::VFO_A);
 }
-constexpr Button bVfoA = {
+constexpr Button bVfoA PROGMEM = {
   LAYOUT_VFO_LABEL_X + 0*LAYOUT_VFO_LABEL_PITCH_X,
   LAYOUT_VFO_LABEL_Y,
   LAYOUT_VFO_LABEL_WIDTH,
@@ -117,12 +117,12 @@ void toVfoB(char* text_out, const uint16_t max_text_size){
   toVfo(text_out,max_text_size,Vfo_e::VFO_B);
 }
 ButtonStatus_e bsVfoB(){
-  bsVfo(Vfo_e::VFO_B);
+  return bsVfo(Vfo_e::VFO_B);
 }
 void osVfoB(){
   osVfo(Vfo_e::VFO_B);
 }
-constexpr Button bVfoB = {
+constexpr Button bVfoB PROGMEM = {
   LAYOUT_VFO_LABEL_X + 1*LAYOUT_VFO_LABEL_PITCH_X,
   LAYOUT_VFO_LABEL_Y,
   LAYOUT_VFO_LABEL_WIDTH,
@@ -135,6 +135,7 @@ constexpr Button bVfoB = {
 };
 
 constexpr char txtRit [] PROGMEM = "RIT";
+
 ButtonStatus_e bsRit(){
   *val_out = globalSettings.ritOn ? 1 : -1;
 }
@@ -171,7 +172,7 @@ void osRit(){
   memcpy_P(&button,bRit,sizeof(button));
   drawButton(button);
 }
-constexpr Button bRit = {
+constexpr Button bRit PROGMEM = {
   LAYOUT_BUTTON_X + 0*LAYOUT_BUTTON_PITCH_X,
   LAYOUT_BUTTON_Y + 0*LAYOUT_BUTTON_PITCH_Y,
   LAYOUT_BUTTON_WIDTH,
@@ -183,34 +184,134 @@ constexpr Button bRit = {
   'R'
 };
 
+void osSidebandMode(VfoMode_e mode){
+  SetActiveVfoMode(mode);
+
+  Button button;
+  memcpy_P(&button,&bUsb,sizeof(button));
+  drawButton(&button);
+  memcpy_P(&button,&bLsb,sizeof(button));
+  drawButton(&button);
+}
+
+constexpr char txtUsb [] PROGMEM = "USB";
 
 ButtonStatus_e bsUsb(){
-  *val_out = (VfoMode_e::VFO_MODE_USB == GetActiveVfoMode()) ? 1 : -1;
-}
-ButtonStatus_e bsLsb(){
-  *val_out = (VfoMode_e::VFO_MODE_LSB == GetActiveVfoMode()) ? 1 : -1;
-}
-ButtonStatus_e bsCw(){
-  *val_out = (TuningMode_e::TUNE_CW == globalSettings.tuningMode) ? 1 : -1;
-}
-ButtonStatus_e bsSpl(){
-  *val_out = globalSettings.splitOn ? 1 : -1;
-}
-ButtonStatus_e bsIgnore(){
-  *val_out = 0;
+  return (VfoMode_e::VFO_MODE_USB == GetActiveVfoMode()) ? ButtonStatus_e::Active : ButtonStatus_e::Inactive;
 }
 
-constexpr Button mainMenuButtons[] PROGMEM = {
+void osUsb(){
+  osSidebandMode(VfoMode_e::VFO_MODE_USB);
+}
+
+constexpr Button bUsb PROGMEM = {
+  LAYOUT_BUTTON_X + 1*LAYOUT_BUTTON_PITCH_X,
+  LAYOUT_BUTTON_Y + 0*LAYOUT_BUTTON_PITCH_Y,
+  LAYOUT_BUTTON_WIDTH,
+  LAYOUT_BUTTON_HEIGHT,
+  txtUsb,
+  nullptr,
+  bsUsb,
+  osUsb,
+  'U'
+};
+
+constexpr char txtLsb [] PROGMEM = "LSB";
+
+ButtonStatus_e bsLsb(){
+  return (VfoMode_e::VFO_MODE_LSB == GetActiveVfoMode()) ? ButtonStatus_e::Active : ButtonStatus_e::Inactive;
+}
+
+void osLsb(){
+  osSidebandMode(VfoMode_e::VFO_MODE_LSB);
+}
+
+constexpr Button bLsb PROGMEM = {
+  LAYOUT_BUTTON_X + 2*LAYOUT_BUTTON_PITCH_X,
+  LAYOUT_BUTTON_Y + 0*LAYOUT_BUTTON_PITCH_Y,
+  LAYOUT_BUTTON_WIDTH,
+  LAYOUT_BUTTON_HEIGHT,
+  txtLsb,
+  nullptr,
+  bsLsb,
+  osLsb,
+  'L'
+};
+
+constexpr char txtCw [] PROGMEM = "CW";
+
+ButtonStatus_e bsCw(){
+  return (TuningMode_e::TUNE_CW == globalSettings.tuningMode) ? ButtonStatus_e::Active : ButtonStatus_e::Inactive;
+}
+
+void osCw(){
+  if(TuningMode_e::TUNE_CW != globalSettings.tuningMode){
+    globalSettings.tuningMode = TuningMode_e::TUNE_CW;
+  }
+  else{
+    globalSettings.tuningMode = TuningMode_e::TUNE_SSB;
+  }
+
+  Button button;
+  memcpy_P(&button,&bCw,sizeof(button));
+  drawButton(button);
+}
+
+constexpr Button bCw PROGMEM = {
+  LAYOUT_BUTTON_X + 3*LAYOUT_BUTTON_PITCH_X,
+  LAYOUT_BUTTON_Y + 0*LAYOUT_BUTTON_PITCH_Y,
+  LAYOUT_BUTTON_WIDTH,
+  LAYOUT_BUTTON_HEIGHT,
+  txtCw,
+  nullptr,
+  bsCw,
+  osCw,
+  'C'
+};
+
+constexpr char txtSpl [] PROGMEM = "SPL";
+
+ButtonStatus_e bsSpl(){
+  return globalSettings.splitOn ? ButtonStatus_e::Active : ButtonStatus_e::Inactive;
+}
+
+void osSpl(){
+  globalSettings.splitOn = !globalSettings.splitOn;
+
+  Button button;
+  memcpy_P(&button,&bSpl,sizeof(button));
+  drawButton(&button);
+  memcpy_P(&button,&bsVfoA,sizeof(button));
+  drawButton(&button);
+  memcpy_P(&button,&bsVfoB,sizeof(button));
+  drawButton(&button);
+}
+
+constexpr Button bSpl PROGMEM = {
+  LAYOUT_BUTTON_X + 4*LAYOUT_BUTTON_PITCH_X,
+  LAYOUT_BUTTON_Y + 0*LAYOUT_BUTTON_PITCH_Y,
+  LAYOUT_BUTTON_WIDTH,
+  LAYOUT_BUTTON_HEIGHT,
+  txtSpl,
+  nullptr,
+  bsSpl,
+  osSpl,
+  'S'
+};
+
+ButtonStatus_e bsIgnore(){
+  return ButtonStatus_e::Stateless;
+}
+
+constexpr Button *const mainMenuButtons[] PROGMEM = {
   bVfoA,
   bVfoB,
 
   bRit,
-  
-  {LAYOUT_BUTTON_X + 0*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 0*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_RIT, "RIT", 'R', msRit},
-  {LAYOUT_BUTTON_X + 1*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 0*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_USB, "USB", 'U', msUsb},
-  {LAYOUT_BUTTON_X + 2*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 0*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_LSB, "LSB", 'L', msLsb},
-  {LAYOUT_BUTTON_X + 3*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 0*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_CW ,  "CW", 'C', msCw},
-  {LAYOUT_BUTTON_X + 4*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 0*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_SPL, "SPL", 'S', msSpl},
+  bUsb,
+  bLsb,
+  bCw,
+  bSpl,
 
   {LAYOUT_BUTTON_X + 0*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 1*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_80, "80", '8', msIgnore},
   {LAYOUT_BUTTON_X + 1*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 1*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_40, "40", '4', msIgnore},
