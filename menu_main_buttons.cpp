@@ -9,7 +9,7 @@
 #include "color_theme.h"
 #include "nano_gui.h"
 #include "settings.h"
-#include "ubitx.h"//setFrequency
+#include "ubitx.h"//setFrequency, b
 #include "utils.h"
 
 static const unsigned int LAYOUT_VFO_LABEL_X = 0;
