@@ -418,7 +418,7 @@ void enterFreq(){
       active_delay(50);
       break;
     }
-    if(!readTouch())
+    if(!readTouch(&ts_point))
       continue;
       
     scaleTouch(&ts_point);
@@ -508,7 +508,7 @@ void enterFreq(){
     strncat_P(b,(const char*)F(" KHz"),sizeof(b) - strlen(b));
     displayText(b, LAYOUT_MODE_TEXT_X, LAYOUT_MODE_TEXT_Y, LAYOUT_MODE_TEXT_WIDTH, LAYOUT_MODE_TEXT_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_BACKGROUND);
     active_delay(300);
-    while(readTouch())
+    while(readTouch(&ts_point))
       checkCAT();
   } // end of event loop : while(!exit)
 
@@ -811,27 +811,32 @@ void doCommand(Button* button){
   }
 }
 
-void  checkTouch(){
-  if (!readTouch())
-    return;
+#include "menu.h"
+static const uint8_t DEBOUNCE_DELAY_MS = 50;
+static const uint16_t LONG_PRESS_TIME_MS = 3000;
+static const uint8_t LONG_PRESS_POLL_TIME_MS = 10;
+ButtonPress_e checkTouch(Point *const touch_point_out){
+  if (!readTouch(touch_point_out)){
+    return ButtonPress_e::NotPressed;
+  }
+  delay(DEBOUNCE_DELAY_MS);
+  if (!readTouch(touch_point_out)){//debounce
+    return ButtonPress_e::NotPressed;
+  }
+  
+  uint16_t down_time = 0;
+  while(readTouch(touch_point_out) && (down_time < LONG_PRESS_TIME_MS)){
+    delay(LONG_PRESS_POLL_TIME_MS);
+    down_time += LONG_PRESS_POLL_TIME_MS;
+  }
 
-  while(readTouch())
-    checkCAT();
-  scaleTouch(&ts_point);
- 
-  /* //debug code
-  Serial.print(ts_point.x); Serial.print(' ');Serial.println(ts_point.y);
-  */
-  for (int i = 0; i < BUTTON_TOTAL; i++){
-    Button button;
-    memcpy_P(&button, &(btn_set[i]), sizeof(Button));
+  scaleTouch(touch_point_out);
 
-    int x2 = button.x + button.w;
-    int y2 = button.y + button.h;
-
-    if(button.x < ts_point.x && ts_point.x < x2 && 
-       button.y < ts_point.y && ts_point.y < y2)
-      doCommand(&button);
+  if(down_time < LONG_PRESS_TIME_MS){
+    return ButtonPress_e::ShortPress;
+  }
+  else{
+    return ButtonPress_e::LongPress;
   }
 }
 
