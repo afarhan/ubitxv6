@@ -462,17 +462,54 @@ constexpr Button b10 PROGMEM = {
   '1'
 };
 
+ButtonStatus_e bsIgnore(){
+  return ButtonStatus_e::Stateless;
+}
+
+constexpr char txtMenu PROGMEM = "\x7F";//gear icon
+
+void osMenu(){
+  rootSettingsMenu->initMenu();
+  mainmenu.active_submenu = rootSettingsMenu;
+}
+
+constexpr Button bMenu = {
+  LAYOUT_BUTTON_X + 3*LAYOUT_BUTTON_PITCH_X,
+  LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y,
+  LAYOUT_BUTTON_WIDTH,
+  LAYOUT_BUTTON_HEIGHT,
+  txtMenu,
+  nullptr,
+  bsIgnore,
+  osMenu,
+  'M'
+};
+
+constexpr char txtNumpad PROGMEM = "FRQ";
+
+void osNumpad(){
+  numpadMenu->initMenu();
+  mainMenu.active_submenu = numpadMenu;
+}
+
+constexpr Button bNumpad = {
+  LAYOUT_BUTTON_X + 4*LAYOUT_BUTTON_PITCH_X,
+  LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y,
+  LAYOUT_BUTTON_WIDTH,
+  LAYOUT_BUTTON_HEIGHT,
+  txtNumpad,
+  nullptr,
+  bsIgnore,
+  osNumpad,
+  'F'
+};
+
 constexpr Button *const mainMenuButtons[] PROGMEM = {
-  bVfoA,                  bVfoB,
+  bVfoA,                     bVfoB,
 
-   bRit, bUsb, bLsb,  bCw, bSpl,
-    b80,  b40,  b30,  b20,  b17,
-    b15,  b10,       bMnu, bFrq
-
-  
-  {LAYOUT_BUTTON_X + 2*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_BLANK_1, "", '\0', msIgnore},
-  {LAYOUT_BUTTON_X + 3*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_MNU, "\x7F", 'M', msIgnore},
-  {LAYOUT_BUTTON_X + 4*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_FRQ, "FRQ", 'F', msIgnore},
+   bRit, bUsb, bLsb,   bCw,   bSpl,
+    b80,  b40,  b30,   b20,    b17,
+    b15,  b10,       bMenu, bNumpad
 };
 
 static constexpr uint8_t MAIN_MENU_NUM_BUTTONS = sizeof(mainMenuButtons) / sizeof(mainMenuButtons[0]);
