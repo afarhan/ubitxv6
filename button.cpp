@@ -8,6 +8,24 @@ void drawButton(Button* button)
   uint16_t tc = COLOR_INACTIVE_TEXT;
   uint16_t bgc = COLOR_INACTIVE_BACKGROUND;
   const uint16_t bdc = COLOR_INACTIVE_BORDER;
+  switch(button->status())
+  {
+    case ButtonStatus_e::Stateless://Fallthrough intended
+    case ButtonStatus_e::Inactive://Fallthrough intended
+    default:
+    {
+      //Colors are initialized for this, so we're done
+      break;
+    }
+    case ButtonStatus_e::Active:
+    {
+      tc = COLOR_ACTIVE_TEXT;
+      bgc = COLOR_ACTIVE_BACKGROUND;
+      break;
+    }
+  }
+
+
   const char* text = nullptr;
   if(nullptr != button->text){
     text = button->text;
