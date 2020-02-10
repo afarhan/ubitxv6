@@ -30,6 +30,8 @@
  *  Si5351 object to control the clocks.
  */
 #include <Wire.h>
+#include "menu.h"
+#include "menu_main.h"
 #include "morse.h"
 #include "nano_gui.h"
 #include "settings.h"
@@ -302,41 +304,30 @@ void checkPTT(){
 }
 
 //check if the encoder button was pressed
-void checkButton(){
-  //only if the button is pressed
-  if (!btnDown())
-    return;
-  active_delay(50);
-  if (!btnDown()) //debounce
-    return;
-
-  //disengage any CAT work
-  doingCAT = 0;
-
- int downTime = 0;
- while(btnDown()){
-    active_delay(10);
-    downTime++;
-    if (downTime > 300){
-      if(!globalSettings.morseMenuOn){
-        globalSettings.morseMenuOn = true;//set before playing
-        morseLetter(2);
-      }
-      else{
-        morseLetter(4);
-        globalSettings.morseMenuOn = false;//unset after playing
-      }
-      SaveSettingsToEeprom();
-      return;
-    }
+static const uint8_t DEBOUNCE_DELAY_MS = 50;
+static const uint16_t LONG_PRESS_TIME_MS = 3000;
+static const uint8_t LONG_PRESS_POLL_TIME_MS = 10;
+ButtonPress_e checkButton(){
+  if (!btnDown()){
+    return ButtonPress_e::NotPressed;
   }
-  active_delay(100);
+  delay(DEBOUNCE_DELAY_MS);
+  if (!btnDown()){//debounce
+    return ButtonPress_e::NotPressed;
+  }
 
-  doCommands();
-  //wait for the button to go up again
-  while(btnDown())
-    active_delay(10);
-  active_delay(50);//debounce
+  uint16_t down_time = 0;
+  while(btnDown() && (down_time < LONG_PRESS_TIME_MS)){
+    delay(LONG_PRESS_POLL_TIME_MS);
+    down_time += LONG_PRESS_POLL_TIME_MS;
+  }
+
+  if(down_time < LONG_PRESS_TIME_MS){
+    return ButtonPress_e::ShortPress;
+  }
+  else{
+    return ButtonPress_e::LongPress;
+  }
 }
 
 void switchVFO(Vfo_e new_vfo){
@@ -502,18 +493,17 @@ void loop(){
   else if(!globalSettings.txCatActive){
     checkPTT();
   }
-    
-  checkButton();
-  //tune only when not tranmsitting 
-  if(!globalSettings.txActive){
-    if(globalSettings.ritOn){
-      doRIT();
-    }
-    else{
-      doTuning();
-    }
-    checkTouch();
-  }
 
   checkCAT();
+
+  if(globalSettings.txActive){
+    //Don't run menus when transmitting
+    return;
+  }
+    
+  ButtonPress_e tuner_button = checkButton();
+  Point touch_point;
+  ButtonPress_e touch_button = checkTouch(&touch_point);
+  int16_t knob = enc_read();
+  rootMenu->runMenu(tuner_button,touch_button,touch_point,knob);
 }
