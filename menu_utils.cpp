@@ -93,7 +93,9 @@ void initSelector(int16_t *const raw_select_val_in_out,
 {
   *raw_select_val_in_out = 0;
   if(0 < num_buttons){
-    playButtonMorse(&buttons[0],play_type);
+    Button button;
+    memcpy_P(&button,&buttons[0],sizeof(button));
+    playButtonMorse(&button,play_type);
   }
 }
 
@@ -104,10 +106,15 @@ void adjustSelector(int16_t *const raw_select_val_in_out,
                     const MorsePlaybackType_e play_type)
 {
   const uint8_t prev_select = (*raw_select_val_in_out)/MENU_KNOB_COUNTS_PER_ITEM;
-  *raw_select_val_in_out += LIMIT((*raw_select_val_in_out)+knob,0,num_buttons*MENU_KNOB_COUNTS_PER_ITEM - 1);
+  *raw_select_val_in_out = LIMIT((*raw_select_val_in_out)+knob,0,num_buttons*MENU_KNOB_COUNTS_PER_ITEM - 1);
   const uint8_t new_select = (*raw_select_val_in_out)/MENU_KNOB_COUNTS_PER_ITEM;
   if(prev_select != new_select){
-    movePuck(&buttons[prev_select],&buttons[new_select]);
-    playButtonMorse(&buttons[new_select],play_type);
+    Button prev_button;
+    memcpy_P(&prev_button,&buttons[prev_select],sizeof(prev_button));
+    Button new_button;
+    memcpy_P(&new_button,&buttons[new_select],sizeof(new_button));
+
+    movePuck(&prev_button,&new_button);
+    playButtonMorse(&new_button,play_type);
   }
 }
