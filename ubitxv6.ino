@@ -38,6 +38,7 @@
 #include "settings.h"
 #include "setup.h"
 #include "touch.h"
+#include "ui_touch.h"
 #include "ubitx.h"
 
 /**

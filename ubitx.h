@@ -120,8 +120,6 @@ int getValueByKnob(int minimum, int maximum, int step_size,  int initial, char* 
 
 //main functions to check if any button is pressed and other user interface events
 void doCommands();  //does the commands with encoder to jump from button to button
-#include "menu.h"
-ButtonPress_e checkTouch(Point *const touch_point_out); //does the commands with a touch on the buttons
 
 
 
