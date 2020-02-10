@@ -31,3 +31,5 @@ void adjustSelector(int16_t *const raw_select_val_in_out,
                     const Button *const buttons,
                     const uint8_t num_buttons,
                     const MorsePlaybackType_e);
+
+void endSelector(const Button *const button);

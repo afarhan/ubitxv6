@@ -118,11 +118,15 @@ MenuReturn_e runMainMenu(const ButtonPress_e tuner_button,
       {
         if(mainMenuSelecting){
           uint8_t menu_index = mainMenuSelectedItemRaw/MENU_KNOB_COUNTS_PER_ITEM;
+          Button button;
+          memcpy_P(&button,&mainMenuButtons[menu_index],sizeof(button));
+          endSelector(&button);
+
           //TODO: activate button
           Serial.print(F("Select button "));
           Serial.print(menu_index);
           Serial.print(F(":"));
-          Serial.println(mainMenuButtons[menu_index].text);
+          Serial.println(button.text);
         }
         else{
           initSelector(&mainMenuSelectedItemRaw,

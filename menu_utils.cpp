@@ -119,3 +119,8 @@ void adjustSelector(int16_t *const raw_select_val_in_out,
     playButtonMorse(&new_button,play_type);
   }
 }
+
+void endSelector(const Button *const button)
+{
+  movePuck(button,nullptr);
+}
