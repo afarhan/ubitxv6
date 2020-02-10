@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 struct Button {
   int x, y, w, h;
   unsigned int id;
