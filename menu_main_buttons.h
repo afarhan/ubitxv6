@@ -2,6 +2,7 @@
 
 #include <avr/pgmspace.h>
 
+#include "bands.h"
 #include "button.h"
 #include "settings.h"
 
@@ -299,28 +300,176 @@ constexpr Button bSpl PROGMEM = {
   'S'
 };
 
-ButtonStatus_e bsIgnore(){
-  return ButtonStatus_e::Stateless;
+ButtonStatus_e bsBand(const uint8_t band){
+  return isFreqInBand(GetActiveVfoFreq(),band) ? ButtonStatus_e::Active : ButtonStatus_e::Inactive;
 }
 
+void osBand(const uint8_t band){
+  SetActiveVfoFreq(getFreqInBand(GetActiveVfoFreq(),band));
+}
+
+constexpr char txt80 [] PROGMEM = "80";
+
+ButtonStatus_e bs80(){
+  return bsBand(80);
+}
+
+void os80(){
+  osBand(80);
+}
+
+constexpr Button b80 PROGMEM = {
+  LAYOUT_BUTTON_X + 0*LAYOUT_BUTTON_PITCH_X,
+  LAYOUT_BUTTON_Y + 1*LAYOUT_BUTTON_PITCH_Y,
+  LAYOUT_BUTTON_WIDTH,
+  LAYOUT_BUTTON_HEIGHT,
+  txt80,
+  nullptr,
+  bs80,
+  os80,
+  '8'
+};
+
+constexpr char txt40 [] PROGMEM = "40";
+
+ButtonStatus_e bs40(){
+  return bsBand(40);
+}
+
+void os40(){
+  osBand(40);
+}
+
+constexpr Button b40 PROGMEM = {
+  LAYOUT_BUTTON_X + 1*LAYOUT_BUTTON_PITCH_X,
+  LAYOUT_BUTTON_Y + 1*LAYOUT_BUTTON_PITCH_Y,
+  LAYOUT_BUTTON_WIDTH,
+  LAYOUT_BUTTON_HEIGHT,
+  txt40,
+  nullptr,
+  bs40,
+  os40,
+  '4'
+};
+
+constexpr char txt30 [] PROGMEM = "30";
+
+ButtonStatus_e bs30(){
+  return bsBand(30);
+}
+
+void os30(){
+  osBand(30);
+}
+
+constexpr Button b30 PROGMEM = {
+  LAYOUT_BUTTON_X + 2*LAYOUT_BUTTON_PITCH_X,
+  LAYOUT_BUTTON_Y + 1*LAYOUT_BUTTON_PITCH_Y,
+  LAYOUT_BUTTON_WIDTH,
+  LAYOUT_BUTTON_HEIGHT,
+  txt30,
+  nullptr,
+  bs30,
+  os30,
+  '3'
+};
+
+constexpr char txt20 [] PROGMEM = "20";
+
+ButtonStatus_e bs20(){
+  return bsBand(20);
+}
+
+void os20(){
+  osBand(20);
+}
+
+constexpr Button b20 PROGMEM = {
+  LAYOUT_BUTTON_X + 3*LAYOUT_BUTTON_PITCH_X,
+  LAYOUT_BUTTON_Y + 1*LAYOUT_BUTTON_PITCH_Y,
+  LAYOUT_BUTTON_WIDTH,
+  LAYOUT_BUTTON_HEIGHT,
+  txt20,
+  nullptr,
+  bs20,
+  os20,
+  '2'
+};
+
+constexpr char txt17 [] PROGMEM = "17";
+
+ButtonStatus_e bs17(){
+  return bsBand(17);
+}
+
+void os17(){
+  osBand(17);
+}
+
+constexpr Button b17 PROGMEM = {
+  LAYOUT_BUTTON_X + 4*LAYOUT_BUTTON_PITCH_X,
+  LAYOUT_BUTTON_Y + 1*LAYOUT_BUTTON_PITCH_Y,
+  LAYOUT_BUTTON_WIDTH,
+  LAYOUT_BUTTON_HEIGHT,
+  txt17,
+  nullptr,
+  bs17,
+  os17,
+  '7'
+};
+
+constexpr char txt15 [] PROGMEM = "15";
+
+ButtonStatus_e bs15(){
+  return bsBand(15);
+}
+
+void os15(){
+  osBand(15);
+}
+
+constexpr Button b15 PROGMEM = {
+  LAYOUT_BUTTON_X + 0*LAYOUT_BUTTON_PITCH_X,
+  LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y,
+  LAYOUT_BUTTON_WIDTH,
+  LAYOUT_BUTTON_HEIGHT,
+  txt15,
+  nullptr,
+  bs15,
+  os15,
+  '5'
+};
+
+constexpr char txt10 [] PROGMEM = "10";
+
+ButtonStatus_e bs10(){
+  return bsBand(10);
+}
+
+void os10(){
+  osBand(10);
+}
+
+constexpr Button b10 PROGMEM = {
+  LAYOUT_BUTTON_X + 1*LAYOUT_BUTTON_PITCH_X,
+  LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y,
+  LAYOUT_BUTTON_WIDTH,
+  LAYOUT_BUTTON_HEIGHT,
+  txt10,
+  nullptr,
+  bs10,
+  os10,
+  '1'
+};
+
 constexpr Button *const mainMenuButtons[] PROGMEM = {
-  bVfoA,
-  bVfoB,
+  bVfoA,                  bVfoB,
 
-  bRit,
-  bUsb,
-  bLsb,
-  bCw,
-  bSpl,
+   bRit, bUsb, bLsb,  bCw, bSpl,
+    b80,  b40,  b30,  b20,  b17,
+    b15,  b10,       bMnu, bFrq
 
-  {LAYOUT_BUTTON_X + 0*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 1*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_80, "80", '8', msIgnore},
-  {LAYOUT_BUTTON_X + 1*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 1*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_40, "40", '4', msIgnore},
-  {LAYOUT_BUTTON_X + 2*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 1*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_30, "30", '3', msIgnore},
-  {LAYOUT_BUTTON_X + 3*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 1*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_20, "20", '2', msIgnore},
-  {LAYOUT_BUTTON_X + 4*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 1*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_17, "17", '7', msIgnore},
-
-  {LAYOUT_BUTTON_X + 0*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_15 ,  "15", '5', msIgnore},
-  {LAYOUT_BUTTON_X + 1*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_10 ,  "10", '1', msIgnore},
+  
   {LAYOUT_BUTTON_X + 2*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_BLANK_1, "", '\0', msIgnore},
   {LAYOUT_BUTTON_X + 3*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_MNU, "\x7F", 'M', msIgnore},
   {LAYOUT_BUTTON_X + 4*LAYOUT_BUTTON_PITCH_X, LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT, BUTTON_FRQ, "FRQ", 'F', msIgnore},
