@@ -42,12 +42,16 @@ bool findPressedButton(const Button* const* buttons,
                        Button *const button_out,
                        const Point touch_point)
 {
+  Button button;
+  Button* bp;
   for(uint16_t i = 0; i < num_buttons; ++i){
-    if((buttons[i]->x <= touch_point.x)
-     &&(touch_point.x <= buttons[i]->x + buttons[i]->w)
-     &&(buttons[i]->y <= touch_point.y)
-     &&(touch_point.y <= buttons[i]->y + buttons[i]->h)){
-       memcpy_P(button_out,buttons[i],sizeof(button_out));
+    memcpy_P(&bp,&(buttons[i]),sizeof(bp));
+    memcpy_P(&button,bp,sizeof(button));
+    if((button.x <= touch_point.x)
+     &&(touch_point.x <= button.x + button.w)
+     &&(button.y <= touch_point.y)
+     &&(touch_point.y <= button.y + button.h)){
+       memcpy_P(button_out,&button,sizeof(button_out));
        return true;
      }
   }
@@ -93,7 +97,9 @@ void initSelector(int16_t *const raw_select_val_in_out,
   *raw_select_val_in_out = 0;
   if(0 < num_buttons){
     Button button;
-    memcpy_P(&button,buttons[0],sizeof(button));
+    Button* bp;
+    memcpy_P(&bp,&(buttons[0]),sizeof(bp));
+    memcpy_P(&button,bp,sizeof(button));
     movePuck(nullptr,&button);
     playButtonMorse(&button,play_type);
   }
@@ -110,9 +116,12 @@ void adjustSelector(int16_t *const raw_select_val_in_out,
   const uint8_t new_select = (*raw_select_val_in_out)/MENU_KNOB_COUNTS_PER_ITEM;
   if(prev_select != new_select){
     Button prev_button;
-    memcpy_P(&prev_button,buttons[prev_select],sizeof(prev_button));
+    Button* bp;
+    memcpy_P(&bp,&(buttons[prev_select]),sizeof(bp));
+    memcpy_P(&prev_button,bp,sizeof(prev_button));
     Button new_button;
-    memcpy_P(&new_button,buttons[new_select],sizeof(new_button));
+    memcpy_P(&bp,&(buttons[new_select]),sizeof(bp));
+    memcpy_P(&new_button,bp,sizeof(new_button));
 
     movePuck(&prev_button,&new_button);
     playButtonMorse(&new_button,play_type);
