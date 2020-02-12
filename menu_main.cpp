@@ -29,14 +29,17 @@ Menu_t* const rootMenu = &mainMenu;
 bool mainMenuSelecting = false;//Tracks if we're selecting buttons with knob, or adjusting frequency
 int16_t mainMenuSelectedItemRaw = 0;//Allow negative only for easier checks on wrap around
 
+extern Button* const* buttons;
+
 void drawMainMenu(void)
 {
   displayClear(COLOR_BACKGROUND);
   Button button;
+  Button* bp;
   for(uint8_t i = 0; i < MAIN_MENU_NUM_BUTTONS; ++i){
-    memcpy_P(&button, mainMenuButtons[i], sizeof(Button));
-    displayText(button.text, button.x, button.y, button.w, button.h, COLOR_INACTIVE_TEXT, COLOR_INACTIVE_BACKGROUND, COLOR_INACTIVE_BORDER);
-    Serial.println(button.text);
+    memcpy_P(&bp, &(mainMenuButtons[i]), sizeof(bp));
+    memcpy_P(&button,bp,sizeof(button));
+    drawButton(&button);
   }
 }
 
@@ -74,8 +77,13 @@ void mainMenuTune(int16_t knob)
   current_freq = new_freq;
 
   Button button;
-  memcpy_P(&button, mainMenuButtons[0], sizeof(button));
-  displayText(button.text, button.x, button.y, button.w, button.h, COLOR_INACTIVE_TEXT, COLOR_INACTIVE_BACKGROUND, COLOR_INACTIVE_BORDER);
+  if(Vfo_e::VFO_A == globalSettings.activeVfo){
+    memcpy_P(&button,&bVfoA,sizeof(button));
+  }
+  else{
+    memcpy_P(&button,&bVfoB,sizeof(button));
+  }
+  drawButton(&button);
 }
 
 MenuReturn_e runMainMenu(const ButtonPress_e tuner_button,
@@ -111,7 +119,9 @@ MenuReturn_e runMainMenu(const ButtonPress_e tuner_button,
         if(mainMenuSelecting){
           uint8_t menu_index = mainMenuSelectedItemRaw/MENU_KNOB_COUNTS_PER_ITEM;
           Button button;
-          memcpy_P(&button,mainMenuButtons[menu_index],sizeof(button));
+          Button* bp;
+          memcpy_P(&bp,&(mainMenuButtons[menu_index]),sizeof(bp));
+          memcpy_P(&button,bp,sizeof(button));
           endSelector(&button);
 
           //TODO: activate button
