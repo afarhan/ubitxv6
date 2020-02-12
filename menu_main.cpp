@@ -61,7 +61,7 @@ void mainMenuTune(int16_t knob)
   }
 
   current_freq = GetActiveVfoFreq();
-  uint32_t new_freq = current_freq + (50 * knob);
+  const uint32_t new_freq = current_freq + (50 * knob);
   
   //Transition from below to above the traditional threshold for USB
   if(current_freq < THRESHOLD_USB_LSB && new_freq >= THRESHOLD_USB_LSB){
@@ -74,6 +74,7 @@ void mainMenuTune(int16_t knob)
   }
 
   setFrequency(new_freq);
+  const uint32_t old_freq = current_freq;
   current_freq = new_freq;
 
   Button button;
@@ -84,6 +85,7 @@ void mainMenuTune(int16_t knob)
     memcpy_P(&button,&bVfoB,sizeof(button));
   }
   drawButton(&button);
+  updateBandButtons(old_freq);
 }
 
 MenuReturn_e runMainMenu(const ButtonPress_e tuner_button,
