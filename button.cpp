@@ -1,6 +1,9 @@
 #include "button.h"
-#include "nano_gui.h"
+
+#include <avr/pgmspace.h>
+
 #include "color_theme.h"
+#include "nano_gui.h"
 #include "ubitx.h"//b
 
 void drawButton(Button* button)
@@ -26,18 +29,16 @@ void drawButton(Button* button)
   }
 
 
-  const char* text = nullptr;
   if(nullptr != button->text){
-    text = button->text;
+    strncpy_P(b,button->text,sizeof(b));
   }
   else if(nullptr != button->text_override){
     button->text_override(b,sizeof(b));
-    text = b;
   }
   else{
     //Something's messed up
     //Serial.println(F("No text for button!"));
     return;
   }
-  displayText(text, button->x, button->y, button->w, button->h, tc, bgc, bdc);
+  displayText(b, button->x, button->y, button->w, button->h, tc, bgc, bdc);
 }
