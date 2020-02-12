@@ -433,6 +433,7 @@ void osRit(){
 
 void osSidebandMode(VfoMode_e mode){
   SetActiveVfoMode(mode);
+  setFrequency(GetActiveVfoFreq());
   SaveSettingsToEeprom();
 
   Button button;
@@ -469,6 +470,8 @@ void osCw(){
   else{
     globalSettings.tuningMode = TuningMode_e::TUNE_SSB;
   }
+
+  setFrequency(GetActiveVfoFreq());
 
   Button button;
   memcpy_P(&button,&bCw,sizeof(button));
