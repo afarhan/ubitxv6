@@ -123,12 +123,7 @@ MenuReturn_e runMainMenu(const ButtonPress_e tuner_button,
           memcpy_P(&bp,&(mainMenuButtons[menu_index]),sizeof(bp));
           memcpy_P(&button,bp,sizeof(button));
           endSelector(&button);
-
-          //TODO: activate button
-          Serial.print(F("Select button "));
-          Serial.print(menu_index);
-          Serial.print(F(":"));
-          Serial.println(button.text);
+          button.on_select();
         }
         else{
           initSelector(&mainMenuSelectedItemRaw,
@@ -164,13 +159,10 @@ MenuReturn_e runMainMenu(const ButtonPress_e tuner_button,
     //We treat long and short presses the same, so no need to have a switch
     Button button;
     if(findPressedButton(mainMenuButtons,MAIN_MENU_NUM_BUTTONS,&button,touch_point)){
-      //TODO: activate button
-      Serial.print(F("Touch button "));
-      Serial.println(button.text);
+      button.on_select();
     }
     else{
       //Touch detected, but not on our buttons, so ignore
-      Serial.println(F("Touch not on button"));
     }
   }//touch_button
 
