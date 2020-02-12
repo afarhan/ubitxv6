@@ -104,7 +104,7 @@ uint32_t getFreqInBand(const uint32_t frequency,
     memcpy_P(&target_band,&bands[target_band_index],sizeof(target_band));
     const uint32_t range_current = current_band.max - current_band.min;
     const uint32_t range_target = target_band.max - target_band.min;
-    return (((frequency - current_band.min) * range_target / range_current + target_band.min)/100)*100;//truncated 100Hz
+    return (((frequency - current_band.min) * (uint64_t)range_target / range_current + target_band.min)/100)*100;//truncated 100Hz
   }
 }
 
