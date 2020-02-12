@@ -296,6 +296,20 @@ const Button* const buttons[] PROGMEM = {
 const Button* const* mainMenuButtons = buttons;
 const uint8_t MAIN_MENU_NUM_BUTTONS = sizeof(buttons) / sizeof(buttons[0]);
 
+void updateBandButtons(const uint32_t old_freq)
+{
+  const Button* band_buttons[] = {&b80,&b40,&b30,&b20,&b17,&b15,&b10};
+  const uint8_t bands [] =       {  80,  40,  30,  20,  17,  15,  10};
+  const uint32_t curr_freq = GetActiveVfoFreq();
+
+  Button button;
+  for(uint8_t i = 0; i < sizeof(bands)/sizeof(bands[0]); ++i){
+    if(isFreqInBand(old_freq,bands[i]) != isFreqInBand(curr_freq,bands[i])){
+      memcpy_P(&button,band_buttons[i],sizeof(button));
+      drawButton(&button);
+    }
+  }
+}
 
 void toVfo(char* text_out, const uint16_t max_text_size, const Vfo_e vfo)
 {
@@ -348,8 +362,16 @@ ButtonStatus_e bsVfo(const Vfo_e vfo){
 }
 
 void osVfo(const Vfo_e vfo){
+  const uint32_t old_freq = GetActiveVfoFreq();
   globalSettings.activeVfo = vfo;
   SaveSettingsToEeprom();
+
+  Button button;
+  memcpy_P(&button,&bVfoA,sizeof(button));
+  drawButton(&button);
+  memcpy_P(&button,&bVfoB,sizeof(button));
+  drawButton(&button);
+  updateBandButtons(old_freq);
 }
 
 void toVfoA(char* text_out, const uint16_t max_text_size){
@@ -474,7 +496,20 @@ ButtonStatus_e bsBand(const uint8_t band){
 }
 
 void osBand(const uint8_t band){
-  SetActiveVfoFreq(getFreqInBand(GetActiveVfoFreq(),band));
+  const uint32_t old_freq = GetActiveVfoFreq();
+  SetActiveVfoFreq(getFreqInBand(old_freq,band));
+
+  Button button;
+  if(Vfo_e::VFO_A == globalSettings.activeVfo){
+    memcpy_P(&button,&bVfoA,sizeof(button));
+    drawButton(&button);
+  }
+  else if(Vfo_e::VFO_B == globalSettings.activeVfo){
+    memcpy_P(&button,&bVfoB,sizeof(button));
+    drawButton(&button);
+  }
+
+  updateBandButtons(old_freq);
 }
 
 ButtonStatus_e bs80(){
