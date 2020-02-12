@@ -258,7 +258,7 @@ constexpr Button b10 PROGMEM = {
 constexpr char txtMenu [] PROGMEM = "\x7F";//gear icon
 ButtonStatus_e bsIgnore();
 void osMenu();
-constexpr Button bMenu = {
+constexpr Button bMenu PROGMEM = {
   LAYOUT_BUTTON_X + 3*LAYOUT_BUTTON_PITCH_X,
   LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y,
   LAYOUT_BUTTON_WIDTH,
@@ -273,7 +273,7 @@ constexpr Button bMenu = {
 constexpr char txtNumpad [] PROGMEM = "FRQ";
 ButtonStatus_e bsIgnore();
 void osNumpad();
-constexpr Button bNumpad = {
+constexpr Button bNumpad PROGMEM = {
   LAYOUT_BUTTON_X + 4*LAYOUT_BUTTON_PITCH_X,
   LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y,
   LAYOUT_BUTTON_WIDTH,
@@ -285,13 +285,12 @@ constexpr Button bNumpad = {
   'F'
 };
 
-static constexpr const Button *const buttons[] PROGMEM = {
+const Button* const buttons[] PROGMEM = {
   &bVfoA,                        &bVfoB,
 
    &bRit, &bUsb, &bLsb,   &bCw,   &bSpl,
     &b80,  &b40,  &b30,   &b20,    &b17,
     &b15,  &b10,        &bMenu, &bNumpad
-
 };
 
 const Button* const* mainMenuButtons = buttons;
