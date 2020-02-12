@@ -10,7 +10,7 @@ struct Band_t {
   uint32_t min;
   uint32_t max;
   uint8_t band_meters;
-  const char name[3];//Two characters + null terminator. Fixed width so we don't need to build separate pointers
+  char name[3];//Two characters + null terminator. Fixed width so we don't need to build separate pointers
 };
 
 const char UNKNOWN_BAND_NAME [] PROGMEM = "??";
@@ -33,10 +33,12 @@ constexpr Band_t bands [] PROGMEM {
 };
 constexpr uint8_t NUM_BANDS = sizeof(bands)/sizeof(bands[0]);
 
-int8_t findBandIndexFromBand(const uint8_t band)
+int8_t findBandIndexFromBand(const uint8_t target_band)
 {
+  Band_t band;
   for(uint8_t i = 0; i < NUM_BANDS; ++i){
-    if(band == bands[i].band_meters){
+    memcpy_P(&band,&bands[i],sizeof(band));
+    if(target_band == band.band_meters){
       return i;
     }
   }
@@ -46,9 +48,11 @@ int8_t findBandIndexFromBand(const uint8_t band)
 
 int8_t findBandIndexFromFreq(uint32_t frequency)
 {
+  Band_t band;
   for(uint8_t i = 0; i < NUM_BANDS; ++i){
-    if(frequency <= bands[i].max){
-      if(bands[i].min <= frequency){
+    memcpy_P(&band,&bands[i],sizeof(band));
+    if(frequency <= band.max){
+      if(band.min <= frequency){
         return i;
       }
       //No bands overlap, and they are ordered in strictly increasing frequency, so we need search no further
@@ -68,7 +72,9 @@ void getBandString(const unsigned long frequency,
     strncpy_P(band_string_out,UNKNOWN_BAND_NAME,max_string_length);
   }
   else{
-    strncpy_P(band_string_out,bands[band_index].name,max_string_length);
+    Band_t band;
+    memcpy_P(&band,&bands[band_index],sizeof(band));
+    strncpy_P(band_string_out,band.name,max_string_length);
   }
 }
 
@@ -86,28 +92,36 @@ uint32_t getFreqInBand(const uint32_t frequency,
 
   if(-1 == current_band_index){
     //We're not in a known band - just go to the center of the target band
-    return ((bands[target_band_index].max - bands[target_band_index].min)/2/100)*100;//truncated 100Hz
+    Band_t band;
+    memcpy_P(&band,&bands[target_band_index],sizeof(band));
+    return ((band.max - band.min)/2/100)*100;//truncated 100Hz
   }
   else{
     //We're in a known band. Match the relative position in the target band.
-    const uint32_t range_current = bands[current_band_index].max - bands[current_band_index].min;
-    const uint32_t range_target = bands[target_band_index].max - bands[target_band_index].min;
-    return (((frequency - bands[current_band_index].min) * range_target / range_current + bands[target_band_index].min)/100)*100;//truncated 100Hz
+    Band_t current_band;
+    memcpy_P(&current_band,&bands[current_band_index],sizeof(current_band));
+    Band_t target_band;
+    memcpy_P(&target_band,&bands[target_band_index],sizeof(target_band));
+    const uint32_t range_current = current_band.max - current_band.min;
+    const uint32_t range_target = target_band.max - target_band.min;
+    return (((frequency - current_band.min) * range_target / range_current + target_band.min)/100)*100;//truncated 100Hz
   }
 }
 
 bool isFreqInBand(const uint32_t frequency,
-                  const uint8_t band)
+                  const uint8_t check_band)
 {
-  int8_t band_index = findBandIndexFromBand(band);
+  int8_t band_index = findBandIndexFromBand(check_band);
 
   if(-1 == band_index){
     //Unknown band - can't be in it
     return false;
   }
 
-  if( (frequency <= bands[band_index].max)
-   && (bands[band_index].min <= frequency)){
+  Band_t band;
+  memcpy_P(&band,&bands[band_index],sizeof(band));
+  if( (frequency <= band.max)
+   && (band.min <= frequency)){
       return true;
   }
 
