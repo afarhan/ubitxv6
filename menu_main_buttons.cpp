@@ -349,6 +349,7 @@ ButtonStatus_e bsVfo(const Vfo_e vfo){
 
 void osVfo(const Vfo_e vfo){
   globalSettings.activeVfo = vfo;
+  SaveSettingsToEeprom();
 }
 
 void toVfoA(char* text_out, const uint16_t max_text_size){
@@ -410,6 +411,7 @@ void osRit(){
 
 void osSidebandMode(VfoMode_e mode){
   SetActiveVfoMode(mode);
+  SaveSettingsToEeprom();
 
   Button button;
   memcpy_P(&button,&bUsb,sizeof(button));
