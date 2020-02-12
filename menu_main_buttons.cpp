@@ -7,6 +7,7 @@
 #include "bands.h"
 #include "button.h"
 #include "color_theme.h"
+#include "morse.h"
 #include "nano_gui.h"
 #include "settings.h"
 #include "ubitx.h"//setFrequency, b
@@ -307,6 +308,7 @@ void updateBandButtons(const uint32_t old_freq)
     if(isFreqInBand(old_freq,bands[i]) != isFreqInBand(curr_freq,bands[i])){
       memcpy_P(&button,band_buttons[i],sizeof(button));
       drawButton(&button);
+      morseBool(ButtonStatus_e::Active == button.status());
     }
   }
 }
