@@ -42,16 +42,14 @@ bool findPressedButton(const Button* const* buttons,
                        Button *const button_out,
                        const Point touch_point)
 {
-  Button button;
   Button* bp;
   for(uint16_t i = 0; i < num_buttons; ++i){
     memcpy_P(&bp,&(buttons[i]),sizeof(bp));
-    memcpy_P(&button,bp,sizeof(button));
-    if((button.x <= touch_point.x)
-     &&(touch_point.x <= button.x + button.w)
-     &&(button.y <= touch_point.y)
-     &&(touch_point.y <= button.y + button.h)){
-       memcpy_P(button_out,&button,sizeof(button_out));
+    memcpy_P(button_out,bp,sizeof(*button_out));
+    if((button_out->x <= touch_point.x)
+     &&(touch_point.x <= button_out->x + button_out->w)
+     &&(button_out->y <= touch_point.y)
+     &&(touch_point.y <= button_out->y + button_out->h)){
        return true;
      }
   }
