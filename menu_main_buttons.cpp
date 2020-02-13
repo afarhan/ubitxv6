@@ -368,6 +368,9 @@ void osVfo(const Vfo_e vfo){
   globalSettings.activeVfo = vfo;
   SaveSettingsToEeprom();
 
+  ltoa(GetActiveVfoFreq(),b,10);
+  morseText(b);
+
   Button button;
   memcpy_P(&button,&bVfoA,sizeof(button));
   drawButton(&button);
