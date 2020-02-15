@@ -8,7 +8,7 @@
 #include "nano_gui.h"
 #include "utils.h"
 
-bool runSubmenu(Menu_t* const current_menu,
+bool runSubmenu(Menu_t *const current_menu,
                 void(*const redraw_callback)(),
                 const ButtonPress_e tuner_button,
                 const ButtonPress_e touch_button,
