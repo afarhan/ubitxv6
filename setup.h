@@ -1,6 +1,9 @@
 #pragma once
 
-void doSetup2(); //main setup function, displays the setup menu, calls various dialog boxes
+#include "menu.h"
+
+extern Menu_t* const setupMenu;
+
 void setupTouch();
 void runLocalOscSetting();
 void runBfoSetting();
