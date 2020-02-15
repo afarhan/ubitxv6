@@ -12,6 +12,7 @@
 #include "morse.h"
 #include "nano_gui.h"
 #include "settings.h"
+#include "setup.h"
 #include "ubitx.h"//setFrequency, b
 #include "utils.h"
 
@@ -582,9 +583,7 @@ ButtonStatus_e bsIgnore(){
 }
 
 void osMenu(){
-  //TODO
-  //rootSettingsMenu->initMenu();
-  //mainmenu.active_submenu = rootSettingsMenu;
+  enterSubmenu(setupMenu);
 }
 
 void osNumpad(){

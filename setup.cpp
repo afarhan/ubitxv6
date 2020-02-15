@@ -169,12 +169,8 @@ MenuReturn_e runSetting(const ButtonPress_e tuner_button,
 
 void activateSetting(const SettingScreen_t *const new_setting_P)
 {
-  Menu_t* current_menu = setupMenu;
-  while(nullptr != current_menu->active_submenu){
-    current_menu = current_menu->active_submenu;
-  }
-  current_menu->active_submenu = &setupMenuActiveSettingMenu;
   activeSettingP = new_setting_P;
+  enterSubmenu(&setupMenuActiveSettingMenu);
 }
 
 //Local Oscillator
@@ -504,21 +500,55 @@ struct MenuItem_t {
   void (*OnSelect)();
 };
 
-void runMenu(const MenuItem_t* const menu_items, const uint16_t num_items);
-#define RUN_MENU(menu) runMenu(menu,sizeof(menu)/sizeof(menu[0]))
+void initSetupMenu(const MenuItem_t* const menu_items,
+                   const uint16_t num_items);
+MenuReturn_e runSetupMenu(const MenuItem_t* const menu_items,
+                          const uint16_t num_items,
+                          const ButtonPress_e tuner_button,
+                          const ButtonPress_e touch_button,
+                          const Point touch_point,
+                          const int16_t knob);
+
+#define GENERATE_MENU_T(menu_name) \
+          void initSetupMenu##menu_name(void)\
+          {\
+            initSetupMenu(menuItems##menu_name,sizeof(menuItems##menu_name)/sizeof(menuItems##menu_name[0]));\
+          }\
+          MenuReturn_e runSetupMenu##menu_name(const ButtonPress_e tuner_button,\
+                                            const ButtonPress_e touch_button,\
+                                            const Point touch_point,\
+                                            const int16_t knob)\
+          {\
+            return runSetupMenu(menuItems##menu_name,\
+                                sizeof(menuItems##menu_name)/sizeof(menuItems##menu_name[0]),\
+                                tuner_button,\
+                                touch_button,\
+                                touch_point,\
+                                knob\
+                                );\
+          }\
+          Menu_t setupMenu##menu_name = {\
+            initSetupMenu##menu_name,\
+            runSetupMenu##menu_name,\
+            nullptr\
+          };\
+          void run##menu_name##Menu(void)\
+          {\
+            enterSubmenu(&setupMenu##menu_name);\
+          }\
 
 const char MT_CAL [] PROGMEM = "Calibrations";
 const char MI_TOUCH [] PROGMEM = "Touch Screen";
-const MenuItem_t calibrationMenu [] PROGMEM {
+const MenuItem_t menuItemsCalibration [] PROGMEM {
   {MT_CAL,nullptr},//Title
   {SS_LOCAL_OSC_T,runLocalOscSetting},
   {SS_BFO_T,runBfoSetting},
   {MI_TOUCH,setupTouch},
 };
-void runCalibrationMenu(){RUN_MENU(calibrationMenu);}
+GENERATE_MENU_T(Calibration);
 
 const char MT_CW [] PROGMEM = "CW Setup";
-const MenuItem_t cwMenu [] PROGMEM {
+const MenuItem_t menuItemsCw [] PROGMEM {
   {MT_CW,nullptr},//Title
   {SS_CW_TONE_T,runToneSetting},
   {SS_CW_SWITCH_T,runCwSwitchDelaySetting},
@@ -526,15 +556,17 @@ const MenuItem_t cwMenu [] PROGMEM {
   {SS_MORSE_MENU_T,runMorseMenuSetting},
   {SS_CW_SPEED_T,runCwSpeedSetting},
 };
-void runCwMenu(){RUN_MENU(cwMenu);}
+GENERATE_MENU_T(Cw);
 
 const char MT_SETTINGS [] PROGMEM = "Settings";
-const MenuItem_t mainMenu [] PROGMEM {
+const MenuItem_t menuItemsSetupRoot [] PROGMEM {
   {MT_SETTINGS,nullptr},//Title
   {MT_CAL,runCalibrationMenu},
   {MT_CW,runCwMenu},
   {SS_RESET_ALL_T,runResetAllSetting},
 };
+GENERATE_MENU_T(SetupRoot);
+Menu_t *const setupMenu = &setupMenuSetupRoot;
 
 const char MI_EXIT [] PROGMEM = "Exit";
 const MenuItem_t exitMenu PROGMEM = {MI_EXIT,nullptr};
@@ -572,13 +604,6 @@ void movePuck(unsigned int old_index,
 }
 
 int16_t setupMenuSelector = 0;
-
-Menu_t setup_menu = {
-  nullptr,//TODO
-  nullptr,//TODO
-  nullptr
-};
-Menu_t *const setupMenu = &setup_menu;
 
 void initSetupMenu(const MenuItem_t* const menu_items,
                    const uint16_t num_items)
