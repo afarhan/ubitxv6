@@ -30,3 +30,14 @@ void runActiveMenu(const ButtonPress_e tuner_button,
     }
   }//end switch
 }
+
+void enterSubmenu(Menu_t *const submenu)
+{
+  Menu_t* current_menu = rootMenu;
+  while(nullptr != current_menu->active_submenu){
+    current_menu = current_menu->active_submenu;
+  }
+  current_menu->active_submenu = submenu;
+  submenu->initMenu();
+}
+

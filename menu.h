@@ -30,3 +30,5 @@ void runActiveMenu(const ButtonPress_e tuner_button,
                    const ButtonPress_e touch_button,
                    const Point touch_point,
                    const int16_t knob);
+
+void enterSubmenu(Menu_t *const submenu);

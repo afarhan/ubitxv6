@@ -588,6 +588,5 @@ void osMenu(){
 }
 
 void osNumpad(){
-  numpadMenu->initMenu();
-  rootMenu->active_submenu = numpadMenu;
+  enterSubmenu(numpadMenu);
 }
