@@ -90,14 +90,14 @@ struct SettingScreen_t {
 
 void drawSetting(const SettingScreen_t* const screen)
 {
-  displayDialog(screen.Title,
-                screen.AdditionalText);
+  displayDialog(screen->Title,
+                screen->AdditionalText);
 }
 
 //State variables for settings
 int32_t setupMenuRawValue = 0;
 int32_t setupMenuLastValue = 0;
-SettingScreen_t* activeSettingP;
+const SettingScreen_t* activeSettingP;
 
 void activateSetting(SettingScreen_t* new_setting_P);
 
@@ -119,7 +119,7 @@ void initSetting()
   }
   SettingScreen_t screen = {nullptr,nullptr,0,0,nullptr,nullptr,nullptr,nullptr};
   memcpy_P(&screen,activeSettingP,sizeof(screen));
-  drawSetting(screen);
+  drawSetting(&screen);
   screen.Initialize(&setupMenuLastValue);
   screen.OnValueChange(setupMenuLastValue,b,sizeof(b));
   displayText(b, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_TITLE_BACKGROUND, COLOR_BACKGROUND);
@@ -167,7 +167,7 @@ MenuReturn_e runSetting(const ButtonPress_e tuner_button,
   return MenuReturn_e::StillActive;
 }
 
-void activateSetting(SettingScreen_t* new_setting_P)
+void activateSetting(const SettingScreen_t *const new_setting_P)
 {
   Menu_t* current_menu = setupMenu;
   while(nullptr != current_menu->active_submenu){
@@ -499,14 +499,9 @@ const SettingScreen_t ssResetAll PROGMEM = {
 };
 void runResetAllSetting(){activateSetting(&ssResetAll);}
 
-void osResetAllSettings(Menu_t *const current_menu)
-{
-  current_menu->active_submenu = 
-}
-
 struct MenuItem_t {
   const char* const ItemName;
-  void (*OnSelect)(Menu_t *const current_menu);
+  void (*OnSelect)();
 };
 
 void runMenu(const MenuItem_t* const menu_items, const uint16_t num_items);
@@ -578,6 +573,13 @@ void movePuck(unsigned int old_index,
 
 int16_t setupMenuSelector = 0;
 
+Menu_t setup_menu = {
+  nullptr,//TODO
+  nullptr,//TODO
+  nullptr
+};
+Menu_t *const setupMenu = &setup_menu;
+
 void initSetupMenu(const MenuItem_t* const menu_items,
                    const uint16_t num_items)
 {
@@ -610,18 +612,17 @@ MenuReturn_e runSetupMenu(const MenuItem_t* const menu_items,
   (void)touch_button;(void)touch_point;//TODO: handle touch input?
 
   if(0 != knob){
-    setupMenuSelector += knob;
-    LIMIT(setupMenuSelector,0,num_items*MENU_KNOB_COUNTS_PER_ITEM - 1);
+    setupMenuSelector = LIMIT(setupMenuSelector + knob,0,(int16_t)(num_items*MENU_KNOB_COUNTS_PER_ITEM - 1));
     const int16_t new_index = setupMenuSelector/MENU_KNOB_COUNTS_PER_ITEM;
     if(cur_index != new_index){
-      movePuck(cur_index,newindex);
+      movePuck(cur_index,new_index);
       if(globalSettings.morseMenuOn){//Only spend cycles copying menu item into RAM if we actually need to
         if(exit_index <= cur_index){
           strncpy_P(b,MI_EXIT,sizeof(b));
         }
         else{
           MenuItem_t mi = {"",nullptr};
-          memcpy_P(&mi,&menu_items[index+1],sizeof(mi));//The 0th element in the array is the title, so offset by 1
+          memcpy_P(&mi,&menu_items[cur_index+1],sizeof(mi));//The 0th element in the array is the title, so offset by 1
           strncpy_P(b,mi.ItemName,sizeof(b));
         }
         morseText(b);
