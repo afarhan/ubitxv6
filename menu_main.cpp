@@ -41,14 +41,6 @@ void drawMainMenu(void)
   }
 }
 
-MenuReturn_e runStartupMenu(const ButtonPress_e,
-                            const ButtonPress_e,
-                            const Point,
-                            const int16_t)
-{
-  return MenuReturn_e::ExitedRedraw;
-}
-
 void mainMenuTune(int16_t knob)
 {
   static uint32_t current_freq = 0;
