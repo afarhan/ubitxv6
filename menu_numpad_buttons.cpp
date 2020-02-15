@@ -1,6 +1,7 @@
 #include "menu_numpad_buttons.h"
 
 #include <avr/pgmspace.h>
+#include <WString.h>//F()
 
 #include "color_theme.h"
 #include "nano_gui.h"
@@ -8,9 +9,9 @@
 #include "ubitx.h"//setFrequency, b
 #include "utils.h"
 
-static const unsigned int LAYOUT_MODE_TEXT_X = 0;
+static const unsigned int LAYOUT_MODE_TEXT_X = 60;
 static const unsigned int LAYOUT_MODE_TEXT_Y = 47;
-static const unsigned int LAYOUT_MODE_TEXT_WIDTH = 320;
+static const unsigned int LAYOUT_MODE_TEXT_WIDTH = 140;
 static const unsigned int LAYOUT_MODE_TEXT_HEIGHT = 36;
 
 static const unsigned int LAYOUT_BUTTON_X = 2;
@@ -112,7 +113,8 @@ const uint8_t NUMPAD_MENU_NUM_BUTTONS = sizeof(numpadMenuButtons)/sizeof(numpadM
 void updateCurrentEnteredFrequency(void)
 {
   formatFreq(numpadMenuFrequency,b,sizeof(b),0);
-  displayText(b,LAYOUT_MODE_TEXT_X,LAYOUT_MODE_TEXT_Y,LAYOUT_MODE_TEXT_WIDTH,LAYOUT_MODE_TEXT_HEIGHT,COLOR_TEXT,COLOR_BACKGROUND,COLOR_BACKGROUND);
+  strncat_P(b,(const char*)F(" Hz"),sizeof(b)-strlen(b));
+  displayText(b,LAYOUT_MODE_TEXT_X,LAYOUT_MODE_TEXT_Y,LAYOUT_MODE_TEXT_WIDTH,LAYOUT_MODE_TEXT_HEIGHT,COLOR_TEXT,COLOR_BACKGROUND,COLOR_BACKGROUND,TextJustification_e::Right);
 }
 
 void osNumpad(uint8_t new_digit)
