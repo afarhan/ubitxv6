@@ -39,6 +39,8 @@ void drawMainMenu(void)
     memcpy_P(&button,bp,sizeof(button));
     drawButton(&button);
   }
+  ltoa(GetActiveVfoFreq(),b,10);
+  morseText(b);
 }
 
 void mainMenuTune(int16_t knob)
