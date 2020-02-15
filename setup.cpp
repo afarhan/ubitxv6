@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include "colors.h"
+#include "menu.h"
 #include "morse.h"
 #include "nano_gui.h"
 #include "setup.h"
@@ -101,6 +102,8 @@ int32_t setupMenuLastValue = 0;
 
 void initSetting(const SettingScreen_t* const p_screen)
 {
+  SettingScreen_t screen = {nullptr,nullptr,0,0,nullptr,nullptr,nullptr,nullptr};
+  memcpy_P(&screen,p_screen,sizeof(screen));
   drawSetting(p_screen);
   screen.Initialize(&setupMenuLastValue);
   screen.OnValueChange(setupMenuLastValue,b,sizeof(b));
@@ -114,13 +117,18 @@ MenuReturn_e runSetting(const SettingScreen_t* const p_screen,
                         const Point touch_point,
                         const int16_t knob)
 {
+  SettingScreen_t screen = {nullptr,nullptr,0,0,nullptr,nullptr,nullptr,nullptr};
+  memcpy_P(&screen,p_screen,sizeof(screen));
+
   if(ButtonPress_e::NotPressed != tuner_button){
     //Long or short press, we do the same thing
+    SettingScreen_t screen = {nullptr,nullptr,0,0,nullptr,nullptr,nullptr,nullptr};
+    memcpy_P(&screen,p_screen,sizeof(screen));
     screen.Finalize(setupMenuLastValue);
     return MenuReturn_e::ExitedRedraw;
   }
 
-  //TODO: handle touch input?
+  (void)touch_button;(void)touch_point;//TODO: handle touch input?
 
   else if(0 != knob){
     setupMenuRawValue += knob * screen.StepSize;
@@ -134,7 +142,7 @@ MenuReturn_e runSetting(const SettingScreen_t* const p_screen,
       setupMenuRawValue = value * (int32_t)screen.KnobDivider;
     }
 
-    if(value != setupMenuLastValue){{
+    if(value != setupMenuLastValue){
       screen.OnValueChange(value,b,sizeof(b));
       displayText(b, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_TITLE_BACKGROUND, COLOR_BACKGROUND);
       setupMenuLastValue = value;
@@ -523,7 +531,8 @@ void drawMenu(const MenuItem_t* const items, const uint16_t num_items)
   displayText(b, LAYOUT_ITEM_X, LAYOUT_ITEM_Y + (num_items-1)*LAYOUT_ITEM_PITCH_Y, LAYOUT_ITEM_WIDTH, LAYOUT_ITEM_HEIGHT, COLOR_TEXT, COLOR_BACKGROUND, COLOR_INACTIVE_BORDER, TextJustification_e::Left);
 }
 
-void movePuck(unsigned int old_index, unsigned int new_index)
+void movePuck(unsigned int old_index,
+              unsigned int new_index)
 {
   //Don't update if we're already on the right selection
   if(old_index == new_index){
@@ -537,81 +546,56 @@ void movePuck(unsigned int old_index, unsigned int new_index)
   displayRect(LAYOUT_ITEM_X, LAYOUT_ITEM_Y + (new_index*LAYOUT_ITEM_PITCH_Y), LAYOUT_ITEM_WIDTH, LAYOUT_ITEM_HEIGHT, COLOR_ACTIVE_BORDER);
 }
 
-void runMenu(const MenuItem_t* const menu_items, const uint16_t num_items)
+int16_t setupMenuSelector = 0;
+
+void initSetupMenu(const MenuItem_t* const menu_items,
+                   const uint16_t num_items)
 {
-  static const unsigned int COUNTS_PER_ITEM = 10;
-  const int MAX_KNOB_VALUE = num_items*COUNTS_PER_ITEM - 1;
-  int knob_sum = 0;
-  unsigned int old_index = -1;
-
   drawMenu(menu_items,num_items);
+  setupMenuSelector = 0;
   movePuck(-1,0);//Force draw of puck
-
-   //wait for the button to be raised up
-  while(btnDown()){
-    active_delay(50);
-  }
-  active_delay(50);  //debounce
- 
-  while (true){
-    knob_sum += enc_read();
-    if(knob_sum < 0){
-      knob_sum = 0;
-    }
-    else if(MAX_KNOB_VALUE < knob_sum){
-      knob_sum = MAX_KNOB_VALUE;
-    }
-
-    uint16_t index = knob_sum/COUNTS_PER_ITEM;
-    movePuck(old_index,index);
-
-    if(globalSettings.morseMenuOn //Only spend cycles copying menu item into RAM if we actually need to
-     && (old_index != index)){
-      if(num_items-1 > index){
-        MenuItem_t mi = {"",nullptr};
-        memcpy_P(&mi,&menu_items[index+1],sizeof(mi));//The 0th element in the array is the title, so offset by 1
-        strncpy_P(b,mi.ItemName,sizeof(b));
-      }
-      else{
-        strncpy_P(b,MI_EXIT,sizeof(b));
-      }
-      morseText(b);
-      enc_read();//Consume any rotations during morse playback
-    }
-
-    old_index = index;
-
-    if (!btnDown()){
-      active_delay(50);
-      continue;
-    }
-
-    //wait for the touch to lift off and debounce
-    while(btnDown()){
-      active_delay(50);
-    }
-    active_delay(50);//debounce
-    
-    if(num_items-1 > index){
-      MenuItem_t mi = {"",nullptr};
-      memcpy_P(&mi,&menu_items[index+1],sizeof(mi));//The 0th element in the array is the title, so offset by 1
-      mi.OnSelect();
-      drawMenu(menu_items,num_items);//Need to re-render, since whatever ran just now is assumed to have drawn something
-      old_index = -1;//Force redraw
-    }
-    else{
-      break;
-    }
-  }
-
-  //debounce the button
-  while(btnDown()){
-    active_delay(50);
-  }
-  active_delay(50);//debounce
 }
 
-void doSetup2(){
-  RUN_MENU(mainMenu);
-  guiUpdate();
+MenuReturn_e runSetupMenu(const MenuItem_t* const menu_items,
+                          const uint16_t num_items,
+                          const ButtonPress_e tuner_button,
+                          const ButtonPress_e touch_button,
+                          const Point touch_point,
+                          const int16_t knob)
+{
+  const int16_t cur_index = setupMenuSelector/MENU_KNOB_COUNTS_PER_ITEM;
+  const int16_t exit_index = num_items - 1;
+
+  if(ButtonPress_e::NotPressed != tuner_button){
+    //Don't care what kind of press
+    if(exit_index <= cur_index){
+      return MenuReturn_e::ExitedRedraw;
+    }
+
+    MenuItem_t mi = {"",nullptr};
+    memcpy_P(&mi,&menu_items[cur_index+1],sizeof(mi));//The 0th element in the array is the title, so offset by 1
+    mi.OnSelect();
+  }
+
+  (void)touch_button;(void)touch_point;//TODO: handle touch input?
+
+  else if(0 != knob){
+    setupMenuSelector += knob;
+    LIMIT(setupMenuSelector,0,num_items*MENU_KNOB_COUNTS_PER_ITEM - 1);
+    const int16_t new_index = setupMenuSelector/MENU_KNOB_COUNTS_PER_ITEM;
+    if(cur_index != new_index){
+      movePuck(cur_index,newindex);
+      if(globalSettings.morseMenuOn){//Only spend cycles copying menu item into RAM if we actually need to
+        if(exit_index <= cur_index){
+          strncpy_P(b,MI_EXIT,sizeof(b));
+        }
+        else{
+          MenuItem_t mi = {"",nullptr};
+          memcpy_P(&mi,&menu_items[index+1],sizeof(mi));//The 0th element in the array is the title, so offset by 1
+          strncpy_P(b,mi.ItemName,sizeof(b));
+        }
+        morseText(b);
+      }
+    }
+  }
 }
