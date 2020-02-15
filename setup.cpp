@@ -87,58 +87,61 @@ struct SettingScreen_t {
   void (*Finalize)(const long int final_value);
 };
 
-void runSetting(const SettingScreen_t* const p_screen)
+void drawSetting(const SettingScreen_t* const p_screen)
 {
   SettingScreen_t screen = {nullptr,nullptr,0,0,nullptr,nullptr,nullptr,nullptr};
   memcpy_P(&screen,p_screen,sizeof(screen));
   displayDialog(screen.Title,
                 screen.AdditionalText);
+}
 
-  //Wait for button to stop being pressed
-  while(btnDown()){
-    active_delay(10);
-  }
-  active_delay(10);
 
-  long int raw_value = 0;
-  long int last_value = 0;
+int32_t setupMenuRawValue = 0;
+int32_t setupMenuLastValue = 0;
 
-  screen.Initialize(&last_value);
-  screen.OnValueChange(last_value,b,sizeof(b));
+void initSetting(const SettingScreen_t* const p_screen)
+{
+  drawSetting(p_screen);
+  screen.Initialize(&setupMenuLastValue);
+  screen.OnValueChange(setupMenuLastValue,b,sizeof(b));
   displayText(b, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_TITLE_BACKGROUND, COLOR_BACKGROUND);
+  setupMenuRawValue = setupMenuLastValue * (int32_t)screen.KnobDivider;
+}
 
-  raw_value = last_value * (int32_t)screen.KnobDivider;
+MenuReturn_e runSetting(const SettingScreen_t* const p_screen,
+                        const ButtonPress_e tuner_button,
+                        const ButtonPress_e touch_button,
+                        const Point touch_point,
+                        const int16_t knob)
+{
+  if(ButtonPress_e::NotPressed != tuner_button){
+    //Long or short press, we do the same thing
+    screen.Finalize(setupMenuLastValue);
+    return MenuReturn_e::ExitedRedraw;
+  }
 
-  while (!btnDown())
-  {
-    int knob = enc_read();
-    if(knob != 0){
-      raw_value += knob * screen.StepSize;
-    }
-    else{
-      continue;
-    }
+  //TODO: handle touch input?
 
-    const long int candidate_value = raw_value / (int32_t)screen.KnobDivider;
-    long int value = 0;
+  else if(0 != knob){
+    setupMenuRawValue += knob * screen.StepSize;
+
+    const int32_t candidate_value = setupMenuRawValue / (int32_t)screen.KnobDivider;
+    int32_t value = 0;
     screen.Validate(candidate_value,&value);
 
     //If we're going out of bounds, prevent the raw value from going too far out
     if(candidate_value != value){
-      raw_value = value * (int32_t)screen.KnobDivider;
+      setupMenuRawValue = value * (int32_t)screen.KnobDivider;
     }
 
-    if(value == last_value){
-      continue;
-    }
-    else{
+    if(value != setupMenuLastValue){{
       screen.OnValueChange(value,b,sizeof(b));
       displayText(b, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_TITLE_BACKGROUND, COLOR_BACKGROUND);
-      last_value = value;
+      setupMenuLastValue = value;
     }
   }
 
-  screen.Finalize(last_value);
+  return MenuReturn_e::StillActive;
 }
 
 //Local Oscillator
