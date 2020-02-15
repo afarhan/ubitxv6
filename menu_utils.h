@@ -3,14 +3,6 @@
 #include "button.h"
 #include "menu.h"
 
-//Returns true if submenu was run, false otherwise
-bool runSubmenu(Menu_t* current_menu,
-                void(*const redraw_callback)(),
-                const ButtonPress_e tuner_button,
-                const ButtonPress_e touch_button,
-                const Point touch_point,
-                const int16_t knob);
-
 //Returns true if button was found, false otherwise
 bool findPressedButton(const Button* const* buttons,
                        const uint8_t num_buttons,

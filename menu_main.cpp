@@ -85,20 +85,6 @@ MenuReturn_e runMainMenu(const ButtonPress_e tuner_button,
                          const Point touch_point,
                          const int16_t knob)
 {
-  if(runSubmenu(&mainMenu,
-                drawMainMenu,
-                tuner_button,
-                touch_button,
-                touch_point,
-                knob)){
-    //Submenu processed the input, so return now
-    mainMenuSelectedItemRaw = 0;
-    mainMenuSelecting = false;
-    return MenuReturn_e::StillActive;//main menu always returns StillActive
-  }//end submenu
-
-  //Submenu didn't run, so handle the inputs ourselves
-
   //Check tuner_button
   if(ButtonPress_e::NotPressed != tuner_button){
     switch(tuner_button){

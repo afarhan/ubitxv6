@@ -506,5 +506,5 @@ void loop(){
   Point touch_point;
   ButtonPress_e touch_button = checkTouch(&touch_point);
   int16_t knob = enc_read();
-  rootMenu->runMenu(tuner_button,touch_button,touch_point,knob);
+  runActiveMenu(tuner_button,touch_button,touch_point,knob);
 }

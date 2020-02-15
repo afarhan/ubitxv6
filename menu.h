@@ -25,3 +25,8 @@ struct Menu_t {
 };
 
 static const uint8_t MENU_KNOB_COUNTS_PER_ITEM = 10;
+
+void runActiveMenu(const ButtonPress_e tuner_button,
+                   const ButtonPress_e touch_button,
+                   const Point touch_point,
+                   const int16_t knob);
