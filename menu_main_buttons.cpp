@@ -7,6 +7,8 @@
 #include "bands.h"
 #include "button.h"
 #include "color_theme.h"
+#include "menu_main.h"
+#include "menu_numpad.h"
 #include "morse.h"
 #include "nano_gui.h"
 #include "settings.h"
@@ -286,7 +288,7 @@ constexpr Button bNumpad PROGMEM = {
   'F'
 };
 
-const Button* const buttons[] PROGMEM = {
+const Button* const mainMenuButtons [] PROGMEM = {
   &bVfoA,                        &bVfoB,
 
    &bRit, &bUsb, &bLsb,   &bCw,   &bSpl,
@@ -294,8 +296,7 @@ const Button* const buttons[] PROGMEM = {
     &b15,  &b10,        &bMenu, &bNumpad
 };
 
-const Button* const* mainMenuButtons = buttons;
-const uint8_t MAIN_MENU_NUM_BUTTONS = sizeof(buttons) / sizeof(buttons[0]);
+const uint8_t MAIN_MENU_NUM_BUTTONS = sizeof(mainMenuButtons) / sizeof(mainMenuButtons[0]);
 
 void updateBandButtons(const uint32_t old_freq)
 {
@@ -587,7 +588,6 @@ void osMenu(){
 }
 
 void osNumpad(){
-  //TODO
-  //numpadMenu->initMenu();
-  //mainMenu.active_submenu = numpadMenu;
+  numpadMenu->initMenu();
+  rootMenu->active_submenu = numpadMenu;
 }
