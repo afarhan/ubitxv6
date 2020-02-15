@@ -88,49 +88,64 @@ struct SettingScreen_t {
   void (*Finalize)(const long int final_value);
 };
 
-void drawSetting(const SettingScreen_t* const p_screen)
+void drawSetting(const SettingScreen_t* const screen)
 {
-  SettingScreen_t screen = {nullptr,nullptr,0,0,nullptr,nullptr,nullptr,nullptr};
-  memcpy_P(&screen,p_screen,sizeof(screen));
   displayDialog(screen.Title,
                 screen.AdditionalText);
 }
 
-
+//State variables for settings
 int32_t setupMenuRawValue = 0;
 int32_t setupMenuLastValue = 0;
+SettingScreen_t* activeSettingP;
 
-void initSetting(const SettingScreen_t* const p_screen)
+void activateSetting(SettingScreen_t* new_setting_P);
+
+void initSetting();
+MenuReturn_e runSetting(const ButtonPress_e tuner_button,
+                        const ButtonPress_e touch_button,
+                        const Point touch_point,
+                        const int16_t knob);
+Menu_t setupMenuActiveSettingMenu = {
+  initSetting,
+  runSetting,
+  nullptr
+};
+
+void initSetting()
 {
+  if(nullptr == activeSettingP){
+    return;
+  }
   SettingScreen_t screen = {nullptr,nullptr,0,0,nullptr,nullptr,nullptr,nullptr};
-  memcpy_P(&screen,p_screen,sizeof(screen));
-  drawSetting(p_screen);
+  memcpy_P(&screen,activeSettingP,sizeof(screen));
+  drawSetting(screen);
   screen.Initialize(&setupMenuLastValue);
   screen.OnValueChange(setupMenuLastValue,b,sizeof(b));
   displayText(b, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_TITLE_BACKGROUND, COLOR_BACKGROUND);
   setupMenuRawValue = setupMenuLastValue * (int32_t)screen.KnobDivider;
 }
 
-MenuReturn_e runSetting(const SettingScreen_t* const p_screen,
-                        const ButtonPress_e tuner_button,
+MenuReturn_e runSetting(const ButtonPress_e tuner_button,
                         const ButtonPress_e touch_button,
                         const Point touch_point,
                         const int16_t knob)
 {
+  if(nullptr == activeSettingP){
+    return MenuReturn_e::ExitedRedraw;
+  }
   SettingScreen_t screen = {nullptr,nullptr,0,0,nullptr,nullptr,nullptr,nullptr};
-  memcpy_P(&screen,p_screen,sizeof(screen));
+  memcpy_P(&screen,activeSettingP,sizeof(screen));
 
   if(ButtonPress_e::NotPressed != tuner_button){
     //Long or short press, we do the same thing
-    SettingScreen_t screen = {nullptr,nullptr,0,0,nullptr,nullptr,nullptr,nullptr};
-    memcpy_P(&screen,p_screen,sizeof(screen));
     screen.Finalize(setupMenuLastValue);
     return MenuReturn_e::ExitedRedraw;
   }
 
   (void)touch_button;(void)touch_point;//TODO: handle touch input?
 
-  else if(0 != knob){
+  if(0 != knob){
     setupMenuRawValue += knob * screen.StepSize;
 
     const int32_t candidate_value = setupMenuRawValue / (int32_t)screen.KnobDivider;
@@ -150,6 +165,16 @@ MenuReturn_e runSetting(const SettingScreen_t* const p_screen,
   }
 
   return MenuReturn_e::StillActive;
+}
+
+void activateSetting(SettingScreen_t* new_setting_P)
+{
+  Menu_t* current_menu = setupMenu;
+  while(nullptr != current_menu->active_submenu){
+    current_menu = current_menu->active_submenu;
+  }
+  current_menu->active_submenu = &setupMenuActiveSettingMenu;
+  activeSettingP = new_setting_P;
 }
 
 //Local Oscillator
@@ -196,7 +221,7 @@ const SettingScreen_t ssLocalOsc PROGMEM = {
   ssLocalOscChange,
   ssLocalOscFinalize
 };
-void runLocalOscSetting(){runSetting(&ssLocalOsc);}
+void runLocalOscSetting(){activateSetting(&ssLocalOsc);}
 
 //BFO
 void ssBfoInitialize(long int* start_value_out){
@@ -234,7 +259,7 @@ const SettingScreen_t ssBfo PROGMEM = {
   ssBfoChange,
   ssBfoFinalize
 };
-void runBfoSetting(){runSetting(&ssBfo);}
+void runBfoSetting(){activateSetting(&ssBfo);}
 
 //CW Tone
 void ssCwToneInitialize(long int* start_value_out)
@@ -270,7 +295,7 @@ const SettingScreen_t ssTone PROGMEM = {
   ssCwToneChange,
   ssCwToneFinalize
 };
-void runToneSetting(){runSetting(&ssTone);}
+void runToneSetting(){activateSetting(&ssTone);}
 
 //CW Switch Delay
 void ssCwSwitchDelayInitialize(long int* start_value_out)
@@ -305,7 +330,7 @@ const SettingScreen_t ssCwSwitchDelay PROGMEM = {
   ssCwSwitchDelayChange,
   ssCwSwitchDelayFinalize
 };
-void runCwSwitchDelaySetting(){runSetting(&ssCwSwitchDelay);}
+void runCwSwitchDelaySetting(){activateSetting(&ssCwSwitchDelay);}
 
 //CW Keyer
 void ssKeyerInitialize(long int* start_value_out)
@@ -351,7 +376,7 @@ const SettingScreen_t ssKeyer PROGMEM = {
   ssKeyerChange,
   ssKeyerFinalize
 };
-void runKeyerSetting(){runSetting(&ssKeyer);}
+void runKeyerSetting(){activateSetting(&ssKeyer);}
 
 //Morse menu playback
 void ssMorseMenuInitialize(long int* start_value_out)
@@ -393,7 +418,7 @@ const SettingScreen_t ssMorseMenu PROGMEM = {
   ssMorseMenuChange,
   ssMorseMenuFinalize
 };
-void runMorseMenuSetting(){runSetting(&ssMorseMenu);}
+void runMorseMenuSetting(){activateSetting(&ssMorseMenu);}
 
 //CW Speed
 void ssCwSpeedInitialize(long int* start_value_out)
@@ -427,7 +452,7 @@ const SettingScreen_t ssCwSpeed PROGMEM = {
   ssCwSpeedChange,
   ssCwSpeedFinalize
 };
-void runCwSpeedSetting(){runSetting(&ssCwSpeed);}
+void runCwSpeedSetting(){activateSetting(&ssCwSpeed);}
 
 //Reset all settings
 void ssResetAllInitialize(long int* start_value_out)
@@ -472,11 +497,16 @@ const SettingScreen_t ssResetAll PROGMEM = {
   ssResetAllChange,
   ssResetAllFinalize
 };
-void runResetAllSetting(){runSetting(&ssResetAll);}
+void runResetAllSetting(){activateSetting(&ssResetAll);}
+
+void osResetAllSettings(Menu_t *const current_menu)
+{
+  current_menu->active_submenu = 
+}
 
 struct MenuItem_t {
   const char* const ItemName;
-  void (*OnSelect)();
+  void (*OnSelect)(Menu_t *const current_menu);
 };
 
 void runMenu(const MenuItem_t* const menu_items, const uint16_t num_items);
@@ -579,7 +609,7 @@ MenuReturn_e runSetupMenu(const MenuItem_t* const menu_items,
 
   (void)touch_button;(void)touch_point;//TODO: handle touch input?
 
-  else if(0 != knob){
+  if(0 != knob){
     setupMenuSelector += knob;
     LIMIT(setupMenuSelector,0,num_items*MENU_KNOB_COUNTS_PER_ITEM - 1);
     const int16_t new_index = setupMenuSelector/MENU_KNOB_COUNTS_PER_ITEM;
@@ -598,4 +628,6 @@ MenuReturn_e runSetupMenu(const MenuItem_t* const menu_items,
       }
     }
   }
+
+  return MenuReturn_e::StillActive;
 }
