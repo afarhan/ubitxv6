@@ -95,7 +95,6 @@ extern char c[30], b[128];
 static const uint32_t THRESHOLD_USB_LSB = 10000000L;
 
 /* these are functions implemented in the main file named as ubitx_xxx.ino */
-void active_delay(int delay_by);
 void saveVFOs();
 void setFrequency(const unsigned long freq, const bool transmit = false);
 void startTx(TuningMode_e tx_mode);

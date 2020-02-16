@@ -205,8 +205,7 @@ void cwKeyer(void){
         }
         cwKeydown();
         
-        while ( update_PaddleLatch(0) == DIT_L ) 
-          active_delay(1);
+        while ( update_PaddleLatch(0) == DIT_L );
           
         cwKeyUp();
       }

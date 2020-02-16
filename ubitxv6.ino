@@ -64,17 +64,6 @@ unsigned char doingCAT = 0;
  * you start hacking around
  */
 
-/**
- * Our own delay. During any delay, the raduino should still be processing a few times. 
- */
-
-void active_delay(int delay_by){
-  unsigned long timeStart = millis();
-  while (millis() - timeStart <= (unsigned long)delay_by) {
-    checkCAT();
-  }
-}
-
 void saveVFOs()
 {
   SaveSettingsToEeprom();
@@ -299,7 +288,7 @@ void checkPTT(){
     
   if(digitalRead(PTT) == 0 && !globalSettings.txActive){
     startTx(TuningMode_e::TUNE_SSB);
-    active_delay(50); //debounce the PTT
+    delay(50); //debounce the PTT
   }
 	
   if (digitalRead(PTT) == 1 && globalSettings.txActive)

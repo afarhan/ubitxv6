@@ -66,7 +66,7 @@ void morseLetter(char c, uint16_t dit_duration_ms){
 
   //handle space character as three dashes
   if (c == ' '){
-    active_delay(7 * dit_duration_ms);
+    delay(7 * dit_duration_ms);
     //Serial.print(' ');
     return;
   }
