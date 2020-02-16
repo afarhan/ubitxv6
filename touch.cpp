@@ -64,25 +64,23 @@ void touch_update(){
   
   //Serial.printf("    %d,%d", x, y);
   //Serial.println();
-  if (z >= Z_THRESHOLD) {
-    msraw = now;  // good read completed, set wait
-    switch (rotation) {
-      case 0:
-      xraw = 4095 - y;
-      yraw = x;
-      break;
-      case 1:
-      xraw = x;
-      yraw = y;
-      break;
-      case 2:
-      xraw = y;
-      yraw = 4095 - x;
-      break;
-      default: // 3
-      xraw = 4095 - x;
-      yraw = 4095 - y;
-    }
+  msraw = now;  // good read completed, set wait
+  switch (rotation) {
+    case 0:
+    xraw = 4095 - y;
+    yraw = x;
+    break;
+    case 1:
+    xraw = x;
+    yraw = y;
+    break;
+    case 2:
+    xraw = y;
+    yraw = 4095 - x;
+    break;
+    default: // 3
+    xraw = 4095 - x;
+    yraw = 4095 - y;
   }
 }
 
