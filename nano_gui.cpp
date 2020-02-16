@@ -94,87 +94,59 @@ void displayText(const char *const text, int x1, int y1, int w, int h, int color
   displayRawText(text,x1,y1,w,color,background);
 }
 
+void drawCross(int16_t x_center,int16_t y_center,uint16_t color)
+{
+  constexpr uint8_t HALF_SIZE = 10;
+  displayHline(x_center-HALF_SIZE,y_center,2*HALF_SIZE,color);
+  displayVline(x_center,y_center-HALF_SIZE,2*HALF_SIZE,color);
+}
+
 void setupTouch(){
-  int x1, y1, x2, y2, x3, y3, x4, y4;
-  Point ts_point;
+  constexpr int16_t CROSS_CORNER_OFFSET = 20;
+  constexpr Point CROSS_CORNER_POINTS [] = {
+    {CROSS_CORNER_OFFSET,CROSS_CORNER_OFFSET},//Top left
+    {PDQ_ILI9341::ILI9341_TFTHEIGHT-CROSS_CORNER_OFFSET,CROSS_CORNER_OFFSET},//Top right
+    {CROSS_CORNER_OFFSET, PDQ_ILI9341::ILI9341_TFTWIDTH-CROSS_CORNER_OFFSET},//Bottom left
+    {PDQ_ILI9341::ILI9341_TFTHEIGHT-CROSS_CORNER_OFFSET,PDQ_ILI9341::ILI9341_TFTWIDTH-CROSS_CORNER_OFFSET}//Bottom right
+  };
   
   displayClear(DISPLAY_BLACK);
   strncpy_P(b,(const char*)F("Click on the cross"),sizeof(b));
   displayText(b, 20,100, 200, 50, DISPLAY_WHITE, DISPLAY_BLACK, DISPLAY_BLACK);
 
-  // TOP-LEFT
-  displayHline(10,20,20,DISPLAY_WHITE);
-  displayVline(20,10,20, DISPLAY_WHITE);
+  Point cal_points[sizeof(CROSS_CORNER_POINTS)/sizeof(CROSS_CORNER_POINTS[0])];
 
-  while(!readTouch(&ts_point))
-    delay(100);
-  while(readTouch(&ts_point))
-    delay(100);
-   x1 = ts_point.x;
-   y1 = ts_point.y; 
+  for(uint8_t i = 0; i < sizeof(CROSS_CORNER_POINTS)/sizeof(CROSS_CORNER_POINTS[0]); ++i){
+    drawCross(CROSS_CORNER_POINTS[i].x,CROSS_CORNER_POINTS[i].y,DISPLAY_WHITE);
+    while(!readTouch(&cal_points[i])){
+      delay(100);
+    }
+    while(readTouch(&cal_points[i])){
+      delay(100);
+    }
+    drawCross(CROSS_CORNER_POINTS[i].x,CROSS_CORNER_POINTS[i].y,DISPLAY_BLACK);
+    delay(1000);//Ensure that nobody is pressing the screen before we do the next point
+  }
 
-  //rubout the previous one
-  displayHline(10,20,20,DISPLAY_BLACK);
-  displayVline(20,10,20, DISPLAY_BLACK);
+  //We can get nicer scaling if we allow more resolution on the divisor
+  constexpr int32_t SCALE_SENSITIVITY_MULTIPLIER = 10;
 
-  delay(1000);
-   
-  //TOP RIGHT
-  displayHline(290,20,20,DISPLAY_WHITE);
-  displayVline(300,10,20, DISPLAY_WHITE);
+  const int16_t diff_x_top = cal_points[1].x - cal_points[0].x;
+  const int16_t diff_x_bottom = cal_points[3].x - cal_points[2].x;
+  constexpr int32_t diff_x_target = CROSS_CORNER_POINTS[1].x - CROSS_CORNER_POINTS[0].x;
 
-  while(!readTouch(&ts_point))
-    delay(100); 
-  while(readTouch(&ts_point))
-    delay(100);
-   x2 = ts_point.x;
-   y2 = ts_point.y; 
+  //Average the measured differences
+  globalSettings.touchSlopeX = SCALE_SENSITIVITY_MULTIPLIER*(diff_x_top + diff_x_bottom) / (2*diff_x_target);
 
-  displayHline(290,20,20,DISPLAY_BLACK);
-  displayVline(300,10,20, DISPLAY_BLACK);
+  const int16_t diff_y_left = cal_points[2].y - cal_points[0].y;
+  const int16_t diff_y_right = cal_points[3].y - cal_points[1].y;
+  constexpr int32_t diff_y_target = CROSS_CORNER_POINTS[2].y - CROSS_CORNER_POINTS[0].y;
 
-  delay(1000);
+  //Average the measured differences
+  globalSettings.touchSlopeY = SCALE_SENSITIVITY_MULTIPLIER*(diff_y_left + diff_y_right) / (2*diff_y_target);
 
-  //BOTTOM LEFT
-  displayHline(10,220,20,DISPLAY_WHITE);
-  displayVline(20,210,20, DISPLAY_WHITE);
-  
-  while(!readTouch(&ts_point))
-    delay(100);
-   x3 = ts_point.x;
-   y3 = ts_point.y; 
-     
-  while(readTouch(&ts_point))
-    delay(100);
-  displayHline(10,220,20,DISPLAY_BLACK);
-  displayVline(20,210,20, DISPLAY_BLACK);
-
-  delay(1000);
-
-  //BOTTOM RIGHT
-  displayHline(290,220,20,DISPLAY_WHITE);
-  displayVline(300,210,20, DISPLAY_WHITE);
-
-  while(!readTouch(&ts_point))
-    delay(100);
-   x4 = ts_point.x;
-   y4 = ts_point.y; 
-     
-  
-  displayHline(290,220,20,DISPLAY_BLACK);
-  displayVline(300,210,20, DISPLAY_BLACK);
-
-  // we average two readings and divide them by half and store them as scaled integers 10 times their actual, fractional value
-  //the x points are located at 20 and 300 on x axis, hence, the delta x is 280, we take 28 instead, to preserve fractional value,
-  //there are two readings (x1,x2) and (x3, x4). Hence, we have to divide by 28 * 2 = 56 
-  globalSettings.touchSlopeX = ((x4 - x3) + (x2 - x1))/56; 
-  //the y points are located at 20 and 220 on the y axis, hence, the delta is 200. we take it as 20 instead, to preserve the fraction value 
-  //there are two readings (y1, y2) and (y3, y4). Hence we have to divide by 20 * 2 = 40
-  globalSettings.touchSlopeY = ((y3 - y1) + (y4 - y2))/40;
-  
-  //x1, y1 is at 20 pixels
-  globalSettings.touchOffsetX = x1 + -((20 * globalSettings.touchSlopeX)/10);
-  globalSettings.touchOffsetY = y1 + -((20 * globalSettings.touchSlopeY)/10);
+  globalSettings.touchOffsetX = cal_points[0].x - ((CROSS_CORNER_OFFSET * globalSettings.touchSlopeX)/SCALE_SENSITIVITY_MULTIPLIER);
+  globalSettings.touchOffsetY = cal_points[0].y - ((CROSS_CORNER_OFFSET * globalSettings.touchSlopeY)/SCALE_SENSITIVITY_MULTIPLIER);
 
 /*
   Serial.print(x1);Serial.print(':');Serial.println(y1);
