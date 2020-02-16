@@ -4,13 +4,12 @@
 
 #include "ubitx.h"//pin assignments
 
-#define Z_THRESHOLD     400
-#define Z_THRESHOLD_INT  75
-#define MSEC_THRESHOLD  3
+constexpr int16_t Z_THRESHOLD = 400;
+constexpr uint8_t MSEC_THRESHOLD = 3;
 
-static uint32_t msraw=0x80000000;
-static  int16_t xraw=0, yraw=0, zraw=0;
-static uint8_t rotation = 1;
+uint32_t msraw=0x80000000;
+int16_t xraw=0, yraw=0, zraw=0;
+constexpr uint8_t rotation = 1;
 
 int16_t touch_besttwoavg( int16_t x , int16_t y , int16_t z ) {
   int16_t da, db, dc;
