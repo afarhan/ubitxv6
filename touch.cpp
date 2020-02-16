@@ -38,19 +38,6 @@ void touch_update(){
   int z = z1 + 4095;
   int16_t z2 = SPI.transfer16(0x91 /* X */) >> 3;
   z -= z2;
-  if (z >= Z_THRESHOLD) {
-    SPI.transfer16(0x91 /* X */);  // dummy X measure, 1st is always noisy
-    data[0] = SPI.transfer16(0xD1 /* Y */) >> 3;
-    data[1] = SPI.transfer16(0x91 /* X */) >> 3; // make 3 x-y measurements
-    data[2] = SPI.transfer16(0xD1 /* Y */) >> 3;
-    data[3] = SPI.transfer16(0x91 /* X */) >> 3;
-  }
-  else data[0] = data[1] = data[2] = data[3] = 0; // Compiler warns these values may be used unset on early exit.
-  data[4] = SPI.transfer16(0xD0 /* Y */) >> 3;  // Last Y touch power down
-  data[5] = SPI.transfer16(0) >> 3;
-  digitalWrite(CS_PIN, HIGH);
-  SPI.setClockDivider(SPI_CLOCK_DIV2);//Return to full speed for TFT
-
   if (z < 0) z = 0;
   if (z < Z_THRESHOLD) { // if ( !touched ) {
     // Serial.println();
@@ -58,6 +45,16 @@ void touch_update(){
     return;
   }
   zraw = z;
+
+  SPI.transfer16(0x91 /* X */);  // dummy X measure, 1st is always noisy
+  data[0] = SPI.transfer16(0xD1 /* Y */) >> 3;
+  data[1] = SPI.transfer16(0x91 /* X */) >> 3; // make 3 x-y measurements
+  data[2] = SPI.transfer16(0xD1 /* Y */) >> 3;
+  data[3] = SPI.transfer16(0x91 /* X */) >> 3;
+  data[4] = SPI.transfer16(0xD0 /* Y */) >> 3;  // Last Y touch power down
+  data[5] = SPI.transfer16(0) >> 3;
+  digitalWrite(CS_PIN, HIGH);
+  SPI.setClockDivider(SPI_CLOCK_DIV2);//Return to full speed for TFT
   
   int16_t x = touch_besttwoavg( data[0], data[2], data[4] );
   int16_t y = touch_besttwoavg( data[1], data[3], data[5] );
