@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include "settings.h"
-#include "ubitx.h"
 
 // *************  SI5315 routines - tks Jerry Gaffke, KE7ER   ***********************
 
