@@ -34,12 +34,13 @@
 #include "menu.h"
 #include "menu_main.h"
 #include "morse.h"
+#include "pin_definitions.h"
 #include "nano_gui.h"
 #include "settings.h"
 #include "setup.h"
 #include "touch.h"
+#include "tuner.h"
 #include "ui_touch.h"
-#include "ubitx.h"
 
 /**
  * The Arduino, unlike C/C++ on a regular computer with gigabytes of RAM, has very little memory.
@@ -58,218 +59,6 @@ char c[30];
 //during CAT commands, we will freeeze the display until CAT is disengaged
 unsigned char doingCAT = 0;
 
-
-/**
- * Below are the basic functions that control the uBitx. Understanding the functions before 
- * you start hacking around
- */
-
-void saveVFOs()
-{
-  SaveSettingsToEeprom();
-}
-
-/**
- * Select the properly tx harmonic filters
- * The four harmonic filters use only three relays
- * the four LPFs cover 30-21 Mhz, 18 - 14 Mhz, 7-10 MHz and 3.5 to 5 Mhz
- * Briefly, it works like this, 
- * - When KT1 is OFF, the 'off' position routes the PA output through the 30 MHz LPF
- * - When KT1 is ON, it routes the PA output to KT2. Which is why you will see that
- *   the KT1 is on for the three other cases.
- * - When the KT1 is ON and KT2 is off, the off position of KT2 routes the PA output
- *   to 18 MHz LPF (That also works for 14 Mhz) 
- * - When KT1 is On, KT2 is On, it routes the PA output to KT3
- * - KT3, when switched on selects the 7-10 Mhz filter
- * - KT3 when switched off selects the 3.5-5 Mhz filter
- * See the circuit to understand this
- */
-
-void setTXFilters(unsigned long freq){
-  
-  if (freq > 21000000L){  // the default filter is with 35 MHz cut-off
-    digitalWrite(TX_LPF_A, 0);
-    digitalWrite(TX_LPF_B, 0);
-    digitalWrite(TX_LPF_C, 0);
-  }
-  else if (freq >= 14000000L){ //thrown the KT1 relay on, the 30 MHz LPF is bypassed and the 14-18 MHz LPF is allowd to go through
-    digitalWrite(TX_LPF_A, 1);
-    digitalWrite(TX_LPF_B, 0);
-    digitalWrite(TX_LPF_C, 0);
-  }
-  else if (freq > 7000000L){
-    digitalWrite(TX_LPF_A, 0);
-    digitalWrite(TX_LPF_B, 1);
-    digitalWrite(TX_LPF_C, 0);
-  }
-  else {
-    digitalWrite(TX_LPF_A, 0);
-    digitalWrite(TX_LPF_B, 0);
-    digitalWrite(TX_LPF_C, 1);
-  }
-}
-
-
-void setTXFilters_v5(unsigned long freq){
-  
-  if (freq > 21000000L){  // the default filter is with 35 MHz cut-off
-    digitalWrite(TX_LPF_A, 0);
-    digitalWrite(TX_LPF_B, 0);
-    digitalWrite(TX_LPF_C, 0);
-  }
-  else if (freq >= 14000000L){ //thrown the KT1 relay on, the 30 MHz LPF is bypassed and the 14-18 MHz LPF is allowd to go through
-    digitalWrite(TX_LPF_A, 1);
-    digitalWrite(TX_LPF_B, 0);
-    digitalWrite(TX_LPF_C, 0);
-  }
-  else if (freq > 7000000L){
-    digitalWrite(TX_LPF_A, 0);
-    digitalWrite(TX_LPF_B, 1);
-    digitalWrite(TX_LPF_C, 0);
-  }
-  else {
-    digitalWrite(TX_LPF_A, 0);
-    digitalWrite(TX_LPF_B, 0);
-    digitalWrite(TX_LPF_C, 1);
-  }
-}
-
-
-/**
- * This is the most frequently called function that configures the 
- * radio to a particular frequeny, sideband and sets up the transmit filters
- * 
- * The transmit filter relays are powered up only during the tx so they dont
- * draw any current during rx. 
- * 
- * The carrier oscillator of the detector/modulator is permanently fixed at
- * uppper sideband. The sideband selection is done by placing the second oscillator
- * either 12 Mhz below or above the 45 Mhz signal thereby inverting the sidebands 
- * through mixing of the second local oscillator.
- */
- 
-void setFrequency(const unsigned long freq,
-                  const bool transmit){
-  static const unsigned long FIRST_IF = 45005000UL;
- 
-  setTXFilters(freq);
-
-  //Nominal values for the oscillators
-  uint32_t local_osc_freq = FIRST_IF + freq;
-  uint32_t ssb_osc_freq = FIRST_IF;//will be changed depending on sideband
-  uint32_t bfo_osc_freq = globalSettings.usbCarrierFreq;
-
-  if(TuningMode_e::TUNE_CW == globalSettings.tuningMode){
-    if(transmit){
-      //We don't do any mixing or converting when transmitting
-      local_osc_freq = freq;
-      ssb_osc_freq = 0;
-      bfo_osc_freq = 0;
-    }
-    else{
-      //We offset when receiving CW so that it's audible
-      if(VfoMode_e::VFO_MODE_USB == GetActiveVfoMode()){
-        local_osc_freq -= globalSettings.cwSideToneFreq;
-        ssb_osc_freq += globalSettings.usbCarrierFreq;
-      }
-      else{
-        local_osc_freq += globalSettings.cwSideToneFreq;
-        ssb_osc_freq -= globalSettings.usbCarrierFreq;
-      }
-    }
-  }
-  else{//SSB mode
-    if(VfoMode_e::VFO_MODE_USB == GetActiveVfoMode()){
-      ssb_osc_freq += globalSettings.usbCarrierFreq;
-    }
-    else{
-      ssb_osc_freq -= globalSettings.usbCarrierFreq;
-    }
-  }
-
-  si5351bx_setfreq(2, local_osc_freq);
-  si5351bx_setfreq(1, ssb_osc_freq);
-  si5351bx_setfreq(0, bfo_osc_freq);
-
-  SetActiveVfoFreq(freq);
-}
-
-/**
- * startTx is called by the PTT, cw keyer and CAT protocol to
- * put the uBitx in tx mode. It takes care of rit settings, sideband settings
- * Note: In cw mode, doesnt key the radio, only puts it in tx mode
- * CW offest is calculated as lower than the operating frequency when in LSB mode, and vice versa in USB mode
- */
- 
-void startTx(TuningMode_e tx_mode){
-  globalSettings.tuningMode = tx_mode;
-
-  if (globalSettings.ritOn){
-    //save the current as the rx frequency
-    uint32_t rit_tx_freq = globalSettings.ritFrequency;
-    globalSettings.ritFrequency = GetActiveVfoFreq();
-    setFrequency(rit_tx_freq,true);
-  }
-  else{
-    if(globalSettings.splitOn){
-      if(Vfo_e::VFO_B == globalSettings.activeVfo){
-        globalSettings.activeVfo = Vfo_e::VFO_A;
-      }
-      else{
-        globalSettings.activeVfo = Vfo_e::VFO_B;
-      }
-    }
-    setFrequency(GetActiveVfoFreq(),true);
-  }
-
-  digitalWrite(TX_RX, 1);//turn on the tx
-  globalSettings.txActive = true;
-  drawTx();
-}
-
-void stopTx(){
-  digitalWrite(TX_RX, 0);//turn off the tx
-  globalSettings.txActive = false;
-
-  if(globalSettings.ritOn){
-    uint32_t rit_rx_freq = globalSettings.ritFrequency;
-    globalSettings.ritFrequency = GetActiveVfoFreq();
-    setFrequency(rit_rx_freq);
-  }
-  else{
-    if(globalSettings.splitOn){
-      if(Vfo_e::VFO_B == globalSettings.activeVfo){
-        globalSettings.activeVfo = Vfo_e::VFO_A;
-      }
-      else{
-        globalSettings.activeVfo = Vfo_e::VFO_B;
-      }
-    }
-    setFrequency(GetActiveVfoFreq());
-  }
-  drawTx();
-}
-
-/**
- * ritEnable is called with a frequency parameter that determines
- * what the tx frequency will be
- */
-void ritEnable(unsigned long freq){
-  globalSettings.ritOn = true;
-  //save the non-rit frequency back into the VFO memory
-  //as RIT is a temporary shift, this is not saved to EEPROM
-  globalSettings.ritFrequency = freq;
-}
-
-// this is called by the RIT menu routine
-void ritDisable(){
-  if(globalSettings.ritOn){
-    globalSettings.ritOn = false;
-    setFrequency(globalSettings.ritFrequency);
-    updateDisplay();
-  }
-}
-
 /**
  * Basic User Interface Routines. These check the front panel for any activity
  */
@@ -286,12 +75,12 @@ void checkPTT(){
     return;
   }
     
-  if(digitalRead(PTT) == 0 && !globalSettings.txActive){
+  if(digitalRead(PIN_PTT) == 0 && !globalSettings.txActive){
     startTx(TuningMode_e::TUNE_SSB);
     delay(50); //debounce the PTT
   }
 	
-  if (digitalRead(PTT) == 1 && globalSettings.txActive)
+  if (digitalRead(PIN_PTT) == 1 && globalSettings.txActive)
     stopTx();
 }
 
@@ -319,87 +108,6 @@ ButtonPress_e checkButton(){
   }
 }
 
-void switchVFO(Vfo_e new_vfo){
-  ritDisable();//If we are in RIT mode, we need to disable it before setting the active VFO so that the correct VFO gets it's frequency restored
-
-  globalSettings.activeVfo = new_vfo;
-  setFrequency(GetActiveVfoFreq());
-  redrawVFOs();
-  saveVFOs();
-}
-
-/**
- * The tuning jumps by 50 Hz on each step when you tune slowly
- * As you spin the encoder faster, the jump size also increases 
- * This way, you can quickly move to another band by just spinning the 
- * tuning knob
- */
-
-void doTuning(){
-  static unsigned long prev_freq;
-  static unsigned long nextFrequencyUpdate = 0;
-
-  unsigned long now = millis();
-  
-  if (now >= nextFrequencyUpdate && prev_freq != GetActiveVfoFreq()){
-    updateDisplay();
-    nextFrequencyUpdate = now + 100;
-    prev_freq = GetActiveVfoFreq();
-  }
-
-  int s = enc_read();
-  if (!s)
-    return;
-
-  //Serial.println(s);
-
-  doingCAT = 0; // go back to manual mode if you were doing CAT
-  prev_freq = GetActiveVfoFreq();
-  uint32_t new_freq = prev_freq;
-
-  if (s > 10 || s < -10){
-    new_freq += 200L * s;
-  }
-  else if (s > 5 || s < -5){
-    new_freq += 100L * s;
-  }
-  else{
-    new_freq += 50L * s;
-  }
-  
-  //Transition from below to above the traditional threshold for USB
-  if(prev_freq < THRESHOLD_USB_LSB && new_freq >= THRESHOLD_USB_LSB){
-    SetActiveVfoMode(VfoMode_e::VFO_MODE_USB);
-  }
-  
-  //Transition from aboveo to below the traditional threshold for USB
-  if(prev_freq >= THRESHOLD_USB_LSB && new_freq < THRESHOLD_USB_LSB){
-    SetActiveVfoMode(VfoMode_e::VFO_MODE_LSB);
-  }
-
-  setFrequency(new_freq);
-}
-
-
-/**
- * RIT only steps back and forth by 100 hz at a time
- */
-void doRIT(){
-  int knob = enc_read();
-  uint32_t old_freq = GetActiveVfoFreq();
-  uint32_t new_freq = old_freq;
-
-  if (knob < 0)
-    new_freq -= 100l;
-  else if (knob > 0)
-    new_freq += 100;
- 
-  if (old_freq != new_freq){
-    setFrequency(new_freq);
-    updateDisplay();
-  }
-}
-
 /**
  * The settings are read from EEPROM. The first time around, the values may not be 
  * present or out of range, in this case, some intelligent defaults are copied into the 
@@ -415,33 +123,33 @@ void initPorts(){
   analogReference(DEFAULT);
 
   //??
-  pinMode(ENC_A, INPUT_PULLUP);
-  pinMode(ENC_B, INPUT_PULLUP);
-  pinMode(FBUTTON, INPUT_PULLUP);
+  pinMode(PIN_ENC_A, INPUT_PULLUP);
+  pinMode(PIN_ENC_B, INPUT_PULLUP);
+  pinMode(PIN_ENC_PUSH_BUTTON, INPUT_PULLUP);
   enc_setup();
   
   //configure the function button to use the external pull-up
-//  pinMode(FBUTTON, INPUT);
-//  digitalWrite(FBUTTON, HIGH);
+//  pinMode(PIN_ENC_PUSH_BUTTON, INPUT);
+//  digitalWrite(PIN_ENC_PUSH_BUTTON, HIGH);
 
-  pinMode(PTT, INPUT_PULLUP);
-//  pinMode(ANALOG_KEYER, INPUT_PULLUP);
+  pinMode(PIN_PTT, INPUT_PULLUP);
+//  pinMode(PIN_ANALOG_KEYER, INPUT_PULLUP);
 
-  pinMode(CW_TONE, OUTPUT);  
-  digitalWrite(CW_TONE, 0);
+  pinMode(PIN_CW_TONE, OUTPUT);
+  digitalWrite(PIN_CW_TONE, 0);
   
-  pinMode(TX_RX,OUTPUT);
-  digitalWrite(TX_RX, 0);
+  pinMode(PIN_TX_RXn,OUTPUT);
+  digitalWrite(PIN_TX_RXn, 0);
 
-  pinMode(TX_LPF_A, OUTPUT);
-  pinMode(TX_LPF_B, OUTPUT);
-  pinMode(TX_LPF_C, OUTPUT);
-  digitalWrite(TX_LPF_A, 0);
-  digitalWrite(TX_LPF_B, 0);
-  digitalWrite(TX_LPF_C, 0);
+  pinMode(PIN_TX_LPF_A, OUTPUT);
+  pinMode(PIN_TX_LPF_B, OUTPUT);
+  pinMode(PIN_TX_LPF_C, OUTPUT);
+  digitalWrite(PIN_TX_LPF_A, 0);
+  digitalWrite(PIN_TX_LPF_B, 0);
+  digitalWrite(PIN_TX_LPF_C, 0);
 
-  pinMode(CW_KEY, OUTPUT);
-  digitalWrite(CW_KEY, 0);
+  pinMode(PIN_CW_KEY, OUTPUT);
+  digitalWrite(PIN_CW_KEY, 0);
 }
 
 void setup()
