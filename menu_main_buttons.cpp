@@ -11,9 +11,10 @@
 #include "menu_numpad.h"
 #include "morse.h"
 #include "nano_gui.h"
+#include "scratch_space.h"
 #include "settings.h"
 #include "setup.h"
-#include "ubitx.h"//setFrequency, b
+#include "tuner.h"
 #include "utils.h"
 
 static const unsigned int LAYOUT_VFO_LABEL_X = 0;
@@ -587,5 +588,5 @@ void osMenu(){
 }
 
 void osNumpad(){
-  enterSubmenu(numpadMenu);
+  //enterSubmenu(numpadMenu);
 }
