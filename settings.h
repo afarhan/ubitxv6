@@ -12,6 +12,8 @@
 
 #pragma once
 
+#include <stdint.h>//uint8_t etc.
+
 /*
  * Loads default values for all settings
  */

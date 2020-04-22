@@ -2,8 +2,8 @@
 #include <stdint.h>
 #include <EEPROM.h>
 #include <Arduino.h>//only needed for debugging's Serial.print stuff
+#include "nano_gui.h"//redrawVFOs() function
 #include "settings.h"
-#include "ubitx.h"//redrawVFOs() function
 
 /**
  * These are the "magic" indices where these user changable settinngs are stored in the EEPROM
