@@ -34,7 +34,7 @@ void displayInit(void){
   tft.setFont(ubitx_font);
   tft.setTextWrap(true);
   tft.setTextColor(DISPLAY_GREEN,DISPLAY_BLACK);
-  tft.setTextSize(4);
+  tft.setTextSize(3);
   tft.setRotation(1);
 }
 
