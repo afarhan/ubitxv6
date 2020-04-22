@@ -1,6 +1,7 @@
 #include <Arduino.h>
+#include "pin_definitions.h"
 #include "settings.h"
-#include "ubitx.h"
+#include "tuner.h"
 
 /**
  CW Keyer
@@ -44,8 +45,8 @@ static const unsigned int cwAdcDashTo = 800;
  * each time it is called, the cwTimeOut is pushed further into the future
  */
 void cwKeydown(){
-  tone(CW_TONE, globalSettings.cwSideToneFreq);
-  digitalWrite(CW_KEY, 1);
+  tone(PIN_CW_TONE, globalSettings.cwSideToneFreq);
+  digitalWrite(PIN_CW_KEY, 1);
 
   globalSettings.cwExpirationTimeMs = millis() + globalSettings.cwActiveTimeoutMs;
 }
@@ -55,8 +56,8 @@ void cwKeydown(){
  * Pushes the cwTimeout further into the future
  */
 void cwKeyUp(){
-  noTone(CW_TONE);
-  digitalWrite(CW_KEY, 0);
+  noTone(PIN_CW_TONE);
+  digitalWrite(PIN_CW_KEY, 0);
   
   globalSettings.cwExpirationTimeMs = millis() + globalSettings.cwActiveTimeoutMs;
 }
@@ -77,10 +78,10 @@ uint8_t keyerControl = 0;
 char update_PaddleLatch(bool isUpdateKeyState) {
   unsigned char tmpKeyerControl = 0;
   
-  unsigned int paddle = analogRead(ANALOG_KEYER);
+  unsigned int paddle = analogRead(PIN_ANALOG_KEYER);
 
   //use the PTT as the key for tune up, quick QSOs
-  if (digitalRead(PTT) == 0)
+  if (digitalRead(PIN_PTT) == 0)
      tmpKeyerControl |= DIT_L;
   else if (paddle >= cwAdcDashFrom && paddle <= cwAdcDashTo)
     tmpKeyerControl |= DAH_L;
