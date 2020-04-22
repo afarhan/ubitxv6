@@ -1,7 +1,8 @@
 #include <Arduino.h>
-#include "settings.h"
-#include "ubitx.h"
 #include "nano_gui.h"
+#include "scratch_space.h"
+#include "settings.h"
+#include "tuner.h"
 
 /**
  * The CAT protocol is used by many radios to provide remote control to comptuers through
@@ -336,11 +337,12 @@ void processCATCommand2(byte* cmd) {
   case 0x81:
     //toggle the VFOs
     response[0] = 0;
-    if (VFO_A == globalSettings.activeVfo)
-      switchVFO(VFO_B);
-    else
-      switchVFO(VFO_A);
-    //menuVfoToggle(1); // '1' forces it to change the VFO
+    if (Vfo_e::VFO_A == globalSettings.activeVfo){
+      globalSettings.activeVfo = Vfo_e::VFO_B;
+    }
+    else{
+      globalSettings.activeVfo = Vfo_e::VFO_A;
+    }
     Serial.write(response,1);
     updateDisplay();
     break;
