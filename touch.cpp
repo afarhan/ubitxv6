@@ -2,7 +2,8 @@
 
 #include <SPI.h>
 
-#include "ubitx.h"//pin assignments
+#include "pin_definitions.h"
+#include "settings.h"
 
 constexpr int16_t Z_THRESHOLD = 400;
 constexpr uint8_t MSEC_THRESHOLD = 3;
@@ -10,6 +11,8 @@ constexpr uint8_t MSEC_THRESHOLD = 3;
 uint32_t msraw=0x80000000;
 int16_t xraw=0, yraw=0, zraw=0;
 constexpr uint8_t rotation = 1;
+
+SPISettings spiSettingsTouch(2000000,MSBFIRST,SPI_MODE0);
 
 int16_t touch_besttwoavg( int16_t x , int16_t y , int16_t z ) {
   int16_t da, db, dc;
@@ -31,8 +34,8 @@ void touch_update(){
   uint32_t now = millis();
   if (now - msraw < MSEC_THRESHOLD) return;
   
-  SPI.setClockDivider(SPI_CLOCK_DIV8);//2MHz
-  digitalWrite(CS_PIN, LOW);
+  SPI.beginTransaction(spiSettingsTouch);
+  digitalWrite(PIN_TOUCH_CS, LOW);
   SPI.transfer(0xB1 /* Z1 */);
   int16_t z1 = SPI.transfer16(0xC1 /* Z2 */) >> 3;
   int z = z1 + 4095;
@@ -42,6 +45,8 @@ void touch_update(){
   if (z < Z_THRESHOLD) { // if ( !touched ) {
     // Serial.println();
     zraw = 0;
+    digitalWrite(PIN_TOUCH_CS, HIGH);
+    SPI.endTransaction();
     return;
   }
   zraw = z;
@@ -53,8 +58,8 @@ void touch_update(){
   data[3] = SPI.transfer16(0x91 /* X */) >> 3;
   data[4] = SPI.transfer16(0xD0 /* Y */) >> 3;  // Last Y touch power down
   data[5] = SPI.transfer16(0) >> 3;
-  digitalWrite(CS_PIN, HIGH);
-  SPI.setClockDivider(SPI_CLOCK_DIV2);//Return to full speed for TFT
+  digitalWrite(PIN_TOUCH_CS, HIGH);
+  SPI.endTransaction();
   
   int16_t x = touch_besttwoavg( data[0], data[2], data[4] );
   int16_t y = touch_besttwoavg( data[1], data[3], data[5] );
@@ -82,8 +87,8 @@ void touch_update(){
 }
 
 void initTouch(){
-  pinMode(CS_PIN, OUTPUT);
-  digitalWrite(CS_PIN, HIGH);
+  pinMode(PIN_TOUCH_CS, OUTPUT);
+  digitalWrite(PIN_TOUCH_CS, HIGH);
 }
 
 bool readTouch(Point *const touch_point_out){
