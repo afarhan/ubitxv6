@@ -2,7 +2,7 @@
 #include <stdint.h>
 
 #include "encoder.h"
-#include "ubitx.h"//Pin definitions
+#include "pin_definitions.h"
 
 //Normal encoder state
 uint8_t prev_enc = 0;
@@ -16,7 +16,7 @@ static const uint8_t MOMENTUM_MULTIPLIER = 1;
 
 uint8_t enc_state (void)
 {
-  return (digitalRead(ENC_A)?1:0 + digitalRead(ENC_B)?2:0);
+  return (digitalRead(PIN_ENC_A)?1:0 + digitalRead(PIN_ENC_B)?2:0);
 }
 
 /*
@@ -71,13 +71,13 @@ void enc_setup(void)
 {
   enc_count = 0;
   // This is already done in setup() ?
-  //pinMode(ENC_A, INPUT);
-  //pinMode(ENC_B, INPUT);
+  //pinMode(PIN_ENC_A, INPUT);
+  //pinMode(PIN_ENC_B, INPUT);
   prev_enc = enc_state();
 
   // Setup Pin Change Interrupts for the encoder inputs
-  pci_setup(ENC_A);
-  pci_setup(ENC_B);
+  pci_setup(PIN_ENC_A);
+  pci_setup(PIN_ENC_B);
 
   //Set up timer interrupt for momentum
   TCCR1A = 0;//"normal" mode
