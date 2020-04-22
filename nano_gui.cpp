@@ -1,8 +1,9 @@
 #include <Arduino.h>
-#include "colors.h"
-#include "settings.h"
-#include "ubitx.h"
 #include "nano_gui.h"
+#include "colors.h"
+#include "pin_definitions.h"
+#include "scratch_space.h"
+#include "settings.h"
 #include "touch.h"
 
 #include <SPI.h>
@@ -12,8 +13,9 @@
 /*****************
  * Begin TFT functions
  *****************/
-#define ILI9341_CS_PIN TFT_CS
-#define ILI9341_DC_PIN TFT_DC
+#define ILI9341_CS_PIN PIN_TFT_CS
+#define ILI9341_DC_PIN PIN_TFT_DC
+#define	ILI9341_SAVE_SPCR (1) //Save state before/after to play nice with the touch screen
 #include "PDQ_MinLib/PDQ_ILI9341.h"
 PDQ_ILI9341 tft;
 
@@ -21,12 +23,12 @@ PDQ_ILI9341 tft;
 
 void displayInit(void){
   //Pulling this low 6 times should exit deep sleep mode
-  pinMode(TFT_CS,OUTPUT);
+  pinMode(PIN_TFT_CS,OUTPUT);
   for(uint8_t i = 0; i < 6; ++i){
-    digitalWrite(TFT_CS,HIGH);
-    digitalWrite(TFT_CS,LOW);
+    digitalWrite(PIN_TFT_CS,HIGH);
+    digitalWrite(PIN_TFT_CS,LOW);
   }
-  digitalWrite(TFT_CS,HIGH);//Disable writing for now
+  digitalWrite(PIN_TFT_CS,HIGH);//Disable writing for now
 
   tft.begin();
   tft.setFont(ubitx_font);
