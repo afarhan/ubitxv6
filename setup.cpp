@@ -3,9 +3,11 @@
 #include "menu.h"
 #include "morse.h"
 #include "nano_gui.h"
+#include "pin_definitions.h"
+#include "scratch_space.h"
 #include "setup.h"
 #include "settings.h"
-#include "ubitx.h"
+#include "tuner.h"
 #include "utils.h"
 
 /** Menus
@@ -269,13 +271,13 @@ void ssCwToneValidate(const long int candidate_value_in, long int* validated_val
 void ssCwToneChange(const long int new_value, char* buff_out, const size_t buff_out_size)
 {
   globalSettings.cwSideToneFreq = new_value;
-  tone(CW_TONE, globalSettings.cwSideToneFreq);
+  tone(PIN_CW_TONE, globalSettings.cwSideToneFreq);
   ltoa(globalSettings.cwSideToneFreq,buff_out,10);
   strncat_P(buff_out,(const char*)F("Hz"),buff_out_size - strlen(buff_out));
 }
 void ssCwToneFinalize(const long int final_value)
 {
-  noTone(CW_TONE);
+  noTone(PIN_CW_TONE);
   globalSettings.cwSideToneFreq = final_value;
   SaveSettingsToEeprom();
 }
