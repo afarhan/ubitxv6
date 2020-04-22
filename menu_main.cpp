@@ -9,8 +9,9 @@
 #include "menu_utils.h"
 #include "morse.h"
 #include "nano_gui.h"
+#include "scratch_space.h"
 #include "settings.h"
-#include "ubitx.h"//THRESHOLD_USB_LSB
+#include "tuner.h"//THRESHOLD_USB_LSB
 #include "utils.h"
 
 void drawMainMenu(void);
