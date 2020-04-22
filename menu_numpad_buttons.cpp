@@ -5,8 +5,9 @@
 
 #include "color_theme.h"
 #include "nano_gui.h"
+#include "scratch_space.h"
 #include "settings.h"
-#include "ubitx.h"//setFrequency, b
+#include "tuner.h"//setFrequency
 #include "utils.h"
 
 static const unsigned int LAYOUT_MODE_TEXT_X = 60;
