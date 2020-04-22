@@ -1,7 +1,8 @@
-#include <Arduino.h>
-#include "ubitx.h"
-#include "settings.h"
+#include <Arduino.h>//tone
+
 #include "morse.h"
+#include "pin_definitions.h"
+#include "settings.h"
 
 struct Morse {
   char letter;
@@ -84,7 +85,7 @@ void morseLetter(char c, uint16_t dit_duration_ms){
       //now we are at the first zero, skip and carry on
       mask = mask >> 1;
       while(mask){
-        tone(CW_TONE, globalSettings.cwSideToneFreq,10000);
+        tone(PIN_CW_TONE, globalSettings.cwSideToneFreq,10000);
         if (mask & code){
           delay(3 * dit_duration_ms);
           //Serial.print('-');
@@ -94,7 +95,7 @@ void morseLetter(char c, uint16_t dit_duration_ms){
           //Serial.print('.');
         }
         //Serial.print('#');
-        noTone(CW_TONE);
+        noTone(PIN_CW_TONE);
         delay(dit_duration_ms); // space between dots and dashes
         mask = mask >> 1;
       }
@@ -120,8 +121,8 @@ void morseBool(bool val){
   if(!globalSettings.morseMenuOn){
     return;
   }
-  tone(CW_TONE, globalSettings.cwSideToneFreq + (val ? RELATIVE_OFFSET_HZ : -RELATIVE_OFFSET_HZ));
+  tone(PIN_CW_TONE, globalSettings.cwSideToneFreq + (val ? RELATIVE_OFFSET_HZ : -RELATIVE_OFFSET_HZ));
   delay(3*globalSettings.cwDitDurationMs);
-  noTone(CW_TONE);
+  noTone(PIN_CW_TONE);
   delay(3*globalSettings.cwDitDurationMs);
 }
