@@ -1,18 +1,13 @@
 #pragma once
 
 #include <stdint.h>
+#include "button_press_e.h"
 #include "point.h"
 
 enum MenuReturn_e : uint8_t {
   StillActive,
   ExitedRedraw,
   ExitedNoRedraw
-};
-
-enum ButtonPress_e : uint8_t {
-  NotPressed,
-  ShortPress,
-  LongPress
 };
 
 struct Menu_t {

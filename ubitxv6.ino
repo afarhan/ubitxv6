@@ -30,7 +30,6 @@
  *  Si5351 object to control the clocks.
  */
 #include <Wire.h>
-#include "button_timing.h"
 #include "encoder.h"
 #include "menu.h"
 #include "menu_main.h"
@@ -84,30 +83,6 @@ void checkPTT(){
 	
   if (digitalRead(PIN_PTT) == 1 && globalSettings.txActive)
     stopTx();
-}
-
-//check if the encoder button was pressed
-ButtonPress_e checkButton(){
-  if (!IsButtonPressed()){
-    return ButtonPress_e::NotPressed;
-  }
-  delay(DEBOUNCE_DELAY_MS);
-  if (!IsButtonPressed()){//debounce
-    return ButtonPress_e::NotPressed;
-  }
-
-  uint16_t down_time = 0;
-  while(IsButtonPressed() && (down_time < LONG_PRESS_TIME_MS)){
-    delay(LONG_PRESS_POLL_TIME_MS);
-    down_time += LONG_PRESS_POLL_TIME_MS;
-  }
-
-  if(down_time < LONG_PRESS_TIME_MS){
-    return ButtonPress_e::ShortPress;
-  }
-  else{
-    return ButtonPress_e::LongPress;
-  }
 }
 
 /**
@@ -167,7 +142,7 @@ void setup()
   setFrequency(globalSettings.vfoA.frequency);
 
   //Run initial calibration routine if button is pressed during power up
-  if(IsButtonPressed()){
+  if(ButtonPress_e::NotPressed != CheckTunerButton()){
     LoadDefaultSettings();
     setupTouch();
     SetActiveVfoMode(VfoMode_e::VFO_MODE_USB);
@@ -201,7 +176,7 @@ void loop(){
     return;
   }
     
-  ButtonPress_e tuner_button = checkButton();
+  ButtonPress_e tuner_button = CheckTunerButton();
   Point touch_point;
   ButtonPress_e touch_button = checkTouch(&touch_point);
   int16_t knob = enc_read();

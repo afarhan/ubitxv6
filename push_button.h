@@ -1,3 +1,5 @@
 #pragma once
 
-bool IsButtonPressed(); //returns true if the encoder button is pressed
+#include "button_press_e.h"
+
+ButtonPress_e CheckTunerButton();
