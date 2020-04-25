@@ -94,7 +94,7 @@ uint32_t getFreqInBand(const uint32_t frequency,
     //We're not in a known band - just go to the center of the target band
     Band_t band;
     memcpy_P(&band,&bands[target_band_index],sizeof(band));
-    return ((band.max - band.min)/2/100)*100;//truncated 100Hz
+    return band.min + ((band.max - band.min)/2/100)*100;//midpoint truncated to 100Hz resolution
   }
   else{
     //We're in a known band. Match the relative position in the target band.
