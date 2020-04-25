@@ -451,6 +451,11 @@ void osSidebandMode(VfoMode_e mode){
   drawButton(&button);
 }
 
+void updateSidebandButtons()
+{
+  osSidebandMode(GetActiveVfoMode());
+}
+
 ButtonStatus_e bsUsb(){
   return (VfoMode_e::VFO_MODE_USB == GetActiveVfoMode()) ? ButtonStatus_e::Active : ButtonStatus_e::Inactive;
 }
