@@ -1,5 +1,6 @@
 #include <Arduino.h>//tone
 
+#include "encoder.h"
 #include "morse.h"
 #include "pin_definitions.h"
 #include "settings.h"

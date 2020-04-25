@@ -31,10 +31,12 @@
  */
 #include <Wire.h>
 #include "button_timing.h"
+#include "encoder.h"
 #include "menu.h"
 #include "menu_main.h"
 #include "morse.h"
 #include "pin_definitions.h"
+#include "push_button.h"
 #include "nano_gui.h"
 #include "settings.h"
 #include "setup.h"
@@ -86,16 +88,16 @@ void checkPTT(){
 
 //check if the encoder button was pressed
 ButtonPress_e checkButton(){
-  if (!btnDown()){
+  if (!IsButtonPressed()){
     return ButtonPress_e::NotPressed;
   }
   delay(DEBOUNCE_DELAY_MS);
-  if (!btnDown()){//debounce
+  if (!IsButtonPressed()){//debounce
     return ButtonPress_e::NotPressed;
   }
 
   uint16_t down_time = 0;
-  while(btnDown() && (down_time < LONG_PRESS_TIME_MS)){
+  while(IsButtonPressed() && (down_time < LONG_PRESS_TIME_MS)){
     delay(LONG_PRESS_POLL_TIME_MS);
     down_time += LONG_PRESS_POLL_TIME_MS;
   }
@@ -165,7 +167,7 @@ void setup()
   setFrequency(globalSettings.vfoA.frequency);
 
   //Run initial calibration routine if button is pressed during power up
-  if(btnDown()){
+  if(IsButtonPressed()){
     LoadDefaultSettings();
     setupTouch();
     SetActiveVfoMode(VfoMode_e::VFO_MODE_USB);

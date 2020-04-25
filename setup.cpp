@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include "colors.h"
+#include "encoder.h"
 #include "menu.h"
 #include "morse.h"
 #include "nano_gui.h"

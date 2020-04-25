@@ -43,7 +43,3 @@ static const uint8_t PIN_CW_KEY = 2;          //  Pin goes high during CW keydow
                                               // ...key can be up within a tx period
 //1 is UART RX
 //0 is UART TX
-
-int enc_read(void); // returns the number of ticks in a short interval, +ve in clockwise, -ve in anti-clockwise
-void enc_setup(void);  // Setups up initial values and interrupts.
-int btnDown(); //returns true if the encoder button is pressed
