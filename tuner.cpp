@@ -5,10 +5,7 @@
 #include "nano_gui.h"
 #include "pin_definitions.h"
 
-/**
- * Below are the basic functions that control the uBitx. Understanding the functions before 
- * you start hacking around
- */
+static const uint32_t THRESHOLD_USB_LSB = 10000000L;
 
 void saveVFOs()
 {
@@ -198,4 +195,24 @@ void ritDisable(){
     setFrequency(globalSettings.ritFrequency);
     updateDisplay();
   }
+}
+
+bool autoSelectSidebandChanged(const uint32_t old_frequency)
+{
+  const uint32_t new_freq = GetActiveVfoFreq();
+  //Transition from below to above the traditional threshold for USB
+  if(old_frequency < THRESHOLD_USB_LSB && new_freq >= THRESHOLD_USB_LSB){
+    SetActiveVfoMode(VfoMode_e::VFO_MODE_USB);
+    setFrequency(new_freq);//Refresh tuning to activate the new sideband mode
+    return true;
+  }
+  
+  //Transition from above to below the traditional threshold for USB
+  if(old_frequency >= THRESHOLD_USB_LSB && new_freq < THRESHOLD_USB_LSB){
+    SetActiveVfoMode(VfoMode_e::VFO_MODE_LSB);
+    setFrequency(new_freq);//Refresh tuning to activate the new sideband mode
+    return true;
+  }
+
+  return false;
 }

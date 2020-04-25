@@ -56,19 +56,12 @@ void mainMenuTune(int16_t knob)
   current_freq = GetActiveVfoFreq();
   const uint32_t new_freq = current_freq + (50 * knob);
   
-  //Transition from below to above the traditional threshold for USB
-  if(current_freq < THRESHOLD_USB_LSB && new_freq >= THRESHOLD_USB_LSB){
-    SetActiveVfoMode(VfoMode_e::VFO_MODE_USB);
-    updateSidebandButtons();
-  }
-  
-  //Transition from above to below the traditional threshold for USB
-  if(current_freq >= THRESHOLD_USB_LSB && new_freq < THRESHOLD_USB_LSB){
-    SetActiveVfoMode(VfoMode_e::VFO_MODE_LSB);
+  setFrequency(new_freq);
+
+  if(autoSelectSidebandChanged(current_freq)){
     updateSidebandButtons();
   }
 
-  setFrequency(new_freq);
   const uint32_t old_freq = current_freq;
   current_freq = new_freq;
 

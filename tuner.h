@@ -18,5 +18,4 @@ void si5351bx_setfreq(uint8_t clknum, uint32_t fout);
 void initOscillators();
 void si5351_set_calibration(int32_t cal); //calibration is a small value that is nudged to make up for the inaccuracies of the reference 25 MHz crystal frequency 
 
-// limits the tuning and working range of the ubitx between 3 MHz and 30 MHz
-static const uint32_t THRESHOLD_USB_LSB = 10000000L;
+bool autoSelectSidebandChanged(const uint32_t old_frequency); //if the current frequency defaults to a different sideband mode, updates to that sideband mode and returns true. Else, returns false
