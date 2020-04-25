@@ -8,6 +8,7 @@
 #include "scratch_space.h"
 #include "setup.h"
 #include "settings.h"
+#include "si5351.h"
 #include "tuner.h"
 #include "utils.h"
 

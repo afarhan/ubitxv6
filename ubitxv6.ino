@@ -39,6 +39,7 @@
 #include "nano_gui.h"
 #include "settings.h"
 #include "setup.h"
+#include "si5351.h"
 #include "touch.h"
 #include "tuner.h"
 #include "ui_touch.h"

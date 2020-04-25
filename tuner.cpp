@@ -4,6 +4,7 @@
 
 #include "nano_gui.h"
 #include "pin_definitions.h"
+#include "si5351.h"
 
 static const uint32_t THRESHOLD_USB_LSB = 10000000L;
 
