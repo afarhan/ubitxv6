@@ -1,4 +1,4 @@
-#include <Arduino.h>
+#include "toneAC2/toneAC2.h"
 #include "colors.h"
 #include "encoder.h"
 #include "menu.h"
@@ -279,13 +279,13 @@ void ssCwToneValidate(const long int candidate_value_in, long int* validated_val
 void ssCwToneChange(const long int new_value, char* buff_out, const size_t buff_out_size)
 {
   globalSettings.cwSideToneFreq = new_value;
-  tone(PIN_CW_TONE, globalSettings.cwSideToneFreq);
+  toneAC2(PIN_CW_TONE, globalSettings.cwSideToneFreq);
   ltoa(globalSettings.cwSideToneFreq,buff_out,10);
   strncat_P(buff_out,(const char*)F("Hz"),buff_out_size - strlen(buff_out));
 }
 void ssCwToneFinalize(const long int final_value)
 {
-  noTone(PIN_CW_TONE);
+  noToneAC2();
   globalSettings.cwSideToneFreq = final_value;
   SaveSettingsToEeprom();
 }

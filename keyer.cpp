@@ -1,4 +1,4 @@
-#include <Arduino.h>
+#include "toneAC2/toneAC2.h"
 #include "pin_definitions.h"
 #include "settings.h"
 #include "tuner.h"
@@ -45,7 +45,7 @@ static const unsigned int cwAdcDashTo = 800;
  * each time it is called, the cwTimeOut is pushed further into the future
  */
 void cwKeydown(){
-  tone(PIN_CW_TONE, globalSettings.cwSideToneFreq);
+  toneAC2(PIN_CW_TONE, globalSettings.cwSideToneFreq);
   digitalWrite(PIN_CW_KEY, 1);
 
   globalSettings.cwExpirationTimeMs = millis() + globalSettings.cwActiveTimeoutMs;
@@ -56,7 +56,7 @@ void cwKeydown(){
  * Pushes the cwTimeout further into the future
  */
 void cwKeyUp(){
-  noTone(PIN_CW_TONE);
+  noToneAC2();
   digitalWrite(PIN_CW_KEY, 0);
   
   globalSettings.cwExpirationTimeMs = millis() + globalSettings.cwActiveTimeoutMs;
