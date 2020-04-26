@@ -53,8 +53,13 @@ static const unsigned int LAYOUT_ITEM_WIDTH = 260;
 static const unsigned int LAYOUT_ITEM_HEIGHT = 30;
 static const unsigned int LAYOUT_ITEM_PITCH_Y = LAYOUT_ITEM_HEIGHT + 1;
 
+static const unsigned int LAYOUT_SETTING_REF_VALUE_X = LAYOUT_ITEM_X;
+static const unsigned int LAYOUT_SETTING_REF_VALUE_Y = LAYOUT_ITEM_Y + 3*LAYOUT_ITEM_PITCH_Y;
+static const unsigned int LAYOUT_SETTING_REF_VALUE_WIDTH = LAYOUT_ITEM_WIDTH;
+static const unsigned int LAYOUT_SETTING_REF_VALUE_HEIGHT = LAYOUT_ITEM_HEIGHT;
+
 static const unsigned int LAYOUT_SETTING_VALUE_X = LAYOUT_ITEM_X;
-static const unsigned int LAYOUT_SETTING_VALUE_Y = LAYOUT_ITEM_Y + 3*LAYOUT_ITEM_PITCH_Y;
+static const unsigned int LAYOUT_SETTING_VALUE_Y = LAYOUT_ITEM_Y + 4*LAYOUT_ITEM_PITCH_Y;
 static const unsigned int LAYOUT_SETTING_VALUE_WIDTH = LAYOUT_ITEM_WIDTH;
 static const unsigned int LAYOUT_SETTING_VALUE_HEIGHT = LAYOUT_ITEM_HEIGHT;
 
@@ -127,6 +132,7 @@ void initSetting()
   screen.Initialize(&setupMenuLastValue);
   screen.OnValueChange(setupMenuLastValue,b,sizeof(b));
   displayText(b, LAYOUT_SETTING_VALUE_X, LAYOUT_SETTING_VALUE_Y, LAYOUT_SETTING_VALUE_WIDTH, LAYOUT_SETTING_VALUE_HEIGHT, COLOR_TEXT, COLOR_TITLE_BACKGROUND, COLOR_BACKGROUND);
+  displayText(b, LAYOUT_SETTING_REF_VALUE_X, LAYOUT_SETTING_REF_VALUE_Y, LAYOUT_SETTING_REF_VALUE_WIDTH, LAYOUT_SETTING_REF_VALUE_HEIGHT, COLOR_SETTING_BACKGROUND, COLOR_BACKGROUND, COLOR_BACKGROUND);
   setupMenuRawValue = setupMenuLastValue * (int32_t)screen.KnobDivider;
 }
 
