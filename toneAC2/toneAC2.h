@@ -68,6 +68,6 @@
     #define TIMER2_COMPA_vect TIMER2_COMP_vect
   #endif
 
-  void toneAC2(uint8_t pin1, uint8_t pin2, unsigned int frequency = 0, unsigned long length = 0, uint8_t background = false);
+  void toneAC2(uint8_t pin1, unsigned int frequency = 0, unsigned long length = 0, uint8_t background = false);
   void noToneAC2();
 #endif
