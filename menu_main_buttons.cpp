@@ -71,7 +71,7 @@ void drawVersion()
 
 void drawCallsign()
 {
-  strcpy_P(b,CALLSIGN_STRING);
+  strncpy_P(b,CALLSIGN_STRING,sizeof(b));
   displayText(b,LAYOUT_CW_TEXT_X,LAYOUT_CW_TEXT_Y,LAYOUT_CW_TEXT_WIDTH,LAYOUT_CW_TEXT_HEIGHT,COLOR_ACTIVE_TEXT,COLOR_BACKGROUND,COLOR_BACKGROUND);
 }
 
