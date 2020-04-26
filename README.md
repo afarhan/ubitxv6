@@ -1,9 +1,18 @@
-# ubitxv6
-uBitx v6.3.1 Arduino sketch
-IMPORTANT: It will compile only if you place this in the Arduino's own sketch directory! This is because of the restricted places that the Arduino searches for it's include files (the headers).
+# uBiTXv6
 
-- This is refactored to remove dependencies on any library except the standard Arduino libraries of SPI, I2C, EEPROM, etc.
-- This works with ILI9341 display controller. The pins used by the TFT display are the same as that of the 16x2 LCD display of the previous versions.
-- As the files are now split into .cpp files, the nano gui, morse reader, etc. can be reused in other projects as well
+This project is found at https://github.com/reedbn/ubitxv6/
 
-This is released under GPL v3 license.
+It was forked from https://github.com/afarhan/ubitxv6/
+
+The purpose of this project is to clean up (modularize) the source code, and add features that were not present
+in Ashhar's original version of the project, without requiring any hardware modifications to a stock uBiTXv6.
+
+# Personalized Callsign
+
+To edit the callsign displayed, open the file `callsign.cpp` and change the string. Then re-compile and upload.
+
+# License
+
+The majority of this code is released under GPL v3 license, per Ashhar's original code.
+
+The files in the PDQ_MinLib subdirectory were copied from https://github.com/XarkLabs/PDQ_GFX_Libs, and have Adafruit's BSD License.
