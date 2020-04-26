@@ -5,7 +5,7 @@
 #include <WString.h>//F()
 
 #include "bands.h"
-#include "button.h"
+#include "button_grid.h"
 #include "color_theme.h"
 #include "menu_main.h"
 #include "menu_numpad.h"
@@ -54,10 +54,6 @@ void toVfoA(char* text_out, const uint16_t max_text_size);
 ButtonStatus_e bsVfoA();
 void osVfoA();
 constexpr Button bVfoA PROGMEM = {
-  LAYOUT_VFO_LABEL_X + 0*LAYOUT_VFO_LABEL_PITCH_X,
-  LAYOUT_VFO_LABEL_Y,
-  LAYOUT_VFO_LABEL_WIDTH,
-  LAYOUT_VFO_LABEL_HEIGHT,
   nullptr,
   toVfoA,
   bsVfoA,
@@ -69,10 +65,6 @@ void toVfoB(char* text_out, const uint16_t max_text_size);
 ButtonStatus_e bsVfoB();
 void osVfoB();
 constexpr Button bVfoB PROGMEM = {
-  LAYOUT_VFO_LABEL_X + 1*LAYOUT_VFO_LABEL_PITCH_X,
-  LAYOUT_VFO_LABEL_Y,
-  LAYOUT_VFO_LABEL_WIDTH,
-  LAYOUT_VFO_LABEL_HEIGHT,
   nullptr,
   toVfoB,
   bsVfoB,
@@ -84,10 +76,6 @@ constexpr char txtRit [] PROGMEM = "RIT";
 ButtonStatus_e bsRit();
 void osRit();
 constexpr Button bRit PROGMEM = {
-  LAYOUT_BUTTON_X + 0*LAYOUT_BUTTON_PITCH_X,
-  LAYOUT_BUTTON_Y + 0*LAYOUT_BUTTON_PITCH_Y,
-  LAYOUT_BUTTON_WIDTH,
-  LAYOUT_BUTTON_HEIGHT,
   txtRit,
   nullptr,
   bsRit,
@@ -99,10 +87,6 @@ constexpr char txtUsb [] PROGMEM = "USB";
 ButtonStatus_e bsUsb();
 void osUsb();
 constexpr Button bUsb PROGMEM = {
-  LAYOUT_BUTTON_X + 1*LAYOUT_BUTTON_PITCH_X,
-  LAYOUT_BUTTON_Y + 0*LAYOUT_BUTTON_PITCH_Y,
-  LAYOUT_BUTTON_WIDTH,
-  LAYOUT_BUTTON_HEIGHT,
   txtUsb,
   nullptr,
   bsUsb,
@@ -114,10 +98,6 @@ constexpr char txtLsb [] PROGMEM = "LSB";
 ButtonStatus_e bsLsb();
 void osLsb();
 constexpr Button bLsb PROGMEM = {
-  LAYOUT_BUTTON_X + 2*LAYOUT_BUTTON_PITCH_X,
-  LAYOUT_BUTTON_Y + 0*LAYOUT_BUTTON_PITCH_Y,
-  LAYOUT_BUTTON_WIDTH,
-  LAYOUT_BUTTON_HEIGHT,
   txtLsb,
   nullptr,
   bsLsb,
@@ -129,10 +109,6 @@ constexpr char txtCw [] PROGMEM = "CW";
 ButtonStatus_e bsCw();
 void osCw();
 constexpr Button bCw PROGMEM = {
-  LAYOUT_BUTTON_X + 3*LAYOUT_BUTTON_PITCH_X,
-  LAYOUT_BUTTON_Y + 0*LAYOUT_BUTTON_PITCH_Y,
-  LAYOUT_BUTTON_WIDTH,
-  LAYOUT_BUTTON_HEIGHT,
   txtCw,
   nullptr,
   bsCw,
@@ -144,10 +120,6 @@ constexpr char txtSpl [] PROGMEM = "SPL";
 ButtonStatus_e bsSpl();
 void osSpl();
 constexpr Button bSpl PROGMEM = {
-  LAYOUT_BUTTON_X + 4*LAYOUT_BUTTON_PITCH_X,
-  LAYOUT_BUTTON_Y + 0*LAYOUT_BUTTON_PITCH_Y,
-  LAYOUT_BUTTON_WIDTH,
-  LAYOUT_BUTTON_HEIGHT,
   txtSpl,
   nullptr,
   bsSpl,
@@ -159,10 +131,6 @@ constexpr char txt80 [] PROGMEM = "80";
 ButtonStatus_e bs80();
 void os80();
 constexpr Button b80 PROGMEM = {
-  LAYOUT_BUTTON_X + 0*LAYOUT_BUTTON_PITCH_X,
-  LAYOUT_BUTTON_Y + 1*LAYOUT_BUTTON_PITCH_Y,
-  LAYOUT_BUTTON_WIDTH,
-  LAYOUT_BUTTON_HEIGHT,
   txt80,
   nullptr,
   bs80,
@@ -174,10 +142,6 @@ constexpr char txt40 [] PROGMEM = "40";
 ButtonStatus_e bs40();
 void os40();
 constexpr Button b40 PROGMEM = {
-  LAYOUT_BUTTON_X + 1*LAYOUT_BUTTON_PITCH_X,
-  LAYOUT_BUTTON_Y + 1*LAYOUT_BUTTON_PITCH_Y,
-  LAYOUT_BUTTON_WIDTH,
-  LAYOUT_BUTTON_HEIGHT,
   txt40,
   nullptr,
   bs40,
@@ -189,10 +153,6 @@ constexpr char txt30 [] PROGMEM = "30";
 ButtonStatus_e bs30();
 void os30();
 constexpr Button b30 PROGMEM = {
-  LAYOUT_BUTTON_X + 2*LAYOUT_BUTTON_PITCH_X,
-  LAYOUT_BUTTON_Y + 1*LAYOUT_BUTTON_PITCH_Y,
-  LAYOUT_BUTTON_WIDTH,
-  LAYOUT_BUTTON_HEIGHT,
   txt30,
   nullptr,
   bs30,
@@ -204,10 +164,6 @@ constexpr char txt20 [] PROGMEM = "20";
 ButtonStatus_e bs20();
 void os20();
 constexpr Button b20 PROGMEM = {
-  LAYOUT_BUTTON_X + 3*LAYOUT_BUTTON_PITCH_X,
-  LAYOUT_BUTTON_Y + 1*LAYOUT_BUTTON_PITCH_Y,
-  LAYOUT_BUTTON_WIDTH,
-  LAYOUT_BUTTON_HEIGHT,
   txt20,
   nullptr,
   bs20,
@@ -219,10 +175,6 @@ constexpr char txt17 [] PROGMEM = "17";
 ButtonStatus_e bs17();
 void os17();
 constexpr Button b17 PROGMEM = {
-  LAYOUT_BUTTON_X + 4*LAYOUT_BUTTON_PITCH_X,
-  LAYOUT_BUTTON_Y + 1*LAYOUT_BUTTON_PITCH_Y,
-  LAYOUT_BUTTON_WIDTH,
-  LAYOUT_BUTTON_HEIGHT,
   txt17,
   nullptr,
   bs17,
@@ -234,10 +186,6 @@ constexpr char txt15 [] PROGMEM = "15";
 ButtonStatus_e bs15();
 void os15();
 constexpr Button b15 PROGMEM = {
-  LAYOUT_BUTTON_X + 0*LAYOUT_BUTTON_PITCH_X,
-  LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y,
-  LAYOUT_BUTTON_WIDTH,
-  LAYOUT_BUTTON_HEIGHT,
   txt15,
   nullptr,
   bs15,
@@ -249,10 +197,6 @@ constexpr char txt10 [] PROGMEM = "10";
 ButtonStatus_e bs10();
 void os10();
 constexpr Button b10 PROGMEM = {
-  LAYOUT_BUTTON_X + 1*LAYOUT_BUTTON_PITCH_X,
-  LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y,
-  LAYOUT_BUTTON_WIDTH,
-  LAYOUT_BUTTON_HEIGHT,
   txt10,
   nullptr,
   bs10,
@@ -264,10 +208,6 @@ constexpr char txtMenu [] PROGMEM = "\x7F";//gear icon
 ButtonStatus_e bsIgnore();
 void osMenu();
 constexpr Button bMenu PROGMEM = {
-  LAYOUT_BUTTON_X + 3*LAYOUT_BUTTON_PITCH_X,
-  LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y,
-  LAYOUT_BUTTON_WIDTH,
-  LAYOUT_BUTTON_HEIGHT,
   txtMenu,
   nullptr,
   bsIgnore,
@@ -279,10 +219,6 @@ constexpr char txtNumpad [] PROGMEM = "FRQ";
 ButtonStatus_e bsIgnore();
 void osNumpad();
 constexpr Button bNumpad PROGMEM = {
-  LAYOUT_BUTTON_X + 4*LAYOUT_BUTTON_PITCH_X,
-  LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y,
-  LAYOUT_BUTTON_WIDTH,
-  LAYOUT_BUTTON_HEIGHT,
   txtNumpad,
   nullptr,
   bsIgnore,
@@ -290,15 +226,39 @@ constexpr Button bNumpad PROGMEM = {
   'F'
 };
 
-const Button* const mainMenuButtons [] PROGMEM = {
-  &bVfoA,                        &bVfoB,
-
-   &bRit, &bUsb, &bLsb,   &bCw,   &bSpl,
-    &b80,  &b40,  &b30,   &b20,    &b17,
-    &b15,  &b10,        &bMenu, &bNumpad
+const Button* const mainMenuVfoButtons [] PROGMEM = {
+  &bVfoA, &bVfoB
 };
 
-const uint8_t MAIN_MENU_NUM_BUTTONS = sizeof(mainMenuButtons) / sizeof(mainMenuButtons[0]);
+const ButtonGrid_t mainMenuVfoGrid PROGMEM = {
+  LAYOUT_VFO_LABEL_X,
+  LAYOUT_VFO_LABEL_Y,
+  LAYOUT_VFO_LABEL_WIDTH,
+  LAYOUT_VFO_LABEL_HEIGHT,
+  LAYOUT_VFO_LABEL_PITCH_X,
+  0,//not used, since it's just one row
+  1,//rows
+  2,//cols
+  mainMenuVfoButtons
+};
+
+const Button* const mainMenuButtons [] PROGMEM = {
+   &bRit, &bUsb, &bLsb,     &bCw,   &bSpl,
+    &b80,  &b40,  &b30,     &b20,    &b17,
+    &b15,  &b10, nullptr, &bMenu, &bNumpad
+};
+
+const ButtonGrid_t mainMenuGrid PROGMEM = {
+  LAYOUT_BUTTON_X,
+  LAYOUT_BUTTON_Y,
+  LAYOUT_BUTTON_WIDTH,
+  LAYOUT_BUTTON_HEIGHT,
+  LAYOUT_BUTTON_PITCH_X,
+  LAYOUT_BUTTON_PITCH_Y,
+  3,//rows
+  5,//cols
+  mainMenuButtons
+};
 
 void updateBandButtons(const uint32_t old_freq)
 {
@@ -310,7 +270,7 @@ void updateBandButtons(const uint32_t old_freq)
   for(uint8_t i = 0; i < sizeof(bands)/sizeof(bands[0]); ++i){
     if(isFreqInBand(old_freq,bands[i]) != isFreqInBand(curr_freq,bands[i])){
       memcpy_P(&button,band_buttons[i],sizeof(button));
-      drawButton(&button);
+      drawButton(&mainMenuGrid,band_buttons[i]);
       morseBool(ButtonStatus_e::Active == button.status());
     }
   }
@@ -374,11 +334,8 @@ void osVfo(const Vfo_e vfo){
   ltoa(GetActiveVfoFreq(),b,10);
   morseText(b);
 
-  Button button;
-  memcpy_P(&button,&bVfoA,sizeof(button));
-  drawButton(&button);
-  memcpy_P(&button,&bVfoB,sizeof(button));
-  drawButton(&button);
+  drawButton(&mainMenuGrid,&bVfoA);
+  drawButton(&mainMenuGrid,&bVfoB);
   updateBandButtons(old_freq);
 }
 
@@ -406,7 +363,6 @@ ButtonStatus_e bsRit(){
   return globalSettings.ritOn ? ButtonStatus_e::Active : ButtonStatus_e::Inactive;
 }
 void osRit(){
-  Button button;
   if(!globalSettings.ritOn){
     globalSettings.ritOn = true;
     globalSettings.ritFrequency = GetActiveVfoFreq();
@@ -426,17 +382,14 @@ void osRit(){
 
     displayFillrect(LAYOUT_MODE_TEXT_X,LAYOUT_MODE_TEXT_Y,LAYOUT_MODE_TEXT_WIDTH,LAYOUT_MODE_TEXT_HEIGHT, COLOR_BACKGROUND);
     if(Vfo_e::VFO_A == globalSettings.activeVfo){
-      memcpy_P(&button,&bVfoA,sizeof(button));
-      drawButton(&button);
+      drawButton(&mainMenuVfoGrid,&bVfoA);
     }
     else{
-      memcpy_P(&button,&bVfoB,sizeof(button));
-      drawButton(&button);
+      drawButton(&mainMenuVfoGrid,&bVfoB);
     }
   }
   
-  memcpy_P(&button,&bRit,sizeof(button));
-  drawButton(&button);
+  drawButton(&mainMenuGrid,&bRit);
 }
 
 void osSidebandMode(VfoMode_e mode){
@@ -444,11 +397,8 @@ void osSidebandMode(VfoMode_e mode){
   setFrequency(GetActiveVfoFreq());
   SaveSettingsToEeprom();
 
-  Button button;
-  memcpy_P(&button,&bUsb,sizeof(button));
-  drawButton(&button);
-  memcpy_P(&button,&bLsb,sizeof(button));
-  drawButton(&button);
+  drawButton(&mainMenuGrid,&bUsb);
+  drawButton(&mainMenuGrid,&bLsb);
 }
 
 void updateSidebandButtons()
@@ -486,9 +436,7 @@ void osCw(){
 
   setFrequency(GetActiveVfoFreq());
 
-  Button button;
-  memcpy_P(&button,&bCw,sizeof(button));
-  drawButton(&button);
+  drawButton(&mainMenuGrid,&bCw);
 }
 
 ButtonStatus_e bsSpl(){
@@ -498,13 +446,9 @@ ButtonStatus_e bsSpl(){
 void osSpl(){
   globalSettings.splitOn = !globalSettings.splitOn;
 
-  Button button;
-  memcpy_P(&button,&bSpl,sizeof(button));
-  drawButton(&button);
-  memcpy_P(&button,&bVfoA,sizeof(button));
-  drawButton(&button);
-  memcpy_P(&button,&bVfoB,sizeof(button));
-  drawButton(&button);
+  drawButton(&mainMenuGrid,&bSpl);
+  drawButton(&mainMenuVfoGrid,&bVfoA);
+  drawButton(&mainMenuVfoGrid,&bVfoB);
 }
 
 ButtonStatus_e bsBand(const uint8_t band){
@@ -518,14 +462,11 @@ void osBand(const uint8_t band){
     updateSidebandButtons();
   }
 
-  Button button;
   if(Vfo_e::VFO_A == globalSettings.activeVfo){
-    memcpy_P(&button,&bVfoA,sizeof(button));
-    drawButton(&button);
+    drawButton(&mainMenuVfoGrid,&bVfoA);
   }
   else if(Vfo_e::VFO_B == globalSettings.activeVfo){
-    memcpy_P(&button,&bVfoB,sizeof(button));
-    drawButton(&button);
+    drawButton(&mainMenuVfoGrid,&bVfoB);
   }
 
   updateBandButtons(old_freq);

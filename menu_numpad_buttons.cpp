@@ -27,15 +27,11 @@ uint32_t numpadMenuFrequency;
 
 #define D_STRINGIFY(x) #x
 #define D_STRING(x) D_STRINGIFY(x)
-#define NUMBER_BUTTON_GENERATE(number,x,y) \
+#define NUMBER_BUTTON_GENERATE(number) \
           constexpr char txt##number [] PROGMEM = "" D_STRING(number);\
           ButtonStatus_e bs##number();\
           void os##number();\
           constexpr Button b##number PROGMEM = {\
-            LAYOUT_BUTTON_X + x*LAYOUT_BUTTON_PITCH_X,\
-            LAYOUT_BUTTON_Y + y*LAYOUT_BUTTON_PITCH_Y,\
-            LAYOUT_BUTTON_WIDTH,\
-            LAYOUT_BUTTON_HEIGHT,\
             txt##number,\
             nullptr,\
             bsNumpad,\
@@ -47,28 +43,20 @@ ButtonStatus_e bsNumpad(void){
   return ButtonStatus_e::Stateless;
 }
 
-
-// 1 2 3   Ok
-// 4 5 6 0 <-
-// 7 8 9   Can
-NUMBER_BUTTON_GENERATE(1,0,0);
-NUMBER_BUTTON_GENERATE(2,1,0);
-NUMBER_BUTTON_GENERATE(3,2,0);
-NUMBER_BUTTON_GENERATE(4,0,1);
-NUMBER_BUTTON_GENERATE(5,1,1);
-NUMBER_BUTTON_GENERATE(6,2,1);
-NUMBER_BUTTON_GENERATE(7,0,2);
-NUMBER_BUTTON_GENERATE(8,1,2);
-NUMBER_BUTTON_GENERATE(9,2,2);
-NUMBER_BUTTON_GENERATE(0,3,1);
+NUMBER_BUTTON_GENERATE(1);
+NUMBER_BUTTON_GENERATE(2);
+NUMBER_BUTTON_GENERATE(3);
+NUMBER_BUTTON_GENERATE(4);
+NUMBER_BUTTON_GENERATE(5);
+NUMBER_BUTTON_GENERATE(6);
+NUMBER_BUTTON_GENERATE(7);
+NUMBER_BUTTON_GENERATE(8);
+NUMBER_BUTTON_GENERATE(9);
+NUMBER_BUTTON_GENERATE(0);
 
 constexpr char txtOk [] PROGMEM = "OK";
 void osOk();
 constexpr Button bOk PROGMEM = {
-  LAYOUT_BUTTON_X + 4*LAYOUT_BUTTON_PITCH_X,
-  LAYOUT_BUTTON_Y + 0*LAYOUT_BUTTON_PITCH_Y,
-  LAYOUT_BUTTON_WIDTH,
-  LAYOUT_BUTTON_HEIGHT,
   txtOk,
   nullptr,
   bsNumpad,
@@ -79,10 +67,6 @@ constexpr Button bOk PROGMEM = {
 constexpr char txtBackspace [] PROGMEM = "<-";
 void osBackspace();
 constexpr Button bBackspace PROGMEM = {
-  LAYOUT_BUTTON_X + 4*LAYOUT_BUTTON_PITCH_X,
-  LAYOUT_BUTTON_Y + 1*LAYOUT_BUTTON_PITCH_Y,
-  LAYOUT_BUTTON_WIDTH,
-  LAYOUT_BUTTON_HEIGHT,
   txtBackspace,
   nullptr,
   bsNumpad,
@@ -93,10 +77,6 @@ constexpr Button bBackspace PROGMEM = {
 constexpr char txtCancel [] PROGMEM = "Can";
 void osCancel();
 constexpr Button bCancel PROGMEM = {
-  LAYOUT_BUTTON_X + 4*LAYOUT_BUTTON_PITCH_X,
-  LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y,
-  LAYOUT_BUTTON_WIDTH,
-  LAYOUT_BUTTON_HEIGHT,
   txtCancel,
   nullptr,
   bsNumpad,
@@ -106,10 +86,22 @@ constexpr Button bCancel PROGMEM = {
 
 //Declare in menu select order, not graphical order
 const Button* const numpadMenuButtons [] PROGMEM = {
-  &b1, &b2, &b3, &b4, &b5, &b6, &b7, &b8, &b9, &b0,
-  &bOk, &bBackspace, &bCancel
+  &b1, &b2, &b3, nullptr,        &bOk,
+  &b4, &b5, &b6,     &b0, &bBackspace,
+  &b7, &b8, &b9, nullptr,    &bCancel
 };
-const uint8_t NUMPAD_MENU_NUM_BUTTONS = sizeof(numpadMenuButtons)/sizeof(numpadMenuButtons[0]);
+
+const ButtonGrid_t numpadMenuGrid PROGMEM = {
+  LAYOUT_BUTTON_X,
+  LAYOUT_BUTTON_Y,
+  LAYOUT_BUTTON_WIDTH,
+  LAYOUT_BUTTON_HEIGHT,
+  LAYOUT_BUTTON_PITCH_X,
+  LAYOUT_BUTTON_PITCH_Y,
+  3,//rows
+  5,//cols
+  numpadMenuButtons
+};
 
 void updateCurrentEnteredFrequency(void)
 {

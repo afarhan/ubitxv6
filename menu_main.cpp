@@ -4,7 +4,7 @@
 #include <avr/pgmspace.h>
 #include <Arduino.h>
 
-#include "button.h"
+#include "button_grid.h"
 #include "color_theme.h"
 #include "menu_utils.h"
 #include "morse.h"
@@ -33,13 +33,9 @@ int16_t mainMenuSelectedItemRaw = 0;//Allow negative only for easier checks on w
 void drawMainMenu(void)
 {
   displayClear(COLOR_BACKGROUND);
-  Button button;
-  Button* bp;
-  for(uint8_t i = 0; i < MAIN_MENU_NUM_BUTTONS; ++i){
-    memcpy_P(&bp, &(mainMenuButtons[i]), sizeof(bp));
-    memcpy_P(&button,bp,sizeof(button));
-    drawButton(&button);
-  }
+  
+  drawButtonGrid(&mainMenuGrid);
+
   ltoa(GetActiveVfoFreq(),b,10);
   morseText(b);
 }
@@ -65,14 +61,13 @@ void mainMenuTune(int16_t knob)
   const uint32_t old_freq = current_freq;
   current_freq = new_freq;
 
-  Button button;
   if(Vfo_e::VFO_A == globalSettings.activeVfo){
-    memcpy_P(&button,&bVfoA,sizeof(button));
+    drawButton(&mainMenuVfoGrid,&bVfoA);
   }
   else{
-    memcpy_P(&button,&bVfoB,sizeof(button));
+    drawButton(&mainMenuVfoGrid,&bVfoB);
   }
-  drawButton(&button);
+
   updateBandButtons(old_freq);
 }
 
@@ -94,17 +89,17 @@ MenuReturn_e runMainMenu(const ButtonPress_e tuner_button,
       {
         if(mainMenuSelecting){
           uint8_t menu_index = mainMenuSelectedItemRaw/MENU_KNOB_COUNTS_PER_ITEM;
+          endSelector(mainMenuSelectedItemRaw,&mainMenuGrid);
+
           Button button;
           Button* bp;
-          memcpy_P(&bp,&(mainMenuButtons[menu_index]),sizeof(bp));
+          memcpy_P(&bp,&(mainMenuGrid.buttons_P[menu_index]),sizeof(bp));
           memcpy_P(&button,bp,sizeof(button));
-          endSelector(&button);
           button.on_select();
         }
         else{
           initSelector(&mainMenuSelectedItemRaw,
-                       mainMenuButtons,
-                       MAIN_MENU_NUM_BUTTONS,
+                       &mainMenuGrid,
                        MorsePlaybackType_e::PlayChar);
         }
         mainMenuSelecting = !mainMenuSelecting;
@@ -134,7 +129,7 @@ MenuReturn_e runMainMenu(const ButtonPress_e tuner_button,
   else if(ButtonPress_e::NotPressed != touch_button){
     //We treat long and short presses the same, so no need to have a switch
     Button button;
-    if(findPressedButton(mainMenuButtons,MAIN_MENU_NUM_BUTTONS,&button,touch_point)){
+    if(findPressedButton(&mainMenuGrid,&button,touch_point)){
       button.on_select();
     }
     else{
@@ -146,8 +141,7 @@ MenuReturn_e runMainMenu(const ButtonPress_e tuner_button,
     if(mainMenuSelecting){
       adjustSelector(&mainMenuSelectedItemRaw,
                      knob,
-                     mainMenuButtons,
-                     MAIN_MENU_NUM_BUTTONS,
+                     &mainMenuGrid,
                      MorsePlaybackType_e::PlayChar);
     }
     else{
