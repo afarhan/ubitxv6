@@ -405,6 +405,7 @@ void osVfo(const Vfo_e vfo){
   memcpy_P(&button,&bVfoB,sizeof(button));
   drawButton(&button);
   updateBandButtons(old_freq);
+  updateSidebandButtons();
 }
 
 void toVfoA(char* text_out, const uint16_t max_text_size){
