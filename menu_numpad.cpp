@@ -25,7 +25,13 @@ int16_t numpadMenuSelectedItemRaw = 0;//Allow negative only for easier checks on
 void drawNumpad(void)
 {
   displayFillrect(0,47,320,200,COLOR_BACKGROUND);
-  drawButtonGrid(&numpadMenuGrid);
+  Button button;
+  Button* bp;
+  for(uint8_t i = 0; i < NUMPAD_MENU_NUM_BUTTONS; ++i){
+    memcpy_P(&bp, &(numpadMenuButtons[i]), sizeof(bp));
+    memcpy_P(&button,bp,sizeof(button));
+    drawButton(&button);
+  }
 }
 
 void initNumpad(void)
@@ -33,7 +39,8 @@ void initNumpad(void)
   numpadMenuFrequency = 0;
   drawNumpad();
   initSelector(&numpadMenuSelectedItemRaw,
-                &numpadMenuGrid,
+                numpadMenuButtons,
+                NUMPAD_MENU_NUM_BUTTONS,
                 MorsePlaybackType_e::PlayChar);
 }
 
@@ -44,25 +51,18 @@ MenuReturn_e runNumpad(const ButtonPress_e tuner_button,
 {
   if(ButtonPress_e::NotPressed != tuner_button){
     //We treat long and short presses the same, so no need to have a switch
-
-    ButtonGrid_t button_grid;
-    memcpy_P(&button_grid,&numpadMenuGrid,sizeof(button_grid));
-
     uint8_t menu_index = numpadMenuSelectedItemRaw/MENU_KNOB_COUNTS_PER_ITEM;
+    Button button;
     Button* bp;
-    memcpy_P(&bp,&(button_grid.buttons_P[menu_index]),sizeof(bp));
-
-    if(nullptr != bp){
-      Button button;
-      memcpy_P(&button,bp,sizeof(button));
-      button.on_select();
-    }
+    memcpy_P(&bp,&(numpadMenuButtons[menu_index]),sizeof(bp));
+    memcpy_P(&button,bp,sizeof(button));
+    button.on_select();
   }//tuner_button
 
   else if(ButtonPress_e::NotPressed != touch_button){
     //We treat long and short presses the same, so no need to have a switch
     Button button;
-    if(findPressedButton(&numpadMenuGrid,&button,touch_point)){
+    if(findPressedButton(numpadMenuButtons,NUMPAD_MENU_NUM_BUTTONS,&button,touch_point)){
       button.on_select();
     }
     else{
@@ -73,7 +73,8 @@ MenuReturn_e runNumpad(const ButtonPress_e tuner_button,
   else{//Neither button input type found, so handle the knob
     adjustSelector(&numpadMenuSelectedItemRaw,
                     knob,
-                    &numpadMenuGrid,
+                    numpadMenuButtons,
+                    NUMPAD_MENU_NUM_BUTTONS,
                     MorsePlaybackType_e::PlayChar);
   }
 
