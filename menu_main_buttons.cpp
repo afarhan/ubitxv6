@@ -300,7 +300,7 @@ constexpr Button bMenu PROGMEM = {
   'M'
 };
 
-constexpr char txtNumpad [] PROGMEM = "FRQ";
+constexpr char txtNumpad [] PROGMEM = "\x82";
 ButtonStatus_e bsIgnore();
 void osNumpad();
 constexpr Button bNumpad PROGMEM = {
