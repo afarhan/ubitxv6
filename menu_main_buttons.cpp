@@ -393,6 +393,11 @@ ButtonStatus_e bsVfo(const Vfo_e vfo){
 
 void osVfo(const Vfo_e vfo){
   const uint32_t old_freq = GetActiveVfoFreq();
+
+  if(globalSettings.ritOn){
+    osRit();//Turn off RIT
+  }
+
   globalSettings.activeVfo = vfo;
   SaveSettingsToEeprom();
 
