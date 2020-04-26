@@ -32,19 +32,9 @@ static const unsigned int COLOR_SETTING_BACKGROUND = DISPLAY_NAVY;
 static const unsigned int COLOR_ACTIVE_BORDER = DISPLAY_WHITE;
 static const unsigned int COLOR_INACTIVE_BORDER = COLOR_BACKGROUND;
 
-static const unsigned int LAYOUT_OUTER_BORDER_X = 10;
-static const unsigned int LAYOUT_OUTER_BORDER_Y = 10;
-static const unsigned int LAYOUT_OUTER_BORDER_WIDTH = 300;
-static const unsigned int LAYOUT_OUTER_BORDER_HEIGHT = 220;
-
-static const unsigned int LAYOUT_INNER_BORDER_X = 12;
-static const unsigned int LAYOUT_INNER_BORDER_Y = 12;
-static const unsigned int LAYOUT_INNER_BORDER_WIDTH = 296;
-static const unsigned int LAYOUT_INNER_BORDER_HEIGHT = 216;
-
-static const unsigned int LAYOUT_TITLE_X = LAYOUT_INNER_BORDER_X;
-static const unsigned int LAYOUT_TITLE_Y = LAYOUT_INNER_BORDER_Y;
-static const unsigned int LAYOUT_TITLE_WIDTH = LAYOUT_INNER_BORDER_WIDTH;
+static const unsigned int LAYOUT_TITLE_X = 12;
+static const unsigned int LAYOUT_TITLE_Y = 12;
+static const unsigned int LAYOUT_TITLE_WIDTH = 296;
 static const unsigned int LAYOUT_TITLE_HEIGHT = 35;
 
 static const unsigned int LAYOUT_ITEM_X = 30;
@@ -66,7 +56,7 @@ static const unsigned int LAYOUT_SETTING_VALUE_HEIGHT = LAYOUT_ITEM_HEIGHT;
 static const unsigned int LAYOUT_INSTRUCTIONS_TEXT_X = 20;
 static const unsigned int LAYOUT_INSTRUCTIONS_TEXT_Y = LAYOUT_ITEM_Y;
 static const unsigned int LAYOUT_INSTRUCTIONS_TEXT_WIDTH = LAYOUT_ITEM_WIDTH;
-static const unsigned int LAYOUT_INSTRUCTIONS_TEXT_HEIGHT = LAYOUT_SETTING_VALUE_Y - LAYOUT_ITEM_Y - 1;
+static const unsigned int LAYOUT_INSTRUCTIONS_TEXT_HEIGHT = LAYOUT_SETTING_REF_VALUE_Y - LAYOUT_ITEM_Y - 1;
 
 static const unsigned int LAYOUT_CONFIRM_TEXT_X = 20;
 static const unsigned int LAYOUT_CONFIRM_TEXT_Y = LAYOUT_ITEM_Y + 5*LAYOUT_ITEM_PITCH_Y;
@@ -76,8 +66,6 @@ static const unsigned int LAYOUT_CONFIRM_TEXT_HEIGHT = LAYOUT_ITEM_HEIGHT;
 void displayDialog(const char* title,
                    const char* instructions){
   displayClear(COLOR_BACKGROUND);
-  displayRect(LAYOUT_OUTER_BORDER_X,LAYOUT_OUTER_BORDER_Y,LAYOUT_OUTER_BORDER_WIDTH,LAYOUT_OUTER_BORDER_HEIGHT, COLOR_ACTIVE_BORDER);
-  displayRect(LAYOUT_INNER_BORDER_X,LAYOUT_INNER_BORDER_Y,LAYOUT_INNER_BORDER_WIDTH,LAYOUT_INNER_BORDER_HEIGHT, COLOR_ACTIVE_BORDER);
   strncpy_P(b,title,sizeof(b));
   displayText(b, LAYOUT_TITLE_X, LAYOUT_TITLE_Y, LAYOUT_TITLE_WIDTH, LAYOUT_TITLE_HEIGHT, COLOR_TEXT, COLOR_TITLE_BACKGROUND, COLOR_ACTIVE_BORDER);
   strncpy_P(b,instructions,sizeof(b));
