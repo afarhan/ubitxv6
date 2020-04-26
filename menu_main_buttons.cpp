@@ -6,6 +6,7 @@
 
 #include "bands.h"
 #include "button.h"
+#include "callsign.h"
 #include "color_theme.h"
 #include "menu_main.h"
 #include "menu_numpad.h"
@@ -16,6 +17,7 @@
 #include "setup.h"
 #include "tuner.h"
 #include "utils.h"
+#include "version.h"
 
 static const unsigned int LAYOUT_VFO_LABEL_X = 0;
 static const unsigned int LAYOUT_VFO_LABEL_Y = 10;
@@ -49,6 +51,29 @@ static const unsigned int LAYOUT_TX_X = 280;
 static const unsigned int LAYOUT_TX_Y = LAYOUT_MODE_TEXT_Y;
 static const unsigned int LAYOUT_TX_WIDTH = 40;
 static const unsigned int LAYOUT_TX_HEIGHT = 36;
+
+void drawTx()
+{
+  if(globalSettings.txActive){
+    strncpy_P(b,(const char*)F("TX"),sizeof(b));
+    displayText(b,LAYOUT_TX_X,LAYOUT_TX_Y,LAYOUT_TX_WIDTH,LAYOUT_TX_HEIGHT,COLOR_ACTIVE_TEXT,COLOR_ACTIVE_BACKGROUND,COLOR_BACKGROUND);
+  }
+  else{
+    displayFillrect(LAYOUT_TX_X,LAYOUT_TX_Y,LAYOUT_TX_WIDTH,LAYOUT_TX_HEIGHT,COLOR_BACKGROUND);
+  }
+}
+
+void drawVersion()
+{
+  strncpy_P(b,VERSION_STRING,sizeof(b));
+  displayText(b,LAYOUT_VERSION_TEXT_X,LAYOUT_VERSION_TEXT_Y,LAYOUT_VERSION_TEXT_WIDTH,LAYOUT_VERSION_TEXT_HEIGHT,COLOR_VERSION_TEXT,COLOR_BACKGROUND,COLOR_BACKGROUND);
+}
+
+void drawCallsign()
+{
+  strcpy_P(b,CALLSIGN_STRING);
+  displayText(b,LAYOUT_CW_TEXT_X,LAYOUT_CW_TEXT_Y,LAYOUT_CW_TEXT_WIDTH,LAYOUT_CW_TEXT_HEIGHT,COLOR_ACTIVE_TEXT,COLOR_BACKGROUND,COLOR_BACKGROUND);
+}
 
 void toVfoA(char* text_out, const uint16_t max_text_size);
 ButtonStatus_e bsVfoA();

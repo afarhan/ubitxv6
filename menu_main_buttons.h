@@ -11,3 +11,6 @@ extern const Button bVfoA;
 extern const Button bVfoB;
 void updateBandButtons(const uint32_t old_freq);
 void updateSidebandButtons();
+void drawTx();
+void drawVersion();
+void drawCallsign();

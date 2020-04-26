@@ -40,6 +40,9 @@ void drawMainMenu(void)
     memcpy_P(&button,bp,sizeof(button));
     drawButton(&button);
   }
+  drawVersion();
+  drawCallsign();
+
   ltoa(GetActiveVfoFreq(),b,10);
   morseText(b);
 }
