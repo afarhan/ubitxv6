@@ -39,15 +39,15 @@ void displayInit(void){
 }
 
 void displayPixel(unsigned int x, unsigned int y, unsigned int c){
-  tft.drawPixel(x,y,c);
+  tft.fillRect(x,y,1,1,c);
 }
 
 void displayHline(unsigned int x, unsigned int y, unsigned int w, unsigned int c){
-  tft.drawFastHLine(x,y,w,c);
+  tft.fillRect(x,y,w,1,c);
 }
 
 void displayVline(unsigned int x, unsigned int y, unsigned int l, unsigned int c){
-  tft.drawFastVLine(x,y,l,c);
+  tft.fillRect(x,y,1,l,c);
 }
 
 void displayClear(unsigned int color){
@@ -55,7 +55,10 @@ void displayClear(unsigned int color){
 }
 
 void displayRect(unsigned int x,unsigned int y,unsigned int w,unsigned int h,unsigned int c){
-  tft.drawRect(x,y,w,h,c);
+  tft.fillRect(x,y,w,1,c);
+  tft.fillRect(x,y,1,h,c);
+  tft.fillRect(x,y+h-1,w,1,c);
+  tft.fillRect(x+w-1,y,1,h,c);
 }
 
 void displayFillrect(unsigned int x,unsigned int y,unsigned int w,unsigned int h,unsigned int c){
