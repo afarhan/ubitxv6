@@ -31,8 +31,7 @@ void drawQuickList(void)
   Button* bp;
   for(uint8_t i = 0; i < QUICKLIST_MENU_NUM_BUTTONS; ++i){
     memcpy_P(&bp, &(quickListMenuButtons[i]), sizeof(bp));
-    memcpy_P(&button,bp,sizeof(button));
-    drawButton(&button);
+    extractAndDrawButton(&button,bp);
   }
   strncpy_P(b,(const char*)F("Short press = load\nLong press = save"),sizeof(b));
   displayText(b,10,47,170,200,COLOR_TEXT,COLOR_BACKGROUND,COLOR_BACKGROUND);

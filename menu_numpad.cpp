@@ -29,8 +29,7 @@ void drawNumpad(void)
   Button* bp;
   for(uint8_t i = 0; i < NUMPAD_MENU_NUM_BUTTONS; ++i){
     memcpy_P(&bp, &(numpadMenuButtons[i]), sizeof(bp));
-    memcpy_P(&button,bp,sizeof(button));
-    drawButton(&button);
+    extractAndDrawButton(&button,bp);
   }
 }
 

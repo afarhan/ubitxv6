@@ -350,8 +350,7 @@ void updateBandButtons(const uint32_t old_freq)
   Button button;
   for(uint8_t i = 0; i < sizeof(bands)/sizeof(bands[0]); ++i){
     if(isFreqInBand(old_freq,bands[i]) != isFreqInBand(curr_freq,bands[i])){
-      memcpy_P(&button,band_buttons[i],sizeof(button));
-      drawButton(&button);
+      extractAndDrawButton(&button,band_buttons[i]);
       morseBool(ButtonStatus_e::Active == button.status());
     }
   }
@@ -421,10 +420,8 @@ void osVfo(const Vfo_e vfo){
   morseText(b);
 
   Button button;
-  memcpy_P(&button,&bVfoA,sizeof(button));
-  drawButton(&button);
-  memcpy_P(&button,&bVfoB,sizeof(button));
-  drawButton(&button);
+  extractAndDrawButton(&button,&bVfoA);
+  extractAndDrawButton(&button,&bVfoB);
   updateBandButtons(old_freq);
   updateSidebandButtons();
 }
@@ -473,17 +470,14 @@ void osRit(){
 
     displayFillrect(LAYOUT_MODE_TEXT_X,LAYOUT_MODE_TEXT_Y,LAYOUT_MODE_TEXT_WIDTH,LAYOUT_MODE_TEXT_HEIGHT, COLOR_BACKGROUND);
     if(Vfo_e::VFO_A == globalSettings.activeVfo){
-      memcpy_P(&button,&bVfoA,sizeof(button));
-      drawButton(&button);
+      extractAndDrawButton(&button,&bVfoA);
     }
     else{
-      memcpy_P(&button,&bVfoB,sizeof(button));
-      drawButton(&button);
+      extractAndDrawButton(&button,&bVfoB);
     }
   }
   
-  memcpy_P(&button,&bRit,sizeof(button));
-  drawButton(&button);
+  extractAndDrawButton(&button,&bRit);
 }
 
 void osSidebandMode(VfoMode_e mode){
@@ -492,10 +486,8 @@ void osSidebandMode(VfoMode_e mode){
   SaveSettingsToEeprom();
 
   Button button;
-  memcpy_P(&button,&bUsb,sizeof(button));
-  drawButton(&button);
-  memcpy_P(&button,&bLsb,sizeof(button));
-  drawButton(&button);
+  extractAndDrawButton(&button,&bUsb);
+  extractAndDrawButton(&button,&bLsb);
 }
 
 void updateSidebandButtons()
@@ -534,8 +526,7 @@ void osCw(){
   setFrequency(GetActiveVfoFreq());
 
   Button button;
-  memcpy_P(&button,&bCw,sizeof(button));
-  drawButton(&button);
+  extractAndDrawButton(&button,&bCw);
 }
 
 ButtonStatus_e bsSpl(){
@@ -546,12 +537,9 @@ void osSpl(){
   globalSettings.splitOn = !globalSettings.splitOn;
 
   Button button;
-  memcpy_P(&button,&bSpl,sizeof(button));
-  drawButton(&button);
-  memcpy_P(&button,&bVfoA,sizeof(button));
-  drawButton(&button);
-  memcpy_P(&button,&bVfoB,sizeof(button));
-  drawButton(&button);
+  extractAndDrawButton(&button,&bSpl);
+  extractAndDrawButton(&button,&bVfoA);
+  extractAndDrawButton(&button,&bVfoB);
 }
 
 ButtonStatus_e bsBand(const uint8_t band){
@@ -567,12 +555,10 @@ void osBand(const uint8_t band){
 
   Button button;
   if(Vfo_e::VFO_A == globalSettings.activeVfo){
-    memcpy_P(&button,&bVfoA,sizeof(button));
-    drawButton(&button);
+    extractAndDrawButton(&button,&bVfoA);
   }
   else if(Vfo_e::VFO_B == globalSettings.activeVfo){
-    memcpy_P(&button,&bVfoB,sizeof(button));
-    drawButton(&button);
+    extractAndDrawButton(&button,&bVfoB);
   }
 
   updateBandButtons(old_freq);

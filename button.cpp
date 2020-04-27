@@ -42,3 +42,9 @@ void drawButton(Button* button)
   }
   displayText(b, button->x, button->y, button->w, button->h, tc, bgc, bdc);
 }
+
+void extractAndDrawButton(Button* button_out, const Button* button_P)
+{
+  memcpy_P(button_out,button_P,sizeof(*button_out));
+  drawButton(button_out);
+}

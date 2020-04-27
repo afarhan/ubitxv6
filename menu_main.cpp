@@ -37,8 +37,7 @@ void drawMainMenu(void)
   Button* bp;
   for(uint8_t i = 0; i < MAIN_MENU_NUM_BUTTONS; ++i){
     memcpy_P(&bp, &(mainMenuButtons[i]), sizeof(bp));
-    memcpy_P(&button,bp,sizeof(button));
-    drawButton(&button);
+    extractAndDrawButton(&button,bp);
   }
   drawVersion();
   drawCallsign();
@@ -70,12 +69,11 @@ void mainMenuTune(int16_t knob)
 
   Button button;
   if(Vfo_e::VFO_A == globalSettings.activeVfo){
-    memcpy_P(&button,&bVfoA,sizeof(button));
+    extractAndDrawButton(&button,&bVfoA);
   }
   else{
-    memcpy_P(&button,&bVfoB,sizeof(button));
+    extractAndDrawButton(&button,&bVfoB);
   }
-  drawButton(&button);
   updateBandButtons(old_freq);
 }
 

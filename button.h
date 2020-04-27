@@ -17,4 +17,4 @@ struct Button {
   char morse;
 };
 
-void drawButton(Button* button);
+void extractAndDrawButton(Button* button_out, const Button* button_P);
