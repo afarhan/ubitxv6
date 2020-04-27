@@ -10,6 +10,7 @@
 #include "color_theme.h"
 #include "menu_main.h"
 #include "menu_numpad.h"
+#include "menu_quicklist.h"
 #include "morse.h"
 #include "nano_gui.h"
 #include "scratch_space.h"
@@ -285,6 +286,21 @@ constexpr Button b10 PROGMEM = {
   '1'
 };
 
+constexpr char txtQuickList [] PROGMEM = "\x83";//star icon
+ButtonStatus_e bsIgnore();
+void osQuickList();
+constexpr Button bQuickList PROGMEM = {
+  LAYOUT_BUTTON_X + 2*LAYOUT_BUTTON_PITCH_X,
+  LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y,
+  LAYOUT_BUTTON_WIDTH,
+  LAYOUT_BUTTON_HEIGHT,
+  txtQuickList,
+  nullptr,
+  bsIgnore,
+  osQuickList,
+  'Q'
+};
+
 constexpr char txtMenu [] PROGMEM = "\x7F";//gear icon
 ButtonStatus_e bsIgnore();
 void osMenu();
@@ -300,7 +316,7 @@ constexpr Button bMenu PROGMEM = {
   'M'
 };
 
-constexpr char txtNumpad [] PROGMEM = "\x82";
+constexpr char txtNumpad [] PROGMEM = "\x82";//numpad icon
 ButtonStatus_e bsIgnore();
 void osNumpad();
 constexpr Button bNumpad PROGMEM = {
@@ -316,11 +332,11 @@ constexpr Button bNumpad PROGMEM = {
 };
 
 const Button* const mainMenuButtons [] PROGMEM = {
-  &bVfoA,                        &bVfoB,
+  &bVfoA,                                &bVfoB,
 
-   &bRit, &bUsb, &bLsb,   &bCw,   &bSpl,
-    &b80,  &b40,  &b30,   &b20,    &b17,
-    &b15,  &b10,        &bMenu, &bNumpad
+   &bRit, &bUsb, &bLsb,          &bCw,    &bSpl,
+    &b80,  &b40,  &b30,          &b20,     &b17,
+    &b15,  &b10, &bQuickList,  &bMenu, &bNumpad
 };
 
 const uint8_t MAIN_MENU_NUM_BUTTONS = sizeof(mainMenuButtons) / sizeof(mainMenuButtons[0]);
@@ -622,10 +638,14 @@ ButtonStatus_e bsIgnore(){
   return ButtonStatus_e::Stateless;
 }
 
+void osQuickList(){
+  enterSubmenu(quickListMenu);
+}
+
 void osMenu(){
   enterSubmenu(setupMenu);
 }
 
 void osNumpad(){
-  enterSubmenu(numpadMenu);
+  //enterSubmenu(numpadMenu);
 }
