@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include "settings.h"
+#include "si5351.h"
 
 // *************  SI5315 routines - tks Jerry Gaffke, KE7ER   ***********************
 
@@ -84,7 +85,7 @@ void si5351bx_init() {                  // Call once at power-up, start PLLA
 
 void si5351bx_setfreq(uint8_t clknum, uint32_t fout) {  // Set a CLK to fout Hz
   uint32_t  msa, msb, msc, msxp1, msxp2, msxp3p2top;
-  if ((fout < 500000) || (fout > 109000000)) // If clock freq out of range
+  if ((fout < SI5351_MIN_FREQUENCY_HZ) || (fout > SI5351_MAX_FREQUENCY_HZ)) // If clock freq out of range
     si5351bx_clken |= 1 << clknum;      //  shut down the clock
   else {
     msa = si5351bx_vcoa / fout;     // Integer part of vco/fout
