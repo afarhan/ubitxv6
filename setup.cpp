@@ -63,6 +63,10 @@ static const unsigned int LAYOUT_CONFIRM_TEXT_Y = LAYOUT_ITEM_Y + 5*LAYOUT_ITEM_
 static const unsigned int LAYOUT_CONFIRM_TEXT_WIDTH = LAYOUT_ITEM_WIDTH;
 static const unsigned int LAYOUT_CONFIRM_TEXT_HEIGHT = LAYOUT_ITEM_HEIGHT;
 
+constexpr char strYes [] PROGMEM = "Yes";
+constexpr char strNo [] PROGMEM = "No";
+constexpr char strHz [] PROGMEM = "Hz";
+
 void displayDialog(const char* title,
                    const char* instructions){
   displayClear(COLOR_BACKGROUND);
@@ -194,7 +198,7 @@ void ssLocalOscChange(const long int new_value, char* buff_out, const size_t buf
     ++buff_out;
   }
   formatFreq(u,buff_out,buff_out_size - strlen(buff_out));
-  strncat_P(buff_out,(const char*)F("Hz"),buff_out_size - strlen(buff_out));
+  strncat_P(buff_out,strHz,buff_out_size - strlen(buff_out));
 }
 void ssLocalOscFinalize(const long int final_value)
 {
@@ -204,7 +208,7 @@ void ssLocalOscFinalize(const long int final_value)
   setFrequency(GetActiveVfoFreq());
 }
 const char SS_LOCAL_OSC_T [] PROGMEM = "Local Oscillator";
-const char SS_LOCAL_OSC_A [] PROGMEM = "Exit menu, tune so that the\ndial displays the desired freq,\nthen tune here until the\nsignal is zerobeat";
+const char SS_LOCAL_OSC_A [] PROGMEM = "Tune so that the dial displays\na known freq, then tune here\nuntil the signal is zerobeat";
 const SettingScreen_t ssLocalOsc PROGMEM = {
   SS_LOCAL_OSC_T,
   SS_LOCAL_OSC_A,
@@ -232,7 +236,7 @@ void ssBfoChange(const long int new_value, char* buff_out, const size_t buff_out
   setFrequency(GetActiveVfoFreq());
   si5351bx_setfreq(0, new_value);
   formatFreq(new_value,buff_out,buff_out_size);
-  strncat_P(buff_out,(const char*)F("Hz"),buff_out_size - strlen(buff_out));
+  strncat_P(buff_out,strHz,buff_out_size - strlen(buff_out));
 }
 void ssBfoFinalize(const long int final_value)
 {
@@ -242,7 +246,7 @@ void ssBfoFinalize(const long int final_value)
   setFrequency(GetActiveVfoFreq());
 }
 const char SS_BFO_T [] PROGMEM = "Beat Frequency Osc (BFO)";
-const char SS_BFO_A [] PROGMEM = "Exit menu, tune to an unused\nfrequency, then tune here\nuntil the audio is between\n300-3000Hz";
+const char SS_BFO_A [] PROGMEM = "Tune until the audio is\nbetween 300-3000Hz";
 const SettingScreen_t ssBfo PROGMEM = {
   SS_BFO_T,
   SS_BFO_A,
@@ -269,7 +273,7 @@ void ssCwToneChange(const long int new_value, char* buff_out, const size_t buff_
   globalSettings.cwSideToneFreq = new_value;
   toneAC2(PIN_CW_TONE, globalSettings.cwSideToneFreq);
   ltoa(globalSettings.cwSideToneFreq,buff_out,10);
-  strncat_P(buff_out,(const char*)F("Hz"),buff_out_size - strlen(buff_out));
+  strncat_P(buff_out,strHz,buff_out_size - strlen(buff_out));
 }
 void ssCwToneFinalize(const long int final_value)
 {
@@ -313,7 +317,7 @@ void ssCwSwitchDelayFinalize(const long int final_value)
   SaveSettingsToEeprom();
 }
 const char SS_CW_SWITCH_T [] PROGMEM = "Tx to Rx Delay";
-const char SS_CW_SWITCH_A [] PROGMEM = "Select how long the radio\nshould wait before switching\nbetween TX and RX when in\nCW mode";
+const char SS_CW_SWITCH_A [] PROGMEM = "How long to wait before\nswitching from TX to RX when\nin CW mode";
 const SettingScreen_t ssCwSwitchDelay PROGMEM = {
   SS_CW_SWITCH_T,
   SS_CW_SWITCH_A,
@@ -359,7 +363,7 @@ void ssKeyerFinalize(const long int final_value)
   SaveSettingsToEeprom();
 }
 const char SS_KEYER_T [] PROGMEM = "Keyer Type";
-const char SS_KEYER_A [] PROGMEM = "Select which type of\nkeyer/paddle is being used";
+const char SS_KEYER_A [] PROGMEM = "Select which type of keyer\nor paddle is being used";
 const SettingScreen_t ssKeyer PROGMEM = {
   SS_KEYER_T,
   SS_KEYER_A,
@@ -385,11 +389,11 @@ void ssMorseMenuChange(const long int new_value, char* buff_out, const size_t bu
 {
   char m;
   if(new_value){
-    strncpy_P(buff_out,(const char*)F("Yes"),buff_out_size);
+    strncpy_P(buff_out,strYes,buff_out_size);
     m = 'Y';
   }
   else{
-    strncpy_P(buff_out,(const char*)F("No"),buff_out_size);
+    strncpy_P(buff_out,strNo,buff_out_size);
     m = 'N';
   }
   morseLetter(m);
@@ -401,7 +405,7 @@ void ssMorseMenuFinalize(const long int final_value)
   SaveSettingsToEeprom();
 }
 const char SS_MORSE_MENU_T [] PROGMEM = "Menu Audio";
-const char SS_MORSE_MENU_A [] PROGMEM = "When on, menu selections\nwill play morse code";
+const char SS_MORSE_MENU_A [] PROGMEM = "Menu selections will play\nmorse code";
 const SettingScreen_t ssMorseMenu PROGMEM = {
   SS_MORSE_MENU_T,
   SS_MORSE_MENU_A,
@@ -435,7 +439,7 @@ void ssCwSpeedFinalize(const long int final_value)
   SaveSettingsToEeprom();
 }
 const char SS_CW_SPEED_T [] PROGMEM = "Play Speed";
-const char SS_CW_SPEED_A [] PROGMEM = "Select speed to play CW\ncharacters";
+const char SS_CW_SPEED_A [] PROGMEM = "Speed to play CW characters";
 const SettingScreen_t ssCwSpeed PROGMEM = {
   SS_CW_SPEED_T,
   SS_CW_SPEED_A,
@@ -461,11 +465,11 @@ void ssResetAllChange(const long int new_value, char* buff_out, const size_t buf
 {
   char m;
   if(new_value){
-    strncpy_P(buff_out,(const char*)F("Yes"),buff_out_size);
+    strncpy_P(buff_out,strYes,buff_out_size);
     m = 'Y';
   }
   else{
-    strncpy_P(buff_out,(const char*)F("No"),buff_out_size);
+    strncpy_P(buff_out,strNo,buff_out_size);
     m = 'N';
   }
   morseLetter(m);
@@ -480,7 +484,7 @@ void ssResetAllFinalize(const long int final_value)
   }
 }
 const char SS_RESET_ALL_T [] PROGMEM = "Reset All";
-const char SS_RESET_ALL_A [] PROGMEM = "WARNING: Selecting \"Yes\"\nwill reset all calibrations and\nsettings to their default\nvalues";
+const char SS_RESET_ALL_A [] PROGMEM = "Resets all calibrations and\nsettings to their default\nvalues";
 const SettingScreen_t ssResetAll PROGMEM = {
   SS_RESET_ALL_T,
   SS_RESET_ALL_A,
