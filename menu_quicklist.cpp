@@ -5,6 +5,7 @@
 #include <WString.h>//F()
 
 #include "color_theme.h"
+#include "menu_np_ql_shared.h"
 #include "menu_utils.h"
 #include "nano_gui.h"
 #include "scratch_space.h"
@@ -52,39 +53,12 @@ MenuReturn_e runQuickList(const ButtonPress_e tuner_button,
                        const Point touch_point,
                        const int16_t knob)
 {
-  if(ButtonPress_e::NotPressed != tuner_button){
-    uint8_t menu_index = quickListMenuSelectedItemRaw/MENU_KNOB_COUNTS_PER_ITEM;
-    Button button;
-    Button* bp;
-    memcpy_P(&bp,&(quickListMenuButtons[menu_index]),sizeof(bp));
-    memcpy_P(&button,bp,sizeof(button));
-    quickListSelectionMode = tuner_button;
-    button.on_select();
-  }//tuner_button
-
-  else if(ButtonPress_e::NotPressed != touch_button){
-    Button button;
-    if(findPressedButton(quickListMenuButtons,QUICKLIST_MENU_NUM_BUTTONS,&button,touch_point)){
-      quickListSelectionMode = touch_button;
-      button.on_select();
-    }
-    else{
-      //Touch detected, but not on our buttons, so ignore
-    }
-  }//touch_button
-
-  else{//Neither button input type found, so handle the knob
-    adjustSelector(&quickListMenuSelectedItemRaw,
-                    knob,
-                    quickListMenuButtons,
-                    QUICKLIST_MENU_NUM_BUTTONS,
-                    MorsePlaybackType_e::PlayChar);
-  }
-
-  if(ButtonPress_e::NotPressed == quickListSelectionMode){
-    return MenuReturn_e::ExitedRedraw;
-  }
-  else{
-    return MenuReturn_e::StillActive;
-  }
+  return runNpQlShared(tuner_button,
+                       touch_button,
+                       touch_point,
+                       knob,
+                       &quickListMenuSelectedItemRaw,
+                       quickListMenuButtons,
+                       QUICKLIST_MENU_NUM_BUTTONS,
+                       &quickListSelectionMode);
 }

@@ -4,6 +4,7 @@
 #include <avr/pgmspace.h>
 
 #include "color_theme.h"
+#include "menu_np_ql_shared.h"
 #include "menu_utils.h"
 #include "nano_gui.h"
 
@@ -36,6 +37,7 @@ void drawNumpad(void)
 void initNumpad(void)
 {
   numpadMenuFrequency = 0;
+  numpadSelectionMode = ButtonPress_e::LongPress;//Anything except NotPressed
   drawNumpad();
   initSelector(&numpadMenuSelectedItemRaw,
                 numpadMenuButtons,
@@ -48,39 +50,12 @@ MenuReturn_e runNumpad(const ButtonPress_e tuner_button,
                        const Point touch_point,
                        const int16_t knob)
 {
-  if(ButtonPress_e::NotPressed != tuner_button){
-    //We treat long and short presses the same, so no need to have a switch
-    uint8_t menu_index = numpadMenuSelectedItemRaw/MENU_KNOB_COUNTS_PER_ITEM;
-    Button button;
-    Button* bp;
-    memcpy_P(&bp,&(numpadMenuButtons[menu_index]),sizeof(bp));
-    memcpy_P(&button,bp,sizeof(button));
-    button.on_select();
-  }//tuner_button
-
-  else if(ButtonPress_e::NotPressed != touch_button){
-    //We treat long and short presses the same, so no need to have a switch
-    Button button;
-    if(findPressedButton(numpadMenuButtons,NUMPAD_MENU_NUM_BUTTONS,&button,touch_point)){
-      button.on_select();
-    }
-    else{
-      //Touch detected, but not on our buttons, so ignore
-    }
-  }//touch_button
-
-  else{//Neither button input type found, so handle the knob
-    adjustSelector(&numpadMenuSelectedItemRaw,
-                    knob,
-                    numpadMenuButtons,
-                    NUMPAD_MENU_NUM_BUTTONS,
-                    MorsePlaybackType_e::PlayChar);
-  }
-
-  if(NUMPAD_MENU_EXIT_FREQ == numpadMenuFrequency){
-    return MenuReturn_e::ExitedRedraw;
-  }
-  else{
-    return MenuReturn_e::StillActive;
-  }
+  return runNpQlShared(tuner_button,
+                       touch_button,
+                       touch_point,
+                       knob,
+                       &numpadMenuSelectedItemRaw,
+                       numpadMenuButtons,
+                       NUMPAD_MENU_NUM_BUTTONS,
+                       &numpadSelectionMode);
 }

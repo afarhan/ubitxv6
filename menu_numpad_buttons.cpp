@@ -22,8 +22,8 @@ static const unsigned int LAYOUT_BUTTON_HEIGHT = 36;
 static const unsigned int LAYOUT_BUTTON_PITCH_X = 64;
 static const unsigned int LAYOUT_BUTTON_PITCH_Y = 40;
 
-const uint32_t NUMPAD_MENU_EXIT_FREQ = -1;
 uint32_t numpadMenuFrequency;
+ButtonPress_e numpadSelectionMode;
 
 #define D_STRINGIFY(x) #x
 #define D_STRING(x) D_STRINGIFY(x)
@@ -152,10 +152,10 @@ void osOk(void)
   SetActiveVfoFreq(numpadMenuFrequency);
   SaveSettingsToEeprom();
   setFrequency(numpadMenuFrequency);
-  numpadMenuFrequency = NUMPAD_MENU_EXIT_FREQ;
+  numpadSelectionMode = ButtonPress_e::NotPressed;
 }
 
 void osCancel(void)
 {
-  numpadMenuFrequency = NUMPAD_MENU_EXIT_FREQ;
+  numpadSelectionMode = ButtonPress_e::NotPressed;
 }
