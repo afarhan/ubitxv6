@@ -4,6 +4,7 @@
 #include <Arduino.h>//only needed for debugging's Serial.print stuff
 #include "nano_gui.h"//redrawVFOs() function
 #include "settings.h"
+#include "si5351.h"
 
 /**
  * These are the "magic" indices where these user changable settinngs are stored in the EEPROM
@@ -95,8 +96,8 @@ void LoadDefaultSettings()
 void LoadSettingsFromEeprom()
 {
   LoadSane(globalSettings.usbCarrierFreq,EEPROM_ADDR_USB_CAL,11048000UL,11060000UL);
-  LoadSane(globalSettings.vfoA.frequency,EEPROM_ADDR_VFO_A_FREQ,500000UL+1,109000000UL-1);//Allow all freq supported by si5351 driver
-  LoadSane(globalSettings.vfoB.frequency,EEPROM_ADDR_VFO_B_FREQ,500000UL+1,109000000UL-1);//Allow all freq supported by si5351 driver
+  LoadSane(globalSettings.vfoA.frequency,EEPROM_ADDR_VFO_A_FREQ,SI5351_MIN_FREQUENCY_HZ,SI5351_MAX_FREQUENCY_HZ);
+  LoadSane(globalSettings.vfoB.frequency,EEPROM_ADDR_VFO_B_FREQ,SI5351_MIN_FREQUENCY_HZ,SI5351_MAX_FREQUENCY_HZ);
   LoadSane(globalSettings.cwSideToneFreq,EEPROM_ADDR_CW_SIDETONE,100UL,2000UL);
   LoadSane(globalSettings.cwDitDurationMs,EEPROM_ADDR_CW_DIT_TIME,10U,1000U);
   if(LoadSane(globalSettings.cwActiveTimeoutMs,EEPROM_ADDR_CW_DELAYTIME,10U,100U)){
@@ -111,7 +112,7 @@ void LoadSettingsFromEeprom()
   globalSettings.morseMenuOn = morse_on;
 
   for(uint8_t i = 0; i < NUM_QUICKLIST_SETTINGS; ++i){
-    LoadSane(globalSettings.quickList[i].frequency,EEPROM_ADDR_QUICKLIST_FREQ+(sizeof(uint32_t)*i),500000UL+1,109000000UL-1);//Allow all freq supported by si5351 driver
+    LoadSane(globalSettings.quickList[i].frequency,EEPROM_ADDR_QUICKLIST_FREQ+(sizeof(uint32_t)*i),SI5351_MIN_FREQUENCY_HZ,SI5351_MAX_FREQUENCY_HZ);
     LoadSane(globalSettings.quickList[i].mode,EEPROM_ADDR_QUICKLIST_MODE+(sizeof(uint8_t)*i),VFO_MODE_LSB,VFO_MODE_USB);
   }
 
