@@ -98,23 +98,15 @@ void writeFreq(unsigned long freq,byte* cmd) {
 //
 unsigned long readFreq(byte* cmd) {
     // Pull off each of the digits
-    byte d7 = getHighNibble(cmd[0]);
-    byte d6 = getLowNibble(cmd[0]);
-    byte d5 = getHighNibble(cmd[1]);
-    byte d4 = getLowNibble(cmd[1]); 
-    byte d3 = getHighNibble(cmd[2]);
-    byte d2 = getLowNibble(cmd[2]); 
-    byte d1 = getHighNibble(cmd[3]);
-    byte d0 = getLowNibble(cmd[3]); 
-    return  
-      (unsigned long)d7 * 100000000L +
-      (unsigned long)d6 * 10000000L +
-      (unsigned long)d5 * 1000000L + 
-      (unsigned long)d4 * 100000L + 
-      (unsigned long)d3 * 10000L + 
-      (unsigned long)d2 * 1000L + 
-      (unsigned long)d1 * 100L + 
-      (unsigned long)d0 * 10L; 
+    unsigned long ret = 0;
+    for(uint8_t i = 0; i < 4; ++i){
+      const uint8_t d1 = getHighNibble(cmd[i]);
+      const uint8_t d0 = getLowNibble(cmd[i]);
+      ret *= 100;
+      ret += 10*d1 + d0;
+    }
+
+    return ret*10;
 }
 
 //void ReadEEPRom_FT817(byte fromType)
