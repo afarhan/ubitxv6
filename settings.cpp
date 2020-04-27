@@ -25,6 +25,8 @@ static const uint16_t EEPROM_ADDR_CW_DELAYTIME  = 48;//uint16_t
 static const uint16_t EEPROM_ADDR_VFO_A_MODE = 256;//uint8_t
 static const uint16_t EEPROM_ADDR_VFO_B_MODE = 257;//uint8_t
 static const uint16_t EEPROM_ADDR_CW_KEY_TYPE = 358;//uint8_t
+static const uint16_t EEPROM_ADDR_QUICKLIST_FREQ = 630;//uint32_t array
+static const uint16_t EEPROM_ADDR_QUICKLIST_MODE = 710;//uint8_t array
 
 template<typename T>
 bool LoadSane(T& dest,uint16_t addr, T min, T max)
@@ -61,6 +63,11 @@ void LoadDefaultSettings()
   globalSettings.vfoA.mode = VFO_MODE_LSB;
   globalSettings.vfoB.frequency = 14150000UL;
   globalSettings.vfoB.mode = VFO_MODE_USB;
+
+  for(uint8_t i = 0; i < NUM_QUICKLIST_SETTINGS; ++i){
+    globalSettings.quickList[i].frequency = i*1000000;
+    globalSettings.quickList[i].mode = VfoMode_e::VFO_MODE_LSB;
+  }
 
   globalSettings.keyerMode = KEYER_STRAIGHT;
   globalSettings.cwSideToneFreq = 800;
@@ -103,6 +110,11 @@ void LoadSettingsFromEeprom()
   LoadSane(morse_on,EEPROM_ADDR_MORSE_MENU,(uint8_t)0,(uint8_t)1);
   globalSettings.morseMenuOn = morse_on;
 
+  for(uint8_t i = 0; i < NUM_QUICKLIST_SETTINGS; ++i){
+    LoadSane(globalSettings.quickList[i].frequency,EEPROM_ADDR_QUICKLIST_FREQ+(sizeof(uint32_t)*i),500000UL+1,109000000UL-1);//Allow all freq supported by si5351 driver
+    LoadSane(globalSettings.quickList[i].mode,EEPROM_ADDR_QUICKLIST_MODE+(sizeof(uint8_t)*i),VFO_MODE_LSB,VFO_MODE_USB);
+  }
+
   //No sanity check on these - cal your heart out
   EEPROM.get(EEPROM_ADDR_MASTER_CAL,globalSettings.oscillatorCal);
   EEPROM.get(EEPROM_ADDR_TOUCH_SLOPE_X,globalSettings.touchSlopeX);
@@ -129,6 +141,11 @@ void SaveSettingsToEeprom()
   EEPROM.put(EEPROM_ADDR_VFO_B_MODE,globalSettings.vfoB.mode);
   EEPROM.put(EEPROM_ADDR_CW_KEY_TYPE,globalSettings.keyerMode);
   EEPROM.put(EEPROM_ADDR_MORSE_MENU,(uint8_t)globalSettings.morseMenuOn);
+
+  for(uint8_t i = 0; i < NUM_QUICKLIST_SETTINGS; ++i){
+    EEPROM.put(EEPROM_ADDR_QUICKLIST_FREQ+(sizeof(uint32_t)*i),globalSettings.quickList[i].frequency);
+    EEPROM.put(EEPROM_ADDR_QUICKLIST_MODE+(sizeof(uint8_t)*i),globalSettings.quickList[i].mode);
+  }
 }
 
 uint32_t GetActiveVfoFreq()
