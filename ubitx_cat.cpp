@@ -26,18 +26,76 @@ enum CatDataIndex_e : uint8_t {
   CMD = 4
 };
 
+enum Ft817Command_e : uint8_t {
+  //Listed in the order presented by FT-817ND_OM_ENG_E13771011.pdf
+  OffBit = 0x80,
+  LockOn = 0x00,
+  LockOff = LockOn | OffBit,
+  PttOn = 0x08,
+  PttOff = PttOn | OffBit,
+  SetFrequency = 0x01,//P1-P4 are BCD, 0x01 0x42 0x34 0x56 = 14.23456MHz
+  OperatingMode = 0x07,//See OperatingMode_e for P1 decode
+  ClarOn = 0x05,
+  ClarOff = ClarOn | OffBit,
+  ClarFrequency = 0xF5,//P1 is sign/direction (0x00 = +, - otherwise), P3-P4 are BCD, 0x12 0x34 = 12.34kHz
+  VfoToggle = 0x81,
+  SplitOn = 0x02,
+  SplitOff = SplitOn | OffBit,
+  RepeaterMode = 0x09,//See RepeaterMode_e for P1 decode
+  RepeaterOffset = 0xF9,//P1-P4 are BCD
+  CtcssDcsMode = 0x0A,//See CtcssDcsMode_e for P1 decode
+  CtcssTone = 0x0B,//P1-P2 are BCD, 0x08 0x85 = 88.5MHz
+  DcsTone = 0x0C,//P1-P2 are BCD, 0x00 0x23 = code 023
+  ReadRxStatus = 0xE7,//Returns ReadRxStatus_t
+  ReadTxStatus = 0xF7,//Returns ReadTxStatus_t
+  ReadFreqAndMode = 0x03,//Returns current frequency (BCD, 4 bytes), then mode (OperatingMode_e)
+  PowerOn = 0x0F,
+  PowerOff = PowerOn | OffBit,
+};
+
+enum OperatingMode_e : uint8_t {
+  LSB = 0x00,
+  USB = 0x01,
+  CW = 0x02,
+  CWR = 0x03,
+  AM = 0x04,
+  FM = 0x08,
+  DIG = 0x0A,
+  PKT = 0x0C,
+};
+
+enum RepeaterMode_e : uint8_t {
+  ShiftMinus = 0x09,
+  ShiftPlus = 0x49,
+  Simplex = 0x89,
+};
+
+enum CtcssDcsMode_e : uint8_t {
+  DcsOn = 0x0A,
+  CtcssOn = 0x2A,
+  EncoderOn = 0x4A,
+  Off = 0x8A,
+};
+
+struct ReadRxStatus_t {
+  //Bitfields are not defined by the standard to be portable, which is unfortunate
+  uint8_t Smeter : 4;
+  uint8_t Dummy : 1;
+  uint8_t DiscriminatorCenteringOff : 1;
+  uint8_t CodeUnmatched : 1;
+  uint8_t SquelchSuppressionActive : 1;
+};
+
+struct ReadTxStatus_t {
+  uint8_t PowerOutputMeter : 4;
+  uint8_t Dummy : 1;
+  uint8_t SplitOff : 1;
+  uint8_t HighSwrDetected : 1;
+  uint8_t PttOff : 1;
+};
+
 //for broken protocol
 static const uint16_t CAT_RECEIVE_TIMEOUT_MS = 500;
-
-static const uint8_t CAT_MODE_LSB           = 0x00;
-static const uint8_t CAT_MODE_USB           = 0x01;
-static const uint8_t CAT_MODE_CW            = 0x02;
-static const uint8_t CAT_MODE_CWR           = 0x03;
-static const uint8_t CAT_MODE_AM            = 0x04;
-static const uint8_t CAT_MODE_FM            = 0x08;
-static const uint8_t CAT_MODE_DIG           = 0x0A;
-static const uint8_t CAT_MODE_PKT           = 0x0C;
-static const uint8_t CAT_MODE_FMN           = 0x88;
 
 static const uint8_t ACK = 0;
 
@@ -217,9 +275,9 @@ void catReadEEPRom(uint8_t* cat)
     case 0x69 : //FM Mic (#29)  Contains 0-100 (decimal) as displayed
     case 0x78 :
       if (VfoMode_e::VFO_MODE_USB == GetActiveVfoMode())
-        cat[P1] = CAT_MODE_USB << 5;
+        cat[P1] = OperatingMode_e::USB << 5;
       else
-        cat[P1] = CAT_MODE_LSB << 5;
+        cat[P1] = OperatingMode_e::LSB << 5;
       break;
     case  0x79 : //
       //1-0  TX Power (All bands)  00 = High, 01 = L3, 10 = L2, 11 = L1
