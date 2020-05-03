@@ -16,7 +16,7 @@
  */
 
 static unsigned long rxBufferArriveTime = 0;
-static byte rxBufferCheckCount = 0;
+static uint8_t rxBufferCheckCount = 0;
 
 static uint8_t cat[5];//Data is ordered parameters 1-4, then command code last
 enum CatDataIndex_e : uint8_t {
@@ -27,7 +27,7 @@ enum CatDataIndex_e : uint8_t {
   CMD = 4
 };
 
-static byte insideCat = 0; 
+static uint8_t insideCat = 0; 
 
 //for broken protocol
 static const uint16_t CAT_RECEIVE_TIMEOUT = 500;
@@ -46,32 +46,32 @@ static const uint8_t ACK = 0;
 
 unsigned int skipTimeCount = 0;
 
-byte setHighNibble(byte b,byte v) {
+uint8_t setHighNibble(uint8_t b, uint8_t v) {
   // Clear the high nibble
   b &= 0x0f;
   // Set the high nibble
   return b | ((v & 0x0f) << 4);
 }
 
-byte setLowNibble(byte b,byte v) {
+uint8_t setLowNibble(uint8_t b, uint8_t v) {
   // Clear the low nibble
   b &= 0xf0;
   // Set the low nibble
   return b | (v & 0x0f);
 }
 
-byte getHighNibble(byte b) {
+uint8_t getHighNibble(uint8_t b) {
   return (b >> 4) & 0x0f;
 }
 
-byte getLowNibble(byte b) {
+uint8_t getLowNibble(uint8_t b) {
   return b & 0x0f;
 }
 
 // Takes a number and produces the requested number of decimal digits, staring
 // from the least significant digit.  
 //
-void getDecimalDigits(unsigned long number,byte* result,int digits) {
+void getDecimalDigits(unsigned long number, uint8_t* result,int digits) {
   for (int i = 0; i < digits; i++) {
     // "Mask off" (in a decimal sense) the LSD and return it
     result[i] = number % 10;
@@ -82,11 +82,11 @@ void getDecimalDigits(unsigned long number,byte* result,int digits) {
 
 // Takes a frequency and writes it into the CAT command buffer in BCD form.
 //
-void writeFreq(unsigned long freq,byte* cmd) {
+void writeFreq(unsigned long freq, uint8_t* cmd) {
   // Convert the frequency to a set of decimal digits. We are taking 9 digits
   // so that we can get up to 999 MHz. But the protocol doesn't care about the
   // LSD (1's place), so we ignore that digit.
-  byte digits[9];
+  uint8_t digits[9];
   getDecimalDigits(freq,digits,9);
   // Start from the LSB and get each nibble 
   cmd[3] = setLowNibble(cmd[3],digits[1]);
@@ -99,12 +99,12 @@ void writeFreq(unsigned long freq,byte* cmd) {
   cmd[0] = setHighNibble(cmd[0],digits[8]);  
 }
 
-// This function takes a frquency that is encoded using 4 bytes of BCD
+// This function takes a frquency that is encoded using 4 uint8_ts of BCD
 // representation and turns it into an long measured in Hz.
 //
 // [12][34][56][78] = 123.45678? Mhz
 //
-unsigned long readFreq(byte* cmd) {
+unsigned long readFreq(uint8_t* cmd) {
     // Pull off each of the digits
     unsigned long ret = 0;
     for(uint8_t i = 0; i < 4; ++i){
@@ -117,12 +117,12 @@ unsigned long readFreq(byte* cmd) {
     return ret*10;
 }
 
-//void ReadEEPRom_FT817(byte fromType)
+//void ReadEEPRom_FT817(uint8_t fromType)
 void catReadEEPRom(void)
 {
   //for remove warnings
-  byte temp0 = cat[P1];
-  byte temp1 = cat[P2];
+  uint8_t temp0 = cat[P1];
+  uint8_t temp1 = cat[P2];
 
   cat[P1] = 0;
   cat[P2] = 0;
@@ -258,8 +258,8 @@ void catReadEEPRom(void)
   Serial.write(cat, 2);
 }
 
-void processCATCommand2(byte* cmd) {
-  byte response[5];
+void processCATCommand2(uint8_t* cmd) {
+  uint8_t response[5];
   unsigned long f;
   
   switch(cmd[4]){
@@ -376,7 +376,7 @@ void processCATCommand2(byte* cmd) {
     break;
     
   default:
-    //somehow, get this to print the four bytes
+    //somehow, get this to print the four uint8_ts
     ultoa(*((unsigned long *)cmd), c, 16);
     response[0] = 0x00;
     Serial.write(response[0]);
@@ -387,7 +387,7 @@ void processCATCommand2(byte* cmd) {
 
 int catCount = 0;
 void checkCAT(){
-  byte i;
+  uint8_t i;
 
   //Check Serial Port Buffer
   if (Serial.available() == 0) {      //Set Buffer Clear status
