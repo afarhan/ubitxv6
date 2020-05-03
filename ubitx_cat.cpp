@@ -7,12 +7,12 @@
 /**
  * The CAT protocol is used by many radios to provide remote control to comptuers through
  * the serial port.
- * 
+ *
  * This is very much a work in progress. Parts of this code have been liberally
  * borrowed from other GPLicensed works like hamlib.
- * 
- * WARNING : This is an unstable version and it has worked with fldigi, 
- * it gives time out error with WSJTX 1.8.0  
+ *
+ * WARNING : This is an unstable version and it has worked with fldigi,
+ * it gives time out error with WSJTX 1.8.0
  */
 
 static const uint8_t FT817_MESSAGE_SIZE = 5;
@@ -64,7 +64,7 @@ uint8_t getLowNibble(uint8_t b) {
 }
 
 // Takes a number and produces the requested number of decimal digits, staring
-// from the least significant digit.  
+// from the least significant digit.
 //
 void getDecimalDigits(unsigned long number, uint8_t* result,int digits) {
   for (int i = 0; i < digits; i++) {
@@ -83,7 +83,7 @@ void writeFreq(unsigned long freq, uint8_t* cmd) {
   // LSD (1's place), so we ignore that digit.
   uint8_t digits[9];
   getDecimalDigits(freq,digits,9);
-  // Start from the LSB and get each nibble 
+  // Start from the LSB and get each nibble
   cmd[3] = setLowNibble(cmd[3],digits[1]);
   cmd[3] = setHighNibble(cmd[3],digits[2]);
   cmd[2] = setLowNibble(cmd[2],digits[3]);
@@ -91,7 +91,7 @@ void writeFreq(unsigned long freq, uint8_t* cmd) {
   cmd[1] = setLowNibble(cmd[1],digits[5]);
   cmd[1] = setHighNibble(cmd[1],digits[6]);
   cmd[0] = setLowNibble(cmd[0],digits[7]);
-  cmd[0] = setHighNibble(cmd[0],digits[8]);  
+  cmd[0] = setHighNibble(cmd[0],digits[8]);
 }
 
 // This function takes a frquency that is encoded using 4 uint8_ts of BCD
@@ -122,7 +122,7 @@ void catReadEEPRom(uint8_t* cat)
   cat[P1] = 0;
   cat[P2] = 0;
   //for remove warnings[1] = 0;
-  
+
   switch (temp1)
   {
     case 0x45 : //
@@ -253,36 +253,36 @@ void catReadEEPRom(uint8_t* cat)
   Serial.write(cat, 2);
 }
 
-void processCATCommand2(uint8_t* cmd) {
+void processCatCommand(uint8_t* cmd) {
   uint8_t response[5];
   unsigned long f;
-  
+
   switch(cmd[4]){
 /*  case 0x00:
     response[0]=0;
     Serial.write(response, 1);
     break;
-*/    
+*/
   case 0x01:
     //set frequency
     f = readFreq(cmd);
-    setFrequency(f);   
+    setFrequency(f);
     updateDisplay();
     response[0]=0;
     Serial.write(response, 1);
-    //sprintf(b, "set:%ld", f); 
+    //sprintf(b, "set:%ld", f);
     //printLine2(b);
     break;
 
   case 0x02:
-    //split on 
+    //split on
     globalSettings.splitOn =  1;
     break;
   case 0x82:
     //split off
     globalSettings.splitOn = 0;
     break;
-    
+
   case 0x03:
     writeFreq(GetActiveVfoFreq(),response); // Put the frequency into the buffer
     if (VfoMode_e::VFO_MODE_USB == GetActiveVfoMode())
@@ -292,7 +292,7 @@ void processCATCommand2(uint8_t* cmd) {
     Serial.write(response,5);
     //printLine2("cat:getfreq");
     break;
-    
+
   case 0x07: // set mode
     if (cmd[0] == 0x00 || cmd[0] == 0x03)
       SetActiveVfoMode(VfoMode_e::VFO_MODE_LSB);
@@ -303,8 +303,8 @@ void processCATCommand2(uint8_t* cmd) {
     setFrequency(GetActiveVfoFreq());
       //printLine2("cat: mode changed");
     //updateDisplay();
-    break;   
- 
+    break;
+
   case 0x08: // PTT On
     if (!globalSettings.txActive) {
       response[0] = 0;
@@ -313,7 +313,7 @@ void processCATCommand2(uint8_t* cmd) {
       updateDisplay();
     } else {
       response[0] = 0xf0;
-    } 
+    }
     Serial.write(response,1);
     updateDisplay();
     break;
@@ -345,18 +345,18 @@ void processCATCommand2(uint8_t* cmd) {
     catReadEEPRom(cmd);
     break;
 
-  case 0xe7 : 
+  case 0xe7 :
     // get receiver status, we have hardcoded this as
     //as we dont' support ctcss, etc.
     response[0] = 0x09;
     Serial.write(response,1);
     break;
-       
+
   case 0xf7:
     {
       boolean isHighSWR = false;
       boolean issplitOn = false;
-  
+
       /*
         Inverted -> *ptt = ((p->tx_status & 0x80) == 0); <-- souce code in ft817.c (hamlib)
       */
@@ -369,7 +369,7 @@ void processCATCommand2(uint8_t* cmd) {
       Serial.write(response, 1);
     }
     break;
-    
+
   default:
     //somehow, get this to print the four uint8_ts
     ultoa(*((unsigned long *)cmd), c, 16);
@@ -401,7 +401,7 @@ void checkCAT(){
     }
   }
 
-  processCATCommand2(rx_buffer);
+  processCatCommand(rx_buffer);
   current_index = 0;
   timeout = 0;
 }
