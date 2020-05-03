@@ -84,14 +84,14 @@ void writeFreq(unsigned long freq, uint8_t* cmd) {
   uint8_t digits[9];
   getDecimalDigits(freq,digits,9);
   // Start from the LSB and get each nibble
-  cmd[3] = setLowNibble(cmd[3],digits[1]);
-  cmd[3] = setHighNibble(cmd[3],digits[2]);
-  cmd[2] = setLowNibble(cmd[2],digits[3]);
-  cmd[2] = setHighNibble(cmd[2],digits[4]);
-  cmd[1] = setLowNibble(cmd[1],digits[5]);
-  cmd[1] = setHighNibble(cmd[1],digits[6]);
-  cmd[0] = setLowNibble(cmd[0],digits[7]);
-  cmd[0] = setHighNibble(cmd[0],digits[8]);
+  cmd[P4] = setLowNibble(cmd[P4],digits[1]);
+  cmd[P4] = setHighNibble(cmd[P4],digits[2]);
+  cmd[P3] = setLowNibble(cmd[P3],digits[3]);
+  cmd[P3] = setHighNibble(cmd[P3],digits[4]);
+  cmd[P2] = setLowNibble(cmd[P2],digits[5]);
+  cmd[P2] = setHighNibble(cmd[P2],digits[6]);
+  cmd[P1] = setLowNibble(cmd[P1],digits[7]);
+  cmd[P1] = setHighNibble(cmd[P1],digits[8]);
 }
 
 // This function takes a frquency that is encoded using 4 uint8_ts of BCD
@@ -257,7 +257,7 @@ void processCatCommand(uint8_t* cmd) {
   uint8_t response[5];
   unsigned long f;
 
-  switch(cmd[4]){
+  switch(cmd[CMD]){
 /*  case 0x00:
     response[0]=0;
     Serial.write(response, 1);
@@ -294,7 +294,7 @@ void processCatCommand(uint8_t* cmd) {
     break;
 
   case 0x07: // set mode
-    if (cmd[0] == 0x00 || cmd[0] == 0x03)
+    if (cmd[P1] == 0x00 || cmd[P1] == 0x03)
       SetActiveVfoMode(VfoMode_e::VFO_MODE_LSB);
     else
       SetActiveVfoMode(VfoMode_e::VFO_MODE_USB);
