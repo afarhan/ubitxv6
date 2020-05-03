@@ -17,24 +17,32 @@
 
 static unsigned long rxBufferArriveTime = 0;
 static byte rxBufferCheckCount = 0;
-#define CAT_RECEIVE_TIMEOUT 500
-static byte cat[5]; 
+
+static uint8_t cat[5];//Data is ordered parameters 1-4, then command code last
+enum CatDataIndex_e : uint8_t {
+  P1 = 0,
+  P2 = 1,
+  P3 = 2,
+  P4 = 3,
+  CMD = 4
+};
+
 static byte insideCat = 0; 
 
 //for broken protocol
-#define CAT_RECEIVE_TIMEOUT 500
+static const uint16_t CAT_RECEIVE_TIMEOUT = 500;
 
-#define CAT_MODE_LSB            0x00
-#define CAT_MODE_USB            0x01
-#define CAT_MODE_CW             0x02
-#define CAT_MODE_CWR            0x03
-#define CAT_MODE_AM             0x04
-#define CAT_MODE_FM             0x08
-#define CAT_MODE_DIG            0x0A
-#define CAT_MODE_PKT            0x0C
-#define CAT_MODE_FMN            0x88
+static const uint8_t CAT_MODE_LSB           = 0x00;
+static const uint8_t CAT_MODE_USB           = 0x01;
+static const uint8_t CAT_MODE_CW            = 0x02;
+static const uint8_t CAT_MODE_CWR           = 0x03;
+static const uint8_t CAT_MODE_AM            = 0x04;
+static const uint8_t CAT_MODE_FM            = 0x08;
+static const uint8_t CAT_MODE_DIG           = 0x0A;
+static const uint8_t CAT_MODE_PKT           = 0x0C;
+static const uint8_t CAT_MODE_FMN           = 0x88;
 
-#define ACK 0
+static const uint8_t ACK = 0;
 
 unsigned int skipTimeCount = 0;
 
@@ -113,11 +121,11 @@ unsigned long readFreq(byte* cmd) {
 void catReadEEPRom(void)
 {
   //for remove warnings
-  byte temp0 = cat[0];
-  byte temp1 = cat[1];
+  byte temp0 = cat[P1];
+  byte temp1 = cat[P2];
 
-  cat[0] = 0;
-  cat[1] = 0;
+  cat[P1] = 0;
+  cat[P2] = 0;
   //for remove warnings[1] = 0;
   
   switch (temp1)
@@ -125,15 +133,15 @@ void catReadEEPRom(void)
     case 0x45 : //
       if (temp0 == 0x03)
       {
-        cat[0] = 0x00;
-        cat[1] = 0xD0;
+        cat[P1] = 0x00;
+        cat[P2] = 0xD0;
       }
       break;
     case 0x47 : //
       if (temp0 == 0x03)
       {
-        cat[0] = 0xDC;
-        cat[1] = 0xE0;
+        cat[P1] = 0xDC;
+        cat[P2] = 0xE0;
       }
       break;
     case 0x55 :
@@ -145,8 +153,8 @@ void catReadEEPRom(void)
       //5 : Memory/MTUNE select  0 = Memory, 1 = MTUNE
       //6 :
       //7 : MEM/VFO Select  0 = Memory, 1 = VFO (A or B - see bit 0)
-      cat[0] = 0x80 + ((VFO_B == globalSettings.activeVfo) ? 1 : 0);
-      cat[1] = 0x00;
+      cat[P1] = 0x80 + ((VFO_B == globalSettings.activeVfo) ? 1 : 0);
+      cat[P2] = 0x00;
       break;
     case 0x57 : //
       //0 : 1-0  AGC Mode  00 = Auto, 01 = Fast, 10 = Slow, 11 = Off
@@ -156,8 +164,8 @@ void catReadEEPRom(void)
       //6  Lock On/Off 0 = Off, 1 = On  (Dial Lock)
       //7  FST (Fast Tuning) On/Off  0 = Off, 1 = On  (Fast tuning)
 
-      cat[0] = 0xC0;
-      cat[1] = 0x40;
+      cat[P1] = 0xC0;
+      cat[P2] = 0x40;
       break;
     case 0x59 : //  band select VFO A Band Select  0000 = 160 M, 0001 = 75 M, 0010 = 40 M, 0011 = 30 M, 0100 = 20 M, 0101 = 17 M, 0110 = 15 M, 0111 = 12 M, 1000 = 10 M, 1001 = 6 M, 1010 = FM BCB, 1011 = Air, 1100 = 2 M, 1101 = UHF, 1110 = (Phantom)
       //http://www.ka7oei.com/ft817_memmap.html
@@ -165,59 +173,58 @@ void catReadEEPRom(void)
       //CAT_BUFF[1] = 0x82;
       break;
     case 0x5C : //Beep Volume (0-100) (#13)
-      cat[0] = 0xB2;
-      cat[1] = 0x42;
+      cat[P1] = 0xB2;
+      cat[P2] = 0x42;
       break;
     case 0x5E :
       //3-0 : CW Pitch (300-1000 Hz) (#20)  From 0 to E (HEX) with 0 = 300 Hz and each step representing 50 Hz
       //5-4 :  Lock Mode (#32) 00 = Dial, 01 = Freq, 10 = Panel
       //7-6 :  Op Filter (#38) 00 = Off, 01 = SSB, 10 = CW
       //CAT_BUFF[0] = 0x08;
-      cat[0] = (globalSettings.cwSideToneFreq - 300)/50;
-      cat[1] = 0x25;
+      cat[P1] = (globalSettings.cwSideToneFreq - 300)/50;
+      cat[P2] = 0x25;
       break;
     case 0x61 : //globalSettings.cwSideToneFreq (Volume) (#44)
-      cat[0] = globalSettings.cwSideToneFreq % 50;
-      cat[1] = 0x08;
+      cat[P1] = globalSettings.cwSideToneFreq % 50;
+      cat[P2] = 0x08;
       break;
     case  0x5F : //
       //4-0  CW Weight (1.:2.5-1:4.5) (#22)  From 0 to 14 (HEX) with 0 = 1:2.5, incrementing in 0.1 weight steps
       //5  420 ARS (#2)  0 = Off, 1 = On
       //6  144 ARS (#1)  0 = Off, 1 = On
       //7  Sql/RF-G (#45)  0 = Off, 1 = On
-      cat[0] = 0x32;
-      cat[1] = 0x08;
+      cat[P1] = 0x32;
+      cat[P2] = 0x08;
       break;
     case 0x60 : //CW Delay (10-2500 ms) (#17)  From 1 to 250 (decimal) with each step representing 10 ms
-      cat[0] = globalSettings.cwActiveTimeoutMs / 10;
-      cat[1] = 0x32;
+      cat[P1] = globalSettings.cwActiveTimeoutMs / 10;
+      cat[P2] = 0x32;
       break;
     case 0x62 : //
       //5-0  CW Speed (4-60 WPM) (#21) From 0 to 38 (HEX) with 0 = 4 WPM and 38 = 60 WPM (1 WPM steps)
       //7-6  Batt-Chg (6/8/10 Hours (#11)  00 = 6 Hours, 01 = 8 Hours, 10 = 10 Hours
       //CAT_BUFF[0] = 0x08;
-      cat[0] = 1200 / globalSettings.cwDitDurationMs - 4;
-      cat[1] = 0xB2;
+      cat[P1] = 1200 / globalSettings.cwDitDurationMs - 4;
+      cat[P2] = 0xB2;
       break;
     case 0x63 : //
       //6-0  VOX Gain (#51)  Contains 1-100 (decimal) as displayed
       //7  Disable AM/FM Dial (#4) 0 = Enable, 1 = Disable
-      cat[0] = 0xB2;
-      cat[1] = 0xA5;
+      cat[P1] = 0xB2;
+      cat[P2] = 0xA5;
       break;
     case 0x64 : //
       break;
     case 0x67 : //6-0  SSB Mic (#46) Contains 0-100 (decimal) as displayed
-      cat[0] = 0xB2;
-      cat[1] = 0xB2;
-      break;      case 0x69 : //FM Mic (#29)  Contains 0-100 (decimal) as displayed
+      cat[P1] = 0xB2;
+      cat[P2] = 0xB2;
+      break;
+    case 0x69 : //FM Mic (#29)  Contains 0-100 (decimal) as displayed
     case 0x78 :
       if (VfoMode_e::VFO_MODE_USB == GetActiveVfoMode())
-        cat[0] = CAT_MODE_USB;
+        cat[P1] = CAT_MODE_USB << 5;
       else
-        cat[0] = CAT_MODE_LSB;
-        
-      if (cat[0] != 0) cat[0] = 1 << 5;
+        cat[P1] = CAT_MODE_LSB << 5;
       break;
     case  0x79 : //
       //1-0  TX Power (All bands)  00 = High, 01 = L3, 10 = L2, 11 = L1
@@ -225,8 +232,8 @@ void catReadEEPRom(void)
       //DW On/Off  0 = Off, 1 = On
       //SCN (Scan) Mode  00 = No scan, 10 = Scan up, 11 = Scan down
       //ART On/Off  0 = Off, 1 = On
-      cat[0] = 0x00;
-      cat[1] = 0x00;
+      cat[P1] = 0x00;
+      cat[P2] = 0x00;
       break;
     case 0x7A : //SPLIT
       //7A  0 HF Antenna Select 0 = Front, 1 = Rear
@@ -238,11 +245,11 @@ void catReadEEPRom(void)
       //7A  6 ? ?
       //7A  7 SPL On/Off  0 = Off, 1 = On
 
-      cat[0] = (globalSettings.splitOn ? 0xFF : 0x7F);
+      cat[P1] = (globalSettings.splitOn ? 0xFF : 0x7F);
       break;
     case 0xB3 : //
-      cat[0] = 0x00;
-      cat[1] = 0x4D;
+      cat[P1] = 0x00;
+      cat[P2] = 0x4D;
       break;
 
   }
@@ -421,8 +428,8 @@ void checkCAT(){
   catCount++;
 
 /*
-  if (cat[4] != 0xf7 && cat[4] != 0xbb && cat[4] != 0x03){
-    sprintf(b, "%d %02x %02x%02x%02x%02x", catCount, cat[4],cat[0], cat[1], cat[2], cat[3]);  
+  if (cat[CMD] != 0xf7 && cat[CMD] != 0xbb && cat[CMD] != 0x03){
+    sprintf(b, "%d %02x %02x%02x%02x%02x", catCount, cat[CMD],cat[P1], cat[P2], cat[P3], cat[P4]);  
     printLine2(b);  
   }
 */  
