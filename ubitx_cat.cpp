@@ -15,10 +15,9 @@
  * it gives time out error with WSJTX 1.8.0  
  */
 
-static unsigned long rxBufferArriveTime = 0;
-static uint8_t rxBufferCheckCount = 0;
+static const uint8_t FT817_MESSAGE_SIZE = 5;
 
-static uint8_t cat[5];//Data is ordered parameters 1-4, then command code last
+//Data is ordered parameters 1-4, then command code last
 enum CatDataIndex_e : uint8_t {
   P1 = 0,
   P2 = 1,
@@ -27,10 +26,8 @@ enum CatDataIndex_e : uint8_t {
   CMD = 4
 };
 
-static uint8_t insideCat = 0; 
-
 //for broken protocol
-static const uint16_t CAT_RECEIVE_TIMEOUT = 500;
+static const uint16_t CAT_RECEIVE_TIMEOUT_MS = 500;
 
 static const uint8_t CAT_MODE_LSB           = 0x00;
 static const uint8_t CAT_MODE_USB           = 0x01;
@@ -43,8 +40,6 @@ static const uint8_t CAT_MODE_PKT           = 0x0C;
 static const uint8_t CAT_MODE_FMN           = 0x88;
 
 static const uint8_t ACK = 0;
-
-unsigned int skipTimeCount = 0;
 
 uint8_t setHighNibble(uint8_t b, uint8_t v) {
   // Clear the high nibble
@@ -118,7 +113,7 @@ unsigned long readFreq(uint8_t* cmd) {
 }
 
 //void ReadEEPRom_FT817(uint8_t fromType)
-void catReadEEPRom(void)
+void catReadEEPRom(uint8_t* cat)
 {
   //for remove warnings
   uint8_t temp0 = cat[P1];
@@ -347,7 +342,7 @@ void processCATCommand2(uint8_t* cmd) {
     break;
 
  case 0xBB:  //Read FT-817 EEPROM Data  (for comfirtable)
-    catReadEEPRom();
+    catReadEEPRom(cmd);
     break;
 
   case 0xe7 : 
@@ -381,67 +376,34 @@ void processCATCommand2(uint8_t* cmd) {
     response[0] = 0x00;
     Serial.write(response[0]);
   }
-
-  insideCat = false;
 }
 
-int catCount = 0;
 void checkCAT(){
-  uint8_t i;
-
+  static uint8_t rx_buffer[FT817_MESSAGE_SIZE];
+  static uint8_t current_index = 0;
+  static uint32_t timeout = 0;
   //Check Serial Port Buffer
   if (Serial.available() == 0) {      //Set Buffer Clear status
-    rxBufferCheckCount = 0;
-    return;
-  }
-  else if (Serial.available() < 5) {                         //First Arrived
-    if (rxBufferCheckCount == 0){
-      rxBufferCheckCount = Serial.available();
-      rxBufferArriveTime = millis() + CAT_RECEIVE_TIMEOUT;  //Set time for timeout
-    }
-    else if (rxBufferArriveTime < millis()){                //Clear Buffer
-      for (i = 0; i < Serial.available(); i++)
-        rxBufferCheckCount = Serial.read();
-      rxBufferCheckCount = 0;
-    }
-    else if (rxBufferCheckCount < Serial.available()){      // Increase buffer count, slow arrive
-      rxBufferCheckCount = Serial.available();
-      rxBufferArriveTime = millis() + CAT_RECEIVE_TIMEOUT;  //Set time for timeout
+    if(timeout < millis()){
+      current_index = 0;
+      timeout = 0;
     }
     return;
   }
-
-    
-  //Arived CAT DATA
-  for (i = 0; i < 5; i++)
-    cat[i] = Serial.read();
-
-
-  //this code is not re-entrant.
-  if (insideCat == 1)
-    return;
-  insideCat = 1;
-
-/**
- *  This routine is enabled to debug the cat protocol
-**/
-  catCount++;
-
-/*
-  if (cat[CMD] != 0xf7 && cat[CMD] != 0xbb && cat[CMD] != 0x03){
-    sprintf(b, "%d %02x %02x%02x%02x%02x", catCount, cat[CMD],cat[P1], cat[P2], cat[P3], cat[P4]);  
-    printLine2(b);  
+  else{
+    if(0 == current_index){
+      timeout = millis() + CAT_RECEIVE_TIMEOUT_MS;
+    }
+    rx_buffer[current_index] = Serial.read();
+    ++current_index;
+    if(current_index < FT817_MESSAGE_SIZE){
+      return;
+    }
   }
-*/  
 
-/*
-  if (!doingCAT){
-    doingCAT = 1;
-    displayText("CAT on", 100,120,100,40, ILI9341_ORANGE, ILI9341_BLACK, ILI9341_WHITE);
-  }
-*/
-  processCATCommand2(cat);
-  insideCat = 0;
+  processCATCommand2(rx_buffer);
+  current_index = 0;
+  timeout = 0;
 }
 
 
