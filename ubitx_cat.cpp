@@ -270,9 +270,22 @@ void catReadEEPRom(uint8_t* cmd, uint8_t* response)
   catGetEeprom(read_address+1,response+1);
 }
 
+#include "nano_gui.h"
+#include "color_theme.h"
 void processCatCommand(uint8_t* cmd) {
   uint8_t response[FT817_MESSAGE_SIZE] = {0};
   uint8_t response_length = 0;
+
+  static uint8_t x = 0;
+  static uint8_t y = 0;
+  for(uint8_t i = 0; i < FT817_MESSAGE_SIZE; ++i){
+    snprintf(b+2*i,sizeof(b)-2*i,"%02x",cmd[i]);
+  }
+  displayText(b,100*x,40*(1+y),320,30,DISPLAY_WHITE,DISPLAY_BLACK,DISPLAY_BLACK,TextJustification_e::Left);
+  x = (x + 1) % 3;
+  if(0 == x){
+    y = (y + 1) % 5;
+  }
 
   switch(cmd[CMD]){
   case Ft817Command_e::SetFrequency:
@@ -394,7 +407,7 @@ void checkCAT(){
   static uint8_t rx_buffer[FT817_MESSAGE_SIZE];
   static uint8_t current_index = 0;
   static uint32_t timeout = 0;
-
+/*
   //Check Serial Port Buffer
   if (Serial.available() == 0) {      //Set Buffer Clear status
     if(timeout < millis()){
@@ -412,7 +425,10 @@ void checkCAT(){
     if(current_index < FT817_MESSAGE_SIZE){
       return;
     }
-  }
+  }*/
+  rx_buffer[P1] = timeout;
+  rx_buffer[P2] = current_index;
+  rx_buffer[CMD] = Ft817Command_e::ReadTxStatus;
 
   processCatCommand(rx_buffer);
   current_index = 0;
