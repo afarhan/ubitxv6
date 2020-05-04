@@ -98,7 +98,7 @@ struct ReadTxStatus_t {
 };
 
 //Values based on http://www.ka7oei.com/ft817_memmap.html
-//hamlib likes to read addresses 0x0064 and 0x007A, but including support for some others
+//hamlib likes to read addresses 0x0065 (read as 0x0064) and 0x007A, but including support for some others
 enum Ft817Eeprom_e : uint16_t {
   VfoAndBankSelect = 0x0055,
   TuningModes = 0x0057,
