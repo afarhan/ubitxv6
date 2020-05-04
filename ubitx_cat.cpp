@@ -114,6 +114,7 @@ enum Ft817Eeprom_e : uint16_t {
   FmMicVolume = 0x0069,
   TxPower = 0x0079,
   AntennaSelectAndSplit = 0x007A,
+  VfoAPhantomMode = 0x01E9,
 };
 
 //for broken protocol
@@ -208,30 +209,6 @@ void catGetEeprom(const uint16_t read_address, uint8_t* response)
       *response = 0x80 //always report VFO mode
                 | ((VFO_B == globalSettings.activeVfo) ? 0x01 : 0x00);
       break;
-    case Ft817Eeprom_e::TuningModes:
-      //0 : 1-0  AGC Mode  00 = Auto, 01 = Fast, 10 = Slow, 11 = Off
-      //2  DSP On/Off  0 = Off, 1 = On  (Display format)
-      //4  PBT On/Off  0 = Off, 1 = On  (Passband Tuning)
-      //5  NB On/Off 0 = Off, 1 = On  (Noise Blanker)
-      //6  Lock On/Off 0 = Off, 1 = On  (Dial Lock)
-      //7  FST (Fast Tuning) On/Off  0 = Off, 1 = On  (Fast tuning)
-      *response = 0xC0;
-      break;
-    case Ft817Eeprom_e::KeyerStatus:
-      //1-0: power meter mode: 00 = Power, 01 = ALC, 10 = SWR, 11 = MOD
-      //2 : CW paddle reverse: 1 = reverse
-      //3 :
-      //4 : CW keyer on/off: 1 = on
-      //5 : break on/off: 1 = semi break-in
-      //6 : voltmeter display on/off: 1 = display voltmeter
-      //7 : VOX on/off: 1 = on
-      *response = 0x40;
-      break;
-    case Ft817Eeprom_e::BeepVolume:
-      //6-0 : Beep Volume (0-100) (#13)
-      //7 : Beep Freq: 0 = 440Hz, 1 = 880Hz
-      *response = 0xB2;
-      break;
     case Ft817Eeprom_e::CwPitch:
       //3-0 : CW Pitch (300-1000 Hz) (#20)  From 0 to E (HEX) with 0 = 300 Hz and each step representing 50 Hz
       //5-4 :  Lock Mode (#32) 00 = Dial, 01 = Freq, 10 = Panel
@@ -239,16 +216,9 @@ void catGetEeprom(const uint16_t read_address, uint8_t* response)
       //CAT_BUFF[0] = 0x08;
       *response = (globalSettings.cwSideToneFreq - 300)/50;
       break;
-    case Ft817Eeprom_e::CwWeight:
-      //4-0 : CW Weight (1.:2.5-1:4.5) (#22)  From 0 to 14 (HEX) with 0 = 1:2.5, incrementing in 0.1 weight steps
-      //5 : 420 ARS (#2), 1 = on
-      //6 : 144 ARS (#1), 1 = on
-      //7 : Sql/RF-G (#45), 1 = on
-      *response = 0x25;
-      break;
     case Ft817Eeprom_e::SidetoneVolume:
-      //Sidetone (Volume) (#44)
-      *response = globalSettings.cwSideToneFreq % 50;
+      //Sidetone (Volume) (#44) 0-100
+      *response = globalSettings.cwSideToneFreq / 100;
       break;
     case Ft817Eeprom_e::CwDelay:
       //CW Delay (10-2500 ms) (#17)  From 1 to 250 (decimal) with each step representing 10 ms
@@ -259,34 +229,20 @@ void catGetEeprom(const uint16_t read_address, uint8_t* response)
       //7-6  Batt-Chg (6/8/10 Hours (#11)  00 = 6 Hours, 01 = 8 Hours, 10 = 10 Hours
       *response = (1200 / globalSettings.cwDitDurationMs) - 4;
       break;
-    case Ft817Eeprom_e::VoxGain:
-      //6-0  VOX Gain (#51)  Contains 1-100 (decimal) as displayed
-      //7  Disable AM/FM Dial (#4) 0 = Enable, 1 = Disable
-      *response = 0xB2;
-      break;
     case Ft817Eeprom_e::CatBaudRate:
       //4-0 : VOX Delay (#50) 0 = 100 Ms with each step representing 100 Ms. 24 = 2500 Ms
       //5 : Emergency (#28) 0 = Off, 1 = On
       //7-6 : CAT Rate (4800, 9600, 38400) (#14) 00 = 4800, 01 = 9600, 10 = 38400 Baud
       *response = 0xA5;
       break;
-    case Ft817Eeprom_e::SsbMicVolume:
-      //6-0 : SSB Mic (#46) Contains 0-100 (decimal) as displayed
-      *response = 0xB2;
-      break;
-    case Ft817Eeprom_e::AmMicVolume:
-      //6-0 : AM Mic (#5) Contains 0-100 (decimal) as displayed
-      //7 : Mic Key (#36) 1 = on
-      *response = 0xB2;
-      break;
-    case Ft817Eeprom_e::FmMicVolume:
-      //6-0 : FM Mic (#29) Contains 0-100 (decimal) as displayed
-      //7 : Mic Scan (#37) 1 = on
+    case Ft817Eeprom_e::VfoAPhantomMode:
+      //2-0 : 000 = LSB, 001 = USB, 010 = CW, 011 = CWR, 100 = AM, 101 = FM, 110 = DIG, 111 = PKT
+      //7-3 : ?
       if (VfoMode_e::VFO_MODE_USB == GetActiveVfoMode()){
-        *response = OperatingMode_e::USB << 5;
+        *response = OperatingMode_e::USB;
       }
       else{
-        *response = OperatingMode_e::LSB << 5;
+        *response = OperatingMode_e::LSB;
       }
       break;
     case Ft817Eeprom_e::AntennaSelectAndSplit:
@@ -299,12 +255,6 @@ void catGetEeprom(const uint16_t read_address, uint8_t* response)
       //6 : ? ?
       //7 : SPL On/Off  0 = Off, 1 = On
       *response = (globalSettings.splitOn ? 0xFF : 0x7F);
-      break;
-    case 0xB4 : //0xB1 is the base address of Base address of VFO A, 40 M.
-      //2-0 : FM Step (Menu # 30) 000 = 5 kHz, 001 = 6.25 kHz, 010 = 10 kHz, 011 = 12.5 kHz, 100 = 15 kHz, 101 = 20 kHz, 110 = 25 kHz, 111 = 50 kHz
-      //5-3 : AM Step (Menu #6) 000 = 2.5 kHz, 001 = 5 kHz, 010 = 9 kHz, 011 = 10 kHz, 100 = 12.5 kHz, 101 = 25 kHz
-      //7-6 : SSB Step (Menu # 47) 00 = 1 kHz, 01 = 2.5 kHz, 10 = 5 kHz
-      *response = 0x4D;
       break;
   }
 }
