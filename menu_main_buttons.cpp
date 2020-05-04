@@ -633,5 +633,5 @@ void osMenu(){
 }
 
 void osNumpad(){
-  //enterSubmenu(numpadMenu);
+  enterSubmenu(numpadMenu);
 }
