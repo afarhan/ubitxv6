@@ -51,6 +51,8 @@ enum Ft817Command_e : uint8_t {
   ReadFreqAndMode = 0x03,//Returns current frequency (BCD, 4 bytes), then mode (OperatingMode_e)
   PowerOn = 0x0F,
   PowerOff = PowerOn | OffBit,
+  //Unofficial commands
+  ReadEeprom = 0xBB,
 };
 
 enum OperatingMode_e : uint8_t {
@@ -96,6 +98,7 @@ struct ReadTxStatus_t {
 };
 
 //Values based on http://www.ka7oei.com/ft817_memmap.html
+//hamlib likes to read addresses 0x0064 and 0x007A, but including support for some others
 enum Ft817Eeprom_e : uint16_t {
   VfoAndBankSelect = 0x0055,
   TuningModes = 0x0057,
@@ -213,7 +216,6 @@ void catGetEeprom(const uint16_t read_address, uint8_t* response)
       //3-0 : CW Pitch (300-1000 Hz) (#20)  From 0 to E (HEX) with 0 = 300 Hz and each step representing 50 Hz
       //5-4 :  Lock Mode (#32) 00 = Dial, 01 = Freq, 10 = Panel
       //7-6 :  Op Filter (#38) 00 = Off, 01 = SSB, 10 = CW
-      //CAT_BUFF[0] = 0x08;
       *response = (globalSettings.cwSideToneFreq - 300)/50;
       break;
     case Ft817Eeprom_e::SidetoneVolume:
@@ -348,7 +350,7 @@ void processCatCommand(uint8_t* cmd) {
     updateDisplay();
     break;
 
-  case 0xBB:  //Read FT-817 EEPROM Data  (for comfirtable)
+  case Ft817Command_e::ReadEeprom:
     catReadEEPRom(cmd,response);
     response_length = 2;
     break;
@@ -392,6 +394,7 @@ void checkCAT(){
   static uint8_t rx_buffer[FT817_MESSAGE_SIZE];
   static uint8_t current_index = 0;
   static uint32_t timeout = 0;
+
   //Check Serial Port Buffer
   if (Serial.available() == 0) {      //Set Buffer Clear status
     if(timeout < millis()){
