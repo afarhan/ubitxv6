@@ -313,21 +313,17 @@ void catReadEEPRom(uint8_t* cat)
 }
 
 void processCatCommand(uint8_t* cmd) {
-  uint8_t response[FT817_MESSAGE_SIZE];
+  uint8_t response[FT817_MESSAGE_SIZE] = {0};
+  uint8_t response_length = 0;
 
   switch(cmd[CMD]){
-/*  case Ft817Command_e::LockOn:
-    response[0]=0;
-    Serial.write(response, 1);
-    break;
-*/
   case Ft817Command_e::SetFrequency:
   {
     uint32_t f = readFreq(cmd);
     setFrequency(f);
     updateDisplay();
-    response[0]=0;
-    Serial.write(response, 1);
+    response[0] = 0x00;
+    response_length = 1;
     break;
   }
 
@@ -359,7 +355,7 @@ void processCatCommand(uint8_t* cmd) {
       SetActiveVfoMode(VfoMode_e::VFO_MODE_USB);
     }
     response[0] = 0x00;
-    Serial.write(response, 1);
+    response_length = 1;
 
     setFrequency(GetActiveVfoFreq());//Refresh frequency to get new mode to take effect
     updateDisplay();
@@ -367,14 +363,14 @@ void processCatCommand(uint8_t* cmd) {
 
   case Ft817Command_e::PttOn:
     if (!globalSettings.txActive) {
-      response[0] = 0;
+      response[0] = 0x00;
       globalSettings.txCatActive = true;
       startTx(globalSettings.tuningMode);
     }
     else {
-      response[0] = 0xf0;
+      response[0] = 0xF0;
     }
-    Serial.write(response,1);
+    response_length = 1;
     updateDisplay();
     break;
 
@@ -383,20 +379,20 @@ void processCatCommand(uint8_t* cmd) {
       stopTx();
     }
     globalSettings.txCatActive = false;
-    response[0] = 0;
-    Serial.write(response,1);
+    response[0] = 0x00;
+    response_length = 1;
     updateDisplay();
     break;
 
   case Ft817Command_e::VfoToggle:
-    response[0] = 0;
     if (Vfo_e::VFO_A == globalSettings.activeVfo){
       globalSettings.activeVfo = Vfo_e::VFO_B;
     }
     else{
       globalSettings.activeVfo = Vfo_e::VFO_A;
     }
-    Serial.write(response,1);
+    response[0] = 0x00;
+    response_length = 1;
     updateDisplay();
     break;
 
@@ -413,7 +409,7 @@ void processCatCommand(uint8_t* cmd) {
     reply_status.DiscriminatorCenteringOff = 1;
     reply_status.CodeUnmatched = 0;
     response[0] = *(uint8_t*)&reply_status;
-    Serial.write(response,1);
+    response_length = 1;
     break;
 
   case Ft817Command_e::ReadTxStatus:
@@ -427,15 +423,17 @@ void processCatCommand(uint8_t* cmd) {
     reply_status.SplitOff = !globalSettings.splitOn;
 
     response[0] = *(uint8_t*)&reply_status;
-
-    Serial.write(response, 1);
+    response_length = 1;
     break;
   }
 
   default:
     response[0] = 0x00;
-    Serial.write(response[0]);
+    response_length = 1;
+    break;
   }
+
+  Serial.write(response, response_length);
 }
 
 void checkCAT(){
