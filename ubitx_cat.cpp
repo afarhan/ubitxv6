@@ -95,6 +95,27 @@ struct ReadTxStatus_t {
   uint8_t PttOff : 1;
 };
 
+//Values based on http://www.ka7oei.com/ft817_memmap.html
+enum Ft817Eeprom_e : uint16_t {
+  VfoAndBankSelect = 0x0055,
+  TuningModes = 0x0057,
+  KeyerStatus = 0x0058,
+  BandSelect = 0x0059,
+  BeepVolume = 0x005C,
+  CwPitch = 0x005E,
+  CwWeight = 0x005F,
+  CwDelay = 0x0060,
+  SidetoneVolume = 0x0061,
+  CwSpeed = 0x0062,
+  VoxGain = 0x0063,
+  CatBaudRate = 0x0064,
+  SsbMicVolume = 0x0067,
+  AmMicVolume = 0x0068,
+  FmMicVolume = 0x0069,
+  TxPower = 0x0079,
+  AntennaSelectAndSplit = 0x007A,
+};
+
 //for broken protocol
 static const uint16_t CAT_RECEIVE_TIMEOUT_MS = 500;
 
@@ -171,34 +192,11 @@ uint32_t readFreq(uint8_t* cmd) {
     return ret*10;
 }
 
-//void ReadEEPRom_FT817(uint8_t fromType)
-void catReadEEPRom(uint8_t* cat)
+void catGetEeprom(const uint16_t read_address, uint8_t* response)
 {
-  //for remove warnings
-  uint8_t temp0 = cat[P1];
-  uint8_t temp1 = cat[P2];
-
-  cat[P1] = 0;
-  cat[P2] = 0;
-  //for remove warnings[1] = 0;
-
-  switch (temp1)
+  switch (read_address)
   {
-    case 0x45 : //
-      if (temp0 == 0x03)
-      {
-        cat[P1] = 0x00;
-        cat[P2] = 0xD0;
-      }
-      break;
-    case 0x47 : //
-      if (temp0 == 0x03)
-      {
-        cat[P1] = 0xDC;
-        cat[P2] = 0xE0;
-      }
-      break;
-    case 0x55 :
+    case Ft817Eeprom_e::VfoAndBankSelect:
       //0 : VFO A/B  0 = VFO-A, 1 = VFO-B
       //1 : MTQMB Select  0 = (Not MTQMB), 1 = MTQMB ("Memory Tune Quick Memory Bank")
       //2 : QMB Select  0 = (Not QMB), 1 = QMB  ("Quick Memory Bank")
@@ -207,10 +205,10 @@ void catReadEEPRom(uint8_t* cat)
       //5 : Memory/MTUNE select  0 = Memory, 1 = MTUNE
       //6 :
       //7 : MEM/VFO Select  0 = Memory, 1 = VFO (A or B - see bit 0)
-      cat[P1] = 0x80 + ((VFO_B == globalSettings.activeVfo) ? 1 : 0);
-      cat[P2] = 0x00;
+      *response = 0x80 //always report VFO mode
+                | ((VFO_B == globalSettings.activeVfo) ? 0x01 : 0x00);
       break;
-    case 0x57 : //
+    case Ft817Eeprom_e::TuningModes:
       //0 : 1-0  AGC Mode  00 = Auto, 01 = Fast, 10 = Slow, 11 = Off
       //2  DSP On/Off  0 = Off, 1 = On  (Display format)
       //4  PBT On/Off  0 = Off, 1 = On  (Passband Tuning)
@@ -218,98 +216,126 @@ void catReadEEPRom(uint8_t* cat)
       //6  Lock On/Off 0 = Off, 1 = On  (Dial Lock)
       //7  FST (Fast Tuning) On/Off  0 = Off, 1 = On  (Fast tuning)
 
-      cat[P1] = 0xC0;
-      cat[P2] = 0x40;
+      *response = 0xC0;
       break;
-    case 0x59 : //  band select VFO A Band Select  0000 = 160 M, 0001 = 75 M, 0010 = 40 M, 0011 = 30 M, 0100 = 20 M, 0101 = 17 M, 0110 = 15 M, 0111 = 12 M, 1000 = 10 M, 1001 = 6 M, 1010 = FM BCB, 1011 = Air, 1100 = 2 M, 1101 = UHF, 1110 = (Phantom)
+    case Ft817Eeprom_e::KeyerStatus:
+      //1-0: power meter mode: 00 = Power, 01 = ALC, 10 = SWR, 11 = MOD
+      //2 : CW paddle reverse: 1 = reverse
+      //3 :
+      //4 : CW keyer on/off: 1 = on
+      //5 : break on/off: 1 = semi break-in
+      //6 : voltmeter display on/off: 1 = display voltmeter
+      //7 : VOX on/off: 1 = on
+      *response = 0x40;
+      break;
+    case Ft817Eeprom_e::BandSelect:
+      //band select VFO A Band Select  0000 = 160 M, 0001 = 75 M, 0010 = 40 M, 0011 = 30 M, 0100 = 20 M, 0101 = 17 M, 0110 = 15 M, 0111 = 12 M, 1000 = 10 M, 1001 = 6 M, 1010 = FM BCB, 1011 = Air, 1100 = 2 M, 1101 = UHF, 1110 = (Phantom)
       //http://www.ka7oei.com/ft817_memmap.html
       //CAT_BUFF[0] = 0xC2;
       //CAT_BUFF[1] = 0x82;
       break;
-    case 0x5C : //Beep Volume (0-100) (#13)
-      cat[P1] = 0xB2;
-      cat[P2] = 0x42;
+    case Ft817Eeprom_e::BeepVolume:
+      //6-0 : Beep Volume (0-100) (#13)
+      //7 : Beep Freq: 0 = 440Hz, 1 = 880Hz
+      *response = 0xB2;
       break;
-    case 0x5E :
+    case Ft817Eeprom_e::CwPitch:
       //3-0 : CW Pitch (300-1000 Hz) (#20)  From 0 to E (HEX) with 0 = 300 Hz and each step representing 50 Hz
       //5-4 :  Lock Mode (#32) 00 = Dial, 01 = Freq, 10 = Panel
       //7-6 :  Op Filter (#38) 00 = Off, 01 = SSB, 10 = CW
       //CAT_BUFF[0] = 0x08;
-      cat[P1] = (globalSettings.cwSideToneFreq - 300)/50;
-      cat[P2] = 0x25;
+      *response = (globalSettings.cwSideToneFreq - 300)/50;
       break;
-    case 0x61 : //globalSettings.cwSideToneFreq (Volume) (#44)
-      cat[P1] = globalSettings.cwSideToneFreq % 50;
-      cat[P2] = 0x08;
+    case Ft817Eeprom_e::CwWeight:
+      //4-0 : CW Weight (1.:2.5-1:4.5) (#22)  From 0 to 14 (HEX) with 0 = 1:2.5, incrementing in 0.1 weight steps
+      //5 : 420 ARS (#2), 1 = on
+      //6 : 144 ARS (#1), 1 = on
+      //7 : Sql/RF-G (#45), 1 = on
+      *response = 0x25;
       break;
-    case  0x5F : //
-      //4-0  CW Weight (1.:2.5-1:4.5) (#22)  From 0 to 14 (HEX) with 0 = 1:2.5, incrementing in 0.1 weight steps
-      //5  420 ARS (#2)  0 = Off, 1 = On
-      //6  144 ARS (#1)  0 = Off, 1 = On
-      //7  Sql/RF-G (#45)  0 = Off, 1 = On
-      cat[P1] = 0x32;
-      cat[P2] = 0x08;
+    case Ft817Eeprom_e::SidetoneVolume:
+      //Sidetone (Volume) (#44)
+      *response = globalSettings.cwSideToneFreq % 50;
       break;
-    case 0x60 : //CW Delay (10-2500 ms) (#17)  From 1 to 250 (decimal) with each step representing 10 ms
-      cat[P1] = globalSettings.cwActiveTimeoutMs / 10;
-      cat[P2] = 0x32;
+    case Ft817Eeprom_e::CwDelay:
+      //CW Delay (10-2500 ms) (#17)  From 1 to 250 (decimal) with each step representing 10 ms
+      *response = globalSettings.cwActiveTimeoutMs / 10;
       break;
-    case 0x62 : //
+    case Ft817Eeprom_e::CwSpeed:
       //5-0  CW Speed (4-60 WPM) (#21) From 0 to 38 (HEX) with 0 = 4 WPM and 38 = 60 WPM (1 WPM steps)
       //7-6  Batt-Chg (6/8/10 Hours (#11)  00 = 6 Hours, 01 = 8 Hours, 10 = 10 Hours
-      //CAT_BUFF[0] = 0x08;
-      cat[P1] = 1200 / globalSettings.cwDitDurationMs - 4;
-      cat[P2] = 0xB2;
+      *response = (1200 / globalSettings.cwDitDurationMs) - 4;
       break;
-    case 0x63 : //
+    case Ft817Eeprom_e::VoxGain:
       //6-0  VOX Gain (#51)  Contains 1-100 (decimal) as displayed
       //7  Disable AM/FM Dial (#4) 0 = Enable, 1 = Disable
-      cat[P1] = 0xB2;
-      cat[P2] = 0xA5;
+      *response = 0xB2;
       break;
-    case 0x64 : //
+    case Ft817Eeprom_e::CatBaudRate:
+      //4-0 : VOX Delay (#50) 0 = 100 Ms with each step representing 100 Ms. 24 = 2500 Ms
+      //5 : Emergency (#28) 0 = Off, 1 = On
+      //7-6 : CAT Rate (4800, 9600, 38400) (#14) 00 = 4800, 01 = 9600, 10 = 38400 Baud
+      *response = 0xA5;
       break;
-    case 0x67 : //6-0  SSB Mic (#46) Contains 0-100 (decimal) as displayed
-      cat[P1] = 0xB2;
-      cat[P2] = 0xB2;
+    case Ft817Eeprom_e::SsbMicVolume:
+      //6-0 : SSB Mic (#46) Contains 0-100 (decimal) as displayed
+      *response = 0xB2;
       break;
-    case 0x69 : //FM Mic (#29)  Contains 0-100 (decimal) as displayed
-    case 0x78 :
-      if (VfoMode_e::VFO_MODE_USB == GetActiveVfoMode())
-        cat[P1] = OperatingMode_e::USB << 5;
-      else
-        cat[P1] = OperatingMode_e::LSB << 5;
+    case Ft817Eeprom_e::AmMicVolume:
+      //6-0 : AM Mic (#5) Contains 0-100 (decimal) as displayed
+      //7 : Mic Key (#36) 1 = on
+      *response = 0xB2;
       break;
-    case  0x79 : //
+    case Ft817Eeprom_e::FmMicVolume:
+      //6-0 : FM Mic (#29) Contains 0-100 (decimal) as displayed
+      //7 : Mic Scan (#37) 1 = on
+    case 0x78 ://??
+      if (VfoMode_e::VFO_MODE_USB == GetActiveVfoMode()){
+        *response = OperatingMode_e::USB << 5;
+      }
+      else{
+        *response = OperatingMode_e::LSB << 5;
+      }
+      break;
+    case  Ft817Eeprom_e::TxPower:
       //1-0  TX Power (All bands)  00 = High, 01 = L3, 10 = L2, 11 = L1
       //3  PRI On/Off  0 = Off, 1 = On
       //DW On/Off  0 = Off, 1 = On
       //SCN (Scan) Mode  00 = No scan, 10 = Scan up, 11 = Scan down
       //ART On/Off  0 = Off, 1 = On
-      cat[P1] = 0x00;
-      cat[P2] = 0x00;
+      *response = 0x00;
       break;
-    case 0x7A : //SPLIT
-      //7A  0 HF Antenna Select 0 = Front, 1 = Rear
-      //7A  1 6 M Antenna Select  0 = Front, 1 = Rear
-      //7A  2 FM BCB Antenna Select 0 = Front, 1 = Rear
-      //7A  3 Air Antenna Select  0 = Front, 1 = Rear
-      //7A  4 2 M Antenna Select  0 = Front, 1 = Rear
-      //7A  5 UHF Antenna Select  0 = Front, 1 = Rear
-      //7A  6 ? ?
-      //7A  7 SPL On/Off  0 = Off, 1 = On
+    case Ft817Eeprom_e::AntennaSelectAndSplit:
+      //0 : HF Antenna Select 0 = Front, 1 = Rear
+      //1 : 6 M Antenna Select  0 = Front, 1 = Rear
+      //2 : FM BCB Antenna Select 0 = Front, 1 = Rear
+      //3 : Air Antenna Select  0 = Front, 1 = Rear
+      //4 : 2 M Antenna Select  0 = Front, 1 = Rear
+      //5 : UHF Antenna Select  0 = Front, 1 = Rear
+      //6 : ? ?
+      //7 : SPL On/Off  0 = Off, 1 = On
 
-      cat[P1] = (globalSettings.splitOn ? 0xFF : 0x7F);
+      *response = (globalSettings.splitOn ? 0xFF : 0x7F);
       break;
-    case 0xB3 : //
-      cat[P1] = 0x00;
-      cat[P2] = 0x4D;
+    case 0xB3 : //0xB1 is the base address of Base address of VFO A, 40 M.
+      *response = 0x00;
       break;
-
+    case 0xB4 : //0xB1 is the base address of Base address of VFO A, 40 M.
+      //2-0 : FM Step (Menu # 30) 000 = 5 kHz, 001 = 6.25 kHz, 010 = 10 kHz, 011 = 12.5 kHz, 100 = 15 kHz, 101 = 20 kHz, 110 = 25 kHz, 111 = 50 kHz
+      //5-3 : AM Step (Menu #6) 000 = 2.5 kHz, 001 = 5 kHz, 010 = 9 kHz, 011 = 10 kHz, 100 = 12.5 kHz, 101 = 25 kHz
+      //7-6 : SSB Step (Menu # 47) 00 = 1 kHz, 01 = 2.5 kHz, 10 = 5 kHz
+      *response = 0x4D;
+      break;
   }
+}
 
-  // sent the data
-  Serial.write(cat, 2);
+//Maps some of the fixed memory layout of the FT817's EEPROM
+void catReadEEPRom(uint8_t* cmd, uint8_t* response)
+{
+  const uint16_t read_address = cmd[P1] << 8 | cmd[P2];
+
+  catGetEeprom(read_address,response);
+  catGetEeprom(read_address+1,response+1);
 }
 
 void processCatCommand(uint8_t* cmd) {
@@ -397,7 +423,8 @@ void processCatCommand(uint8_t* cmd) {
     break;
 
   case 0xBB:  //Read FT-817 EEPROM Data  (for comfirtable)
-    catReadEEPRom(cmd);
+    catReadEEPRom(cmd,response);
+    response_length = 2;
     break;
 
   case Ft817Command_e::ReadRxStatus:
