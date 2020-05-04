@@ -17,6 +17,9 @@
 
 static const uint8_t FT817_MESSAGE_SIZE = 5;
 
+static const uint8_t ACK = 0x00;
+static const uint8_t RACK = 0xF0;//Re-Acknowledge sent when the state requests is already active
+
 //Data is ordered parameters 1-4, then command code last
 enum CatDataIndex_e : uint8_t {
   P1 = 0,
@@ -122,8 +125,6 @@ enum Ft817Eeprom_e : uint16_t {
 
 //for broken protocol
 static const uint16_t CAT_RECEIVE_TIMEOUT_MS = 500;
-
-static const uint8_t ACK = 0;
 
 uint8_t setHighNibble(uint8_t b, uint8_t v) {
   // Clear the high nibble
@@ -271,8 +272,9 @@ void catReadEEPRom(uint8_t* cmd, uint8_t* response)
 }
 
 void processCatCommand(uint8_t* cmd) {
-  uint8_t response[FT817_MESSAGE_SIZE] = {0};
-  uint8_t response_length = 0;
+  //A response of a single byte, 0x00, is an ACK, so default to that
+  uint8_t response[FT817_MESSAGE_SIZE] = {ACK};
+  uint8_t response_length = 1;
 
   switch(cmd[CMD]){
     case Ft817Command_e::SetFrequency:
@@ -280,15 +282,19 @@ void processCatCommand(uint8_t* cmd) {
       uint32_t f = readFreq(cmd);
       setFrequency(f);
       updateDisplay();
-      response[0] = 0x00;
-      response_length = 1;
       break;
     }
 
     case Ft817Command_e::SplitOn:
+      if(globalSettings.splitOn){
+        response[0] = RACK;
+      }
       globalSettings.splitOn =  true;
       break;
     case Ft817Command_e::SplitOff:
+      if(!globalSettings.splitOn){
+        response[0] = RACK;
+      }
       globalSettings.splitOn = false;
       break;
 
@@ -302,7 +308,7 @@ void processCatCommand(uint8_t* cmd) {
       else{
         response[4] = OperatingMode_e::LSB;
       }
-      Serial.write(response,5);
+      response_length = 5;
       break;
 
     case Ft817Command_e::OperatingMode:
@@ -312,7 +318,6 @@ void processCatCommand(uint8_t* cmd) {
       else{
         SetActiveVfoMode(VfoMode_e::VFO_MODE_USB);
       }
-      response_length = 1;
 
       setFrequency(GetActiveVfoFreq());//Refresh frequency to get new mode to take effect
       updateDisplay();
@@ -324,9 +329,8 @@ void processCatCommand(uint8_t* cmd) {
         startTx(globalSettings.tuningMode);
       }
       else {
-        response[0] = 0xF0;
+        response[0] = RACK;
       }
-      response_length = 1;
       updateDisplay();
       break;
 
@@ -334,8 +338,10 @@ void processCatCommand(uint8_t* cmd) {
       if (globalSettings.txActive) {
         stopTx();
       }
+      else{
+        response[0] = RACK;
+      }
       globalSettings.txCatActive = false;
-      response_length = 1;
       updateDisplay();
       break;
 
@@ -346,7 +352,6 @@ void processCatCommand(uint8_t* cmd) {
       else{
         globalSettings.activeVfo = Vfo_e::VFO_A;
       }
-      response_length = 1;
       updateDisplay();
       break;
 
@@ -364,7 +369,6 @@ void processCatCommand(uint8_t* cmd) {
       reply_status.DiscriminatorCenteringOff = 1;
       reply_status.CodeUnmatched = 0;
       response[0] = *(uint8_t*)&reply_status;
-      response_length = 1;
       break;
 
     case Ft817Command_e::ReadTxStatus:
@@ -378,12 +382,11 @@ void processCatCommand(uint8_t* cmd) {
       reply_status.SplitOff = globalSettings.splitOn;//Yaesu's documentation says that 1 = split off, but as of 2020-05-04 hamlib reads (*split = (p->tx_status & 0x20) ? RIG_SPLIT_ON : RIG_SPLIT_OFF), so do what hamlib wants
 
       response[0] = *(uint8_t*)&reply_status;
-      response_length = 1;
       break;
     }
 
     default:
-      response_length = 1;
+      //Do something?
       break;
   }
 
