@@ -57,7 +57,7 @@ enum OperatingMode_e : uint8_t {
   LSB = 0x00,
   USB = 0x01,
   CW = 0x02,
-  CWR = 0x03,
+  CWR = 0x03,//CW-reverse aka LSB CW
   AM = 0x04,
   FM = 0x08,
   DIG = 0x0A,
@@ -79,7 +79,7 @@ enum CtcssDcsMode_e : uint8_t {
 
 struct ReadRxStatus_t {
   //Bitfields are not defined by the standard to be portable, which is unfortunate
-  uint8_t Smeter : 4;
+  uint8_t Smeter : 4;//0x00 = S0, 0x09 = S9, etc.
   uint8_t Dummy : 1;
   uint8_t DiscriminatorCenteringOff : 1;
   uint8_t CodeUnmatched : 1;
@@ -87,6 +87,7 @@ struct ReadRxStatus_t {
 };
 
 struct ReadTxStatus_t {
+  //Bitfields are not defined by the standard to be portable, which is unfortunate
   uint8_t PowerOutputMeter : 4;
   uint8_t Dummy : 1;
   uint8_t SplitOff : 1;
@@ -157,7 +158,7 @@ void writeFreq(unsigned long freq, uint8_t* cmd) {
 //
 // [12][34][56][78] = 123.45678? Mhz
 //
-unsigned long readFreq(uint8_t* cmd) {
+uint32_t readFreq(uint8_t* cmd) {
     // Pull off each of the digits
     unsigned long ret = 0;
     for(uint8_t i = 0; i < 4; ++i){
@@ -312,82 +313,82 @@ void catReadEEPRom(uint8_t* cat)
 }
 
 void processCatCommand(uint8_t* cmd) {
-  uint8_t response[5];
-  unsigned long f;
+  uint8_t response[FT817_MESSAGE_SIZE];
 
   switch(cmd[CMD]){
-/*  case 0x00:
+/*  case Ft817Command_e::LockOn:
     response[0]=0;
     Serial.write(response, 1);
     break;
 */
-  case 0x01:
-    //set frequency
-    f = readFreq(cmd);
+  case Ft817Command_e::SetFrequency:
+  {
+    uint32_t f = readFreq(cmd);
     setFrequency(f);
     updateDisplay();
     response[0]=0;
     Serial.write(response, 1);
-    //sprintf(b, "set:%ld", f);
-    //printLine2(b);
+    break;
+  }
+
+  case Ft817Command_e::SplitOn:
+    globalSettings.splitOn =  true;
+    break;
+  case Ft817Command_e::SplitOff:
+    globalSettings.splitOn = false;
     break;
 
-  case 0x02:
-    //split on
-    globalSettings.splitOn =  1;
-    break;
-  case 0x82:
-    //split off
-    globalSettings.splitOn = 0;
-    break;
-
-  case 0x03:
-    writeFreq(GetActiveVfoFreq(),response); // Put the frequency into the buffer
-    if (VfoMode_e::VFO_MODE_USB == GetActiveVfoMode())
-      response[4] = 0x01; //USB
-    else
-      response[4] = 0x00; //LSB
+  case Ft817Command_e::ReadFreqAndMode:
+    //First 4 bytes are the frequency
+    writeFreq(GetActiveVfoFreq(),response);//bytes 0-3
+    //Last byte is the mode
+    if (VfoMode_e::VFO_MODE_USB == GetActiveVfoMode()){
+      response[4] = OperatingMode_e::USB;
+    }
+    else{
+      response[4] = OperatingMode_e::LSB;
+    }
     Serial.write(response,5);
-    //printLine2("cat:getfreq");
     break;
 
-  case 0x07: // set mode
-    if (cmd[P1] == 0x00 || cmd[P1] == 0x03)
+  case Ft817Command_e::OperatingMode:
+    if(OperatingMode_e::LSB == cmd[P1] || OperatingMode_e::CWR == cmd[P1]){
       SetActiveVfoMode(VfoMode_e::VFO_MODE_LSB);
-    else
+    }
+    else{
       SetActiveVfoMode(VfoMode_e::VFO_MODE_USB);
+    }
     response[0] = 0x00;
     Serial.write(response, 1);
-    setFrequency(GetActiveVfoFreq());
-      //printLine2("cat: mode changed");
-    //updateDisplay();
+
+    setFrequency(GetActiveVfoFreq());//Refresh frequency to get new mode to take effect
+    updateDisplay();
     break;
 
-  case 0x08: // PTT On
+  case Ft817Command_e::PttOn:
     if (!globalSettings.txActive) {
       response[0] = 0;
       globalSettings.txCatActive = true;
-      startTx(TuningMode_e::TUNE_SSB);
-      updateDisplay();
-    } else {
+      startTx(globalSettings.tuningMode);
+    }
+    else {
       response[0] = 0xf0;
     }
     Serial.write(response,1);
     updateDisplay();
     break;
 
-  case 0x88 : //PTT OFF
+  case Ft817Command_e::PttOff:
     if (globalSettings.txActive) {
       stopTx();
-      globalSettings.txCatActive = false;
     }
+    globalSettings.txCatActive = false;
     response[0] = 0;
     Serial.write(response,1);
     updateDisplay();
     break;
 
-  case 0x81:
-    //toggle the VFOs
+  case Ft817Command_e::VfoToggle:
     response[0] = 0;
     if (Vfo_e::VFO_A == globalSettings.activeVfo){
       globalSettings.activeVfo = Vfo_e::VFO_B;
@@ -399,38 +400,39 @@ void processCatCommand(uint8_t* cmd) {
     updateDisplay();
     break;
 
- case 0xBB:  //Read FT-817 EEPROM Data  (for comfirtable)
+  case 0xBB:  //Read FT-817 EEPROM Data  (for comfirtable)
     catReadEEPRom(cmd);
     break;
 
-  case 0xe7 :
-    // get receiver status, we have hardcoded this as
-    //as we dont' support ctcss, etc.
-    response[0] = 0x09;
+  case Ft817Command_e::ReadRxStatus:
+    //We don't have visibility into these values, so just hard code stuff
+    ReadRxStatus_t reply_status;
+    reply_status.Dummy = 0;
+    reply_status.Smeter = 9;//S9
+    reply_status.SquelchSuppressionActive = 0;
+    reply_status.DiscriminatorCenteringOff = 1;
+    reply_status.CodeUnmatched = 0;
+    response[0] = *(uint8_t*)&reply_status;
     Serial.write(response,1);
     break;
 
-  case 0xf7:
-    {
-      boolean isHighSWR = false;
-      boolean issplitOn = false;
+  case Ft817Command_e::ReadTxStatus:
+  {
+    //We don't have visibility into some of these values, so just hard code stuff
+    ReadTxStatus_t reply_status;
+    reply_status.Dummy = 0;
+    reply_status.HighSwrDetected = 0;
+    reply_status.PowerOutputMeter = 0xF;
+    reply_status.PttOff = !globalSettings.txActive;
+    reply_status.SplitOff = !globalSettings.splitOn;
 
-      /*
-        Inverted -> *ptt = ((p->tx_status & 0x80) == 0); <-- souce code in ft817.c (hamlib)
-      */
-      response[0] = ((globalSettings.txActive ? 0 : 1) << 7) +
-        ((isHighSWR ? 1 : 0) << 6) +  //hi swr off / on
-        ((issplitOn ? 1 : 0) << 5) + //Split on / off
-        (0 << 4) +  //dummy data
-        0x08;  //P0 meter data
+    response[0] = *(uint8_t*)&reply_status;
 
-      Serial.write(response, 1);
-    }
+    Serial.write(response, 1);
     break;
+  }
 
   default:
-    //somehow, get this to print the four uint8_ts
-    ultoa(*((unsigned long *)cmd), c, 16);
     response[0] = 0x00;
     Serial.write(response[0]);
   }
