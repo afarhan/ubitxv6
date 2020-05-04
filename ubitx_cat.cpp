@@ -288,116 +288,116 @@ void processCatCommand(uint8_t* cmd) {
   }
 
   switch(cmd[CMD]){
-  case Ft817Command_e::SetFrequency:
-  {
-    uint32_t f = readFreq(cmd);
-    setFrequency(f);
-    updateDisplay();
-    response[0] = 0x00;
-    response_length = 1;
-    break;
-  }
-
-  case Ft817Command_e::SplitOn:
-    globalSettings.splitOn =  true;
-    break;
-  case Ft817Command_e::SplitOff:
-    globalSettings.splitOn = false;
-    break;
-
-  case Ft817Command_e::ReadFreqAndMode:
-    //First 4 bytes are the frequency
-    writeFreq(GetActiveVfoFreq(),response);//bytes 0-3
-    //Last byte is the mode
-    if (VfoMode_e::VFO_MODE_USB == GetActiveVfoMode()){
-      response[4] = OperatingMode_e::USB;
+    case Ft817Command_e::SetFrequency:
+    {
+      uint32_t f = readFreq(cmd);
+      setFrequency(f);
+      updateDisplay();
+      response[0] = 0x00;
+      response_length = 1;
+      break;
     }
-    else{
-      response[4] = OperatingMode_e::LSB;
+
+    case Ft817Command_e::SplitOn:
+      globalSettings.splitOn =  true;
+      break;
+    case Ft817Command_e::SplitOff:
+      globalSettings.splitOn = false;
+      break;
+
+    case Ft817Command_e::ReadFreqAndMode:
+      //First 4 bytes are the frequency
+      writeFreq(GetActiveVfoFreq(),response);//bytes 0-3
+      //Last byte is the mode
+      if (VfoMode_e::VFO_MODE_USB == GetActiveVfoMode()){
+        response[4] = OperatingMode_e::USB;
+      }
+      else{
+        response[4] = OperatingMode_e::LSB;
+      }
+      Serial.write(response,5);
+      break;
+
+    case Ft817Command_e::OperatingMode:
+      if(OperatingMode_e::LSB == cmd[P1] || OperatingMode_e::CWR == cmd[P1]){
+        SetActiveVfoMode(VfoMode_e::VFO_MODE_LSB);
+      }
+      else{
+        SetActiveVfoMode(VfoMode_e::VFO_MODE_USB);
+      }
+      response_length = 1;
+
+      setFrequency(GetActiveVfoFreq());//Refresh frequency to get new mode to take effect
+      updateDisplay();
+      break;
+
+    case Ft817Command_e::PttOn:
+      if (!globalSettings.txActive) {
+        globalSettings.txCatActive = true;
+        startTx(globalSettings.tuningMode);
+      }
+      else {
+        response[0] = 0xF0;
+      }
+      response_length = 1;
+      updateDisplay();
+      break;
+
+    case Ft817Command_e::PttOff:
+      if (globalSettings.txActive) {
+        stopTx();
+      }
+      globalSettings.txCatActive = false;
+      response_length = 1;
+      updateDisplay();
+      break;
+
+    case Ft817Command_e::VfoToggle:
+      if (Vfo_e::VFO_A == globalSettings.activeVfo){
+        globalSettings.activeVfo = Vfo_e::VFO_B;
+      }
+      else{
+        globalSettings.activeVfo = Vfo_e::VFO_A;
+      }
+      response_length = 1;
+      updateDisplay();
+      break;
+
+    case Ft817Command_e::ReadEeprom:
+      catReadEEPRom(cmd,response);
+      response_length = 2;
+      break;
+
+    case Ft817Command_e::ReadRxStatus:
+      //We don't have visibility into these values, so just hard code stuff
+      ReadRxStatus_t reply_status;
+      reply_status.Dummy = 0;
+      reply_status.Smeter = 9;//S9
+      reply_status.SquelchSuppressionActive = 0;
+      reply_status.DiscriminatorCenteringOff = 1;
+      reply_status.CodeUnmatched = 0;
+      response[0] = *(uint8_t*)&reply_status;
+      response_length = 1;
+      break;
+
+    case Ft817Command_e::ReadTxStatus:
+    {
+      //We don't have visibility into some of these values, so just hard code stuff
+      ReadTxStatus_t reply_status;
+      reply_status.Dummy = 0;
+      reply_status.HighSwrDetected = 0;
+      reply_status.PowerOutputMeter = 0xF;
+      reply_status.PttOff = !globalSettings.txActive;
+      reply_status.SplitOff = globalSettings.splitOn;//Yaesu's documentation says that 1 = split off, but as of 2020-05-04 hamlib reads (*split = (p->tx_status & 0x20) ? RIG_SPLIT_ON : RIG_SPLIT_OFF), so do what hamlib wants
+
+      response[0] = *(uint8_t*)&reply_status;
+      response_length = 1;
+      break;
     }
-    Serial.write(response,5);
-    break;
 
-  case Ft817Command_e::OperatingMode:
-    if(OperatingMode_e::LSB == cmd[P1] || OperatingMode_e::CWR == cmd[P1]){
-      SetActiveVfoMode(VfoMode_e::VFO_MODE_LSB);
-    }
-    else{
-      SetActiveVfoMode(VfoMode_e::VFO_MODE_USB);
-    }
-    response_length = 1;
-
-    setFrequency(GetActiveVfoFreq());//Refresh frequency to get new mode to take effect
-    updateDisplay();
-    break;
-
-  case Ft817Command_e::PttOn:
-    if (!globalSettings.txActive) {
-      globalSettings.txCatActive = true;
-      startTx(globalSettings.tuningMode);
-    }
-    else {
-      response[0] = 0xF0;
-    }
-    response_length = 1;
-    updateDisplay();
-    break;
-
-  case Ft817Command_e::PttOff:
-    if (globalSettings.txActive) {
-      stopTx();
-    }
-    globalSettings.txCatActive = false;
-    response_length = 1;
-    updateDisplay();
-    break;
-
-  case Ft817Command_e::VfoToggle:
-    if (Vfo_e::VFO_A == globalSettings.activeVfo){
-      globalSettings.activeVfo = Vfo_e::VFO_B;
-    }
-    else{
-      globalSettings.activeVfo = Vfo_e::VFO_A;
-    }
-    response_length = 1;
-    updateDisplay();
-    break;
-
-  case Ft817Command_e::ReadEeprom:
-    catReadEEPRom(cmd,response);
-    response_length = 2;
-    break;
-
-  case Ft817Command_e::ReadRxStatus:
-    //We don't have visibility into these values, so just hard code stuff
-    ReadRxStatus_t reply_status;
-    reply_status.Dummy = 0;
-    reply_status.Smeter = 9;//S9
-    reply_status.SquelchSuppressionActive = 0;
-    reply_status.DiscriminatorCenteringOff = 1;
-    reply_status.CodeUnmatched = 0;
-    response[0] = *(uint8_t*)&reply_status;
-    response_length = 1;
-    break;
-
-  case Ft817Command_e::ReadTxStatus:
-  {
-    //We don't have visibility into some of these values, so just hard code stuff
-    ReadTxStatus_t reply_status;
-    reply_status.Dummy = 0;
-    reply_status.HighSwrDetected = 0;
-    reply_status.PowerOutputMeter = 0xF;
-    reply_status.PttOff = !globalSettings.txActive;
-    reply_status.SplitOff = !globalSettings.splitOn;
-
-    response[0] = *(uint8_t*)&reply_status;
-    response_length = 1;
-    break;
-  }
-
-  default:
-    response_length = 1;
-    break;
+    default:
+      response_length = 1;
+      break;
   }
 
   Serial.write(response, response_length);
@@ -407,7 +407,7 @@ void checkCAT(){
   static uint8_t rx_buffer[FT817_MESSAGE_SIZE];
   static uint8_t current_index = 0;
   static uint32_t timeout = 0;
-/*
+
   //Check Serial Port Buffer
   if (Serial.available() == 0) {      //Set Buffer Clear status
     if(timeout < millis()){
@@ -425,10 +425,7 @@ void checkCAT(){
     if(current_index < FT817_MESSAGE_SIZE){
       return;
     }
-  }*/
-  rx_buffer[P1] = timeout;
-  rx_buffer[P2] = current_index;
-  rx_buffer[CMD] = Ft817Command_e::ReadTxStatus;
+  }
 
   processCatCommand(rx_buffer);
   current_index = 0;
