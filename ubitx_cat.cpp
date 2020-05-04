@@ -303,7 +303,6 @@ void catGetEeprom(const uint16_t read_address, uint8_t* response)
       //DW On/Off  0 = Off, 1 = On
       //SCN (Scan) Mode  00 = No scan, 10 = Scan up, 11 = Scan down
       //ART On/Off  0 = Off, 1 = On
-      *response = 0x00;
       break;
     case Ft817Eeprom_e::AntennaSelectAndSplit:
       //0 : HF Antenna Select 0 = Front, 1 = Rear
@@ -318,7 +317,6 @@ void catGetEeprom(const uint16_t read_address, uint8_t* response)
       *response = (globalSettings.splitOn ? 0xFF : 0x7F);
       break;
     case 0xB3 : //0xB1 is the base address of Base address of VFO A, 40 M.
-      *response = 0x00;
       break;
     case 0xB4 : //0xB1 is the base address of Base address of VFO A, 40 M.
       //2-0 : FM Step (Menu # 30) 000 = 5 kHz, 001 = 6.25 kHz, 010 = 10 kHz, 011 = 12.5 kHz, 100 = 15 kHz, 101 = 20 kHz, 110 = 25 kHz, 111 = 50 kHz
@@ -380,7 +378,6 @@ void processCatCommand(uint8_t* cmd) {
     else{
       SetActiveVfoMode(VfoMode_e::VFO_MODE_USB);
     }
-    response[0] = 0x00;
     response_length = 1;
 
     setFrequency(GetActiveVfoFreq());//Refresh frequency to get new mode to take effect
@@ -389,7 +386,6 @@ void processCatCommand(uint8_t* cmd) {
 
   case Ft817Command_e::PttOn:
     if (!globalSettings.txActive) {
-      response[0] = 0x00;
       globalSettings.txCatActive = true;
       startTx(globalSettings.tuningMode);
     }
@@ -405,7 +401,6 @@ void processCatCommand(uint8_t* cmd) {
       stopTx();
     }
     globalSettings.txCatActive = false;
-    response[0] = 0x00;
     response_length = 1;
     updateDisplay();
     break;
@@ -417,7 +412,6 @@ void processCatCommand(uint8_t* cmd) {
     else{
       globalSettings.activeVfo = Vfo_e::VFO_A;
     }
-    response[0] = 0x00;
     response_length = 1;
     updateDisplay();
     break;
@@ -455,7 +449,6 @@ void processCatCommand(uint8_t* cmd) {
   }
 
   default:
-    response[0] = 0x00;
     response_length = 1;
     break;
   }
