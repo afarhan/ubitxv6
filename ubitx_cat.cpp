@@ -215,7 +215,6 @@ void catGetEeprom(const uint16_t read_address, uint8_t* response)
       //5  NB On/Off 0 = Off, 1 = On  (Noise Blanker)
       //6  Lock On/Off 0 = Off, 1 = On  (Dial Lock)
       //7  FST (Fast Tuning) On/Off  0 = Off, 1 = On  (Fast tuning)
-
       *response = 0xC0;
       break;
     case Ft817Eeprom_e::KeyerStatus:
@@ -227,12 +226,6 @@ void catGetEeprom(const uint16_t read_address, uint8_t* response)
       //6 : voltmeter display on/off: 1 = display voltmeter
       //7 : VOX on/off: 1 = on
       *response = 0x40;
-      break;
-    case Ft817Eeprom_e::BandSelect:
-      //band select VFO A Band Select  0000 = 160 M, 0001 = 75 M, 0010 = 40 M, 0011 = 30 M, 0100 = 20 M, 0101 = 17 M, 0110 = 15 M, 0111 = 12 M, 1000 = 10 M, 1001 = 6 M, 1010 = FM BCB, 1011 = Air, 1100 = 2 M, 1101 = UHF, 1110 = (Phantom)
-      //http://www.ka7oei.com/ft817_memmap.html
-      //CAT_BUFF[0] = 0xC2;
-      //CAT_BUFF[1] = 0x82;
       break;
     case Ft817Eeprom_e::BeepVolume:
       //6-0 : Beep Volume (0-100) (#13)
@@ -289,20 +282,12 @@ void catGetEeprom(const uint16_t read_address, uint8_t* response)
     case Ft817Eeprom_e::FmMicVolume:
       //6-0 : FM Mic (#29) Contains 0-100 (decimal) as displayed
       //7 : Mic Scan (#37) 1 = on
-    case 0x78 ://??
       if (VfoMode_e::VFO_MODE_USB == GetActiveVfoMode()){
         *response = OperatingMode_e::USB << 5;
       }
       else{
         *response = OperatingMode_e::LSB << 5;
       }
-      break;
-    case  Ft817Eeprom_e::TxPower:
-      //1-0  TX Power (All bands)  00 = High, 01 = L3, 10 = L2, 11 = L1
-      //3  PRI On/Off  0 = Off, 1 = On
-      //DW On/Off  0 = Off, 1 = On
-      //SCN (Scan) Mode  00 = No scan, 10 = Scan up, 11 = Scan down
-      //ART On/Off  0 = Off, 1 = On
       break;
     case Ft817Eeprom_e::AntennaSelectAndSplit:
       //0 : HF Antenna Select 0 = Front, 1 = Rear
@@ -313,10 +298,7 @@ void catGetEeprom(const uint16_t read_address, uint8_t* response)
       //5 : UHF Antenna Select  0 = Front, 1 = Rear
       //6 : ? ?
       //7 : SPL On/Off  0 = Off, 1 = On
-
       *response = (globalSettings.splitOn ? 0xFF : 0x7F);
-      break;
-    case 0xB3 : //0xB1 is the base address of Base address of VFO A, 40 M.
       break;
     case 0xB4 : //0xB1 is the base address of Base address of VFO A, 40 M.
       //2-0 : FM Step (Menu # 30) 000 = 5 kHz, 001 = 6.25 kHz, 010 = 10 kHz, 011 = 12.5 kHz, 100 = 15 kHz, 101 = 20 kHz, 110 = 25 kHz, 111 = 50 kHz
