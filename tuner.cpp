@@ -19,7 +19,6 @@ void switchVFO(Vfo_e new_vfo){
 
   globalSettings.activeVfo = new_vfo;
   setFrequency(GetActiveVfoFreq());
-  redrawVFOs();
   saveVFOs();
 }
 
@@ -194,7 +193,6 @@ void ritDisable(){
   if(globalSettings.ritOn){
     globalSettings.ritOn = false;
     setFrequency(globalSettings.ritFrequency);
-    updateDisplay();
   }
 }
 

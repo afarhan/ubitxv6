@@ -281,7 +281,6 @@ void processCatCommand(uint8_t* cmd) {
     {
       uint32_t f = readFreq(cmd);
       setFrequency(f);
-      updateDisplay();
       break;
     }
 
@@ -320,7 +319,6 @@ void processCatCommand(uint8_t* cmd) {
       }
 
       setFrequency(GetActiveVfoFreq());//Refresh frequency to get new mode to take effect
-      updateDisplay();
       break;
 
     case Ft817Command_e::PttOn:
@@ -331,7 +329,6 @@ void processCatCommand(uint8_t* cmd) {
       else {
         response[0] = RACK;
       }
-      updateDisplay();
       break;
 
     case Ft817Command_e::PttOff:
@@ -342,7 +339,6 @@ void processCatCommand(uint8_t* cmd) {
         response[0] = RACK;
       }
       globalSettings.txCatActive = false;
-      updateDisplay();
       break;
 
     case Ft817Command_e::VfoToggle:
@@ -352,7 +348,6 @@ void processCatCommand(uint8_t* cmd) {
       else{
         globalSettings.activeVfo = Vfo_e::VFO_A;
       }
-      updateDisplay();
       break;
 
     case Ft817Command_e::ReadEeprom:

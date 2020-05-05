@@ -189,5 +189,4 @@ void SetActiveVfoMode(VfoMode_e mode)
   else{
     globalSettings.vfoB.mode = mode;
   }
-  redrawVFOs();
 }
