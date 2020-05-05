@@ -7,6 +7,7 @@
 #include "nano_gui.h"
 #include "scratch_space.h"
 #include "settings.h"
+#include "tuner.h"
 #include "utils.h"
 
 static const unsigned int LAYOUT_BUTTON_X = 180;
@@ -69,6 +70,7 @@ void osQuickListRecall(uint8_t index)
 {
   SetActiveVfoFreq(globalSettings.quickList[index].frequency);
   SetActiveVfoMode(globalSettings.quickList[index].mode);
+  setFrequency(GetActiveVfoFreq());
 }
 
 void osQuickListSave(uint8_t index)
