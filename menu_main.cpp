@@ -46,35 +46,62 @@ void drawMainMenu(void)
   morseText(b);
 }
 
+void drawMainMenuIncrement()
+{
+  //State variables
+  static uint32_t last_freq = 0;
+  static Vfo_e last_vfo = Vfo_e::VFO_A;
+  static VfoMode_e last_mode = VfoMode_e::VFO_MODE_LSB;
+  static bool last_split = false;
+  static bool last_rit = false;
+  static TuningMode_e last_tuning = TuningMode_e::TUNE_SSB;
+
+  Button button;
+
+  if((last_freq != GetActiveVfoFreq())
+   ||(last_vfo != globalSettings.activeVfo)){
+    extractAndDrawButton(&button,&bVfoA);
+    extractAndDrawButton(&button,&bVfoB);
+    updateBandButtons(last_freq);
+    last_freq = GetActiveVfoFreq();
+    last_vfo = globalSettings.activeVfo;
+  }
+
+  if(last_mode != GetActiveVfoMode()){
+    updateSidebandButtons();
+    last_mode = GetActiveVfoMode();
+  }
+
+  if(last_split != globalSettings.splitOn){
+    extractAndDrawButton(&button,&bVfoA);
+    extractAndDrawButton(&button,&bVfoB);
+    extractAndDrawButton(&button,&bSpl);
+    last_split = globalSettings.splitOn;
+  }
+
+  if(last_rit != globalSettings.ritOn){
+    extractAndDrawButton(&button,&bRit);
+    last_rit = globalSettings.ritOn;
+  }
+
+  if(last_tuning != globalSettings.tuningMode){
+    extractAndDrawButton(&button,&bCw);
+    last_tuning = globalSettings.tuningMode;
+  }
+}
+
 void mainMenuTune(int16_t knob)
 {
-  static uint32_t current_freq = 0;
-
-  if((0 == knob) && (GetActiveVfoFreq() == current_freq)){
+  if(0 == knob){
     //Nothing to do - we're already set!
     return;
   }
 
-  current_freq = GetActiveVfoFreq();
+  const uint32_t current_freq = GetActiveVfoFreq();
   const uint32_t new_freq = current_freq + (50 * knob);
   
   setFrequency(new_freq);
-
-  if(autoSelectSidebandChanged(current_freq)){
-    updateSidebandButtons();
-  }
-
-  const uint32_t old_freq = current_freq;
-  current_freq = new_freq;
-
-  Button button;
-  if(Vfo_e::VFO_A == globalSettings.activeVfo){
-    extractAndDrawButton(&button,&bVfoA);
-  }
-  else{
-    extractAndDrawButton(&button,&bVfoB);
-  }
-  updateBandButtons(old_freq);
+  autoSelectSidebandChanged(current_freq);
 }
 
 MenuReturn_e runMainMenu(const ButtonPress_e tuner_button,
@@ -156,7 +183,7 @@ MenuReturn_e runMainMenu(const ButtonPress_e tuner_button,
     }
   }
 
-  //
+  drawMainMenuIncrement();
 
   return MenuReturn_e::StillActive;//main menu always returns StillActive
 }
