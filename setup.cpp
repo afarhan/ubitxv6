@@ -539,15 +539,22 @@ MenuReturn_e runSetupMenu(const MenuItem_t* const menu_items,
             enterSubmenu(&setupMenu##menu_name);\
           }\
 
-const char MT_CAL [] PROGMEM = "Calibrations";
 const char MI_TOUCH [] PROGMEM = "Touch Screen";
+void setupTouchSetting();
+
+const char MT_CAL [] PROGMEM = "Calibrations";
 const MenuItem_t menuItemsCalibration [] PROGMEM {
   {MT_CAL,nullptr},//Title
   {SS_LOCAL_OSC_T,runLocalOscSetting},
   {SS_BFO_T,runBfoSetting},
-  {MI_TOUCH,setupTouch},
+  {MI_TOUCH,setupTouchSetting},
 };
 GENERATE_MENU_T(Calibration);
+
+void setupTouchSetting(){
+  setupTouch();
+  initSetupMenuCalibration();
+}
 
 const char MT_CW [] PROGMEM = "CW Setup";
 const MenuItem_t menuItemsCw [] PROGMEM {
