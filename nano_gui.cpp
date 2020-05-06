@@ -2,6 +2,7 @@
 #include "nano_gui.h"
 #include "colors.h"
 #include "pin_definitions.h"
+#include "push_button.h"
 #include "scratch_space.h"
 #include "settings.h"
 #include "touch.h"
@@ -116,7 +117,7 @@ void setupTouch(){
   };
   
   displayClear(DISPLAY_BLACK);
-  strncpy_P(b,(const char*)F("Click on the cross"),sizeof(b));
+  strncpy_P(b,(const char*)F("Click on the cross\nPush tune to cancel"),sizeof(b));
   displayText(b, 20,100, 200, 50, DISPLAY_WHITE, DISPLAY_BLACK, DISPLAY_BLACK);
 
   Point cal_points[sizeof(CROSS_CORNER_POINTS)/sizeof(CROSS_CORNER_POINTS[0])];
@@ -124,6 +125,9 @@ void setupTouch(){
   for(uint8_t i = 0; i < sizeof(CROSS_CORNER_POINTS)/sizeof(CROSS_CORNER_POINTS[0]); ++i){
     drawCross(CROSS_CORNER_POINTS[i].x,CROSS_CORNER_POINTS[i].y,DISPLAY_WHITE);
     while(!readTouch(&cal_points[i])){
+      if(ButtonPress_e::NotPressed != CheckTunerButton()){
+        return;
+      }
       delay(100);
     }
     while(readTouch(&cal_points[i])){
