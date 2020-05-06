@@ -153,20 +153,20 @@ void setupTouch(){
   globalSettings.touchOffsetX = cal_points[0].x - ((CROSS_CORNER_OFFSET * globalSettings.touchSlopeX)/SCALE_SENSITIVITY_MULTIPLIER);
   globalSettings.touchOffsetY = cal_points[0].y - ((CROSS_CORNER_OFFSET * globalSettings.touchSlopeY)/SCALE_SENSITIVITY_MULTIPLIER);
 
+
 /*
-  Serial.print(x1);Serial.print(':');Serial.println(y1);
-  Serial.print(x2);Serial.print(':');Serial.println(y2);
-  Serial.print(x3);Serial.print(':');Serial.println(y3);
-  Serial.print(x4);Serial.print(':');Serial.println(y4);
+  for(uint8_t i = 0; i < sizeof(cal_points)/sizeof(cal_points[0]); ++i){
+    Serial.print(cal_points[i].x);Serial.print(':');Serial.println(cal_points[i].y);
+  }
   
   //for debugging
   Serial.print(globalSettings.touchSlopeX); Serial.print(' ');
   Serial.print(globalSettings.touchSlopeY); Serial.print(' ');
   Serial.print(globalSettings.touchOffsetX); Serial.print(' ');
   Serial.println(globalSettings.touchOffsetY); Serial.println(' ');
-*/  
+*/
+
   SaveSettingsToEeprom();
-  displayClear(DISPLAY_BLACK);
 }
 
 
