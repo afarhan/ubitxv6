@@ -13,6 +13,7 @@ New features include:
 * Morse code readback for sightless operation
 * Save/recall your favorite frequencies
 * When adjusting settings, the existing/current setting is shown as reference
+* Cancel touch recalibration
 
 # Installing on Your Radio
 
@@ -33,10 +34,9 @@ There are some features that would be good to add, but I just didn't get around 
 * Setting to choose the tuning step size
 * Setting to choose whether or not the knob tuning should accelerate (current behavior) or have a fixed interval
 * Provide an option in each menu screen to load the default option for each setting
-* Cancel out of the touch cal if the knob button is pressed
 
-While the current code (as of 2020-05-04) is 2 bytes shy of the 30720 available on the nano, there's still opportunity
-to add new features by "creating" room. Below is a list of places you might create room:
+While the current code (as of 2020-05-05) is ~100 bytes shy of the full 30720 available on the nano, there's still
+opportunity to add new features by "creating" room. Below is a list of places you might create room:
 
 I added lots of bounds checking, especially on string writes, that, if removed, could free a good number of bytes.
 While keeping them is best practice, for a non-IoT, non-critical piece of hardware, it shouldn't be a huge issue.
