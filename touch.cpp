@@ -6,7 +6,7 @@
 #include "settings.h"
 
 constexpr int16_t Z_THRESHOLD = 400;
-constexpr uint8_t MSEC_THRESHOLD = 3;
+constexpr uint8_t MSEC_THRESHOLD = 3;//Max sample rate is 125kHz, but we'll limit ourselves conservatively
 
 constexpr uint8_t START_COMMAND = 1 << 7;
 constexpr uint8_t CHANNEL_Y = 1 << 4;
@@ -58,8 +58,6 @@ uint16_t touchReadChannel(uint8_t channel_command){
 }
 
 void touch_update(){
-  zraw = 0;//Default value to report
-
   uint32_t now = millis();
   if (now - msraw < MSEC_THRESHOLD){
     return;
@@ -73,12 +71,13 @@ void touch_update(){
   int16_t z2 = touchReadChannel(MEASURE_Z2);//~4095 when not pressed, decreases with pressure
   z += (4095 - z2);
   //Serial.print(F("z1:"));Serial.print(z1);Serial.print(F(" z2:"));Serial.print(z2);Serial.print(F(" z:"));Serial.println(z);
-  if (z < Z_THRESHOLD) {
+
+  zraw = z;
+  if (zraw < Z_THRESHOLD) {//Don't bother reading x/y if we're not being touched
     digitalWrite(PIN_TOUCH_CS, HIGH);
     SPI.endTransaction();
     return;
   }
-  zraw = z;
 
   // make 3 x-y measurements
   int16_t data[6];
@@ -88,14 +87,13 @@ void touch_update(){
   data[3] = touchReadChannel(MEASURE_Y);
   data[4] = touchReadChannel(MEASURE_X);
   data[5] = touchReadChannel(MEASURE_Y & ~POWER_ADC_REF);//Turn off sensor
+
   digitalWrite(PIN_TOUCH_CS, HIGH);
   SPI.endTransaction();
   
   int16_t x = touch_besttwoavg( data[0], data[2], data[4] );
   int16_t y = touch_besttwoavg( data[1], data[3], data[5] );
-  
-  //Serial.printf("    %d,%d", x, y);
-  //Serial.println();
+
   msraw = now;  // good read completed, set wait
   switch (rotation) {
     case 0:
