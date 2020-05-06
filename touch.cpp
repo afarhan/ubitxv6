@@ -8,6 +8,26 @@
 constexpr int16_t Z_THRESHOLD = 400;
 constexpr uint8_t MSEC_THRESHOLD = 3;
 
+constexpr uint8_t START_COMMAND = 1 << 7;
+constexpr uint8_t CHANNEL_Y = 1 << 4;
+constexpr uint8_t CHANNEL_Z1 = 3 << 4;
+constexpr uint8_t CHANNEL_Z2 = 4 << 4;
+constexpr uint8_t CHANNEL_X = 5 << 4;
+constexpr uint8_t CHANNEL_TEMPERATURE = 7 << 4;
+constexpr uint8_t USE_8_INSTEAD_OF_12_BIT = 1 << 3;
+constexpr uint8_t USE_SINGLE_ENDED_MEASUREMENT = 1 << 2;
+constexpr uint8_t POWER_OFF = 0 << 0;
+constexpr uint8_t POWER_ADC = 1 << 0;
+constexpr uint8_t POWER_REF = 2 << 0;
+constexpr uint8_t POWER_ADC_REF = 3 << 0;
+
+constexpr uint16_t MEASURE_X = START_COMMAND | POWER_ADC | CHANNEL_Y;//X and Y channel labelling flip due to screen orientation
+constexpr uint16_t MEASURE_Y = START_COMMAND | POWER_ADC | CHANNEL_X;//X and Y channel labelling flip due to screen orientation
+constexpr uint16_t MEASURE_Z1 = START_COMMAND | POWER_ADC | CHANNEL_Z1;
+constexpr uint16_t MEASURE_Z2 = START_COMMAND | POWER_ADC | CHANNEL_Z2;
+
+constexpr uint8_t RAW_READ_TO_12BIT_VALUE_SHIFT = 3;//16 bits read, zero-padded, but the MSB of the 16 is where the "BUSY" signal is asserted, so only need to shift by 3 instead of 4
+
 uint32_t msraw=0x80000000;
 int16_t xraw=0, yraw=0, zraw=0;
 constexpr uint8_t rotation = 1;
@@ -29,35 +49,45 @@ int16_t touch_besttwoavg( int16_t x , int16_t y , int16_t z ) {
 }
 
 void touch_update(){
-  int16_t data[6];
+  zraw = 0;//Default value to report
 
   uint32_t now = millis();
-  if (now - msraw < MSEC_THRESHOLD) return;
+  if (now - msraw < MSEC_THRESHOLD){
+    return;
+  }
   
   SPI.beginTransaction(spiSettingsTouch);
   digitalWrite(PIN_TOUCH_CS, LOW);
-  SPI.transfer(0xB1 /* Z1 */);
-  int16_t z1 = SPI.transfer16(0xC1 /* Z2 */) >> 3;
-  int z = z1 + 4095;
-  int16_t z2 = SPI.transfer16(0x91 /* X */) >> 3;
+
+  //NOTE: SPI transfers are synchronous, but require setup!
+  //  What happens here is that we first send a command to measure
+  //  an axis, then send our next measure command while receiving
+  //  the measurement requested previously, which is why it looks
+  //  like we're "off by one" between the variable names and the
+  //  commands being issued
+  SPI.transfer(MEASURE_Z1);
+  int16_t z1 = SPI.transfer16(MEASURE_Z2) >> RAW_READ_TO_12BIT_VALUE_SHIFT;
+  int32_t z = z1 + 4095;
+  int16_t z2 = SPI.transfer16(MEASURE_X) >> RAW_READ_TO_12BIT_VALUE_SHIFT;
   z -= z2;
-  if (z < 0) z = 0;
-  if (z < Z_THRESHOLD) { // if ( !touched ) {
-    // Serial.println();
-    zraw = 0;
+  Serial.print(F("z1:"));Serial.print(z1);Serial.print(F(" z2:"));Serial.print(z2);Serial.print(F(" z:"));Serial.println(z);
+  if (z < Z_THRESHOLD) {
+    SPI.transfer16(MEASURE_X & ~POWER_ADC_REF);//throw away the X measure so that we don't see it on the next check, and turn off the system
+    SPI.transfer16(0);
     digitalWrite(PIN_TOUCH_CS, HIGH);
     SPI.endTransaction();
     return;
   }
   zraw = z;
 
-  SPI.transfer16(0x91 /* X */);  // dummy X measure, 1st is always noisy
-  data[0] = SPI.transfer16(0xD1 /* Y */) >> 3;
-  data[1] = SPI.transfer16(0x91 /* X */) >> 3; // make 3 x-y measurements
-  data[2] = SPI.transfer16(0xD1 /* Y */) >> 3;
-  data[3] = SPI.transfer16(0x91 /* X */) >> 3;
-  data[4] = SPI.transfer16(0xD0 /* Y */) >> 3;  // Last Y touch power down
-  data[5] = SPI.transfer16(0) >> 3;
+  SPI.transfer16(MEASURE_X);  //throw away the first X measure, 1st is always noisy
+  int16_t data[6];
+  data[0] = SPI.transfer16(MEASURE_Y) >> RAW_READ_TO_12BIT_VALUE_SHIFT;
+  data[1] = SPI.transfer16(MEASURE_X) >> RAW_READ_TO_12BIT_VALUE_SHIFT; // make 3 x-y measurements
+  data[2] = SPI.transfer16(MEASURE_Y) >> RAW_READ_TO_12BIT_VALUE_SHIFT;
+  data[3] = SPI.transfer16(MEASURE_X) >> RAW_READ_TO_12BIT_VALUE_SHIFT;
+  data[4] = SPI.transfer16(MEASURE_Y) >> RAW_READ_TO_12BIT_VALUE_SHIFT;
+  data[5] = SPI.transfer16(0) >> RAW_READ_TO_12BIT_VALUE_SHIFT;
   digitalWrite(PIN_TOUCH_CS, HIGH);
   SPI.endTransaction();
   
@@ -93,6 +123,7 @@ void initTouch(){
 
 bool readTouch(Point *const touch_point_out){
   touch_update();
+  Serial.print(F("readTouch found zraw of "));Serial.println(zraw);
   if (zraw >= Z_THRESHOLD) {
     touch_point_out->x = xraw;
     touch_point_out->y = yraw;
