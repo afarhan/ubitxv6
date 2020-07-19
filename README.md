@@ -18,10 +18,11 @@ New features include:
 # Installing on Your Radio
 
 There are plenty of tutorials on how to upload sketches to Arduino Nanos. Just search for them. Addtionally,
-Ashhar created a video explaining the process specifically for uBiTX6: https://www.youtube.com/watch?v=3n_V3prSJ_E
+Ashhar created a video explaining the process specifically for uBiTX v6: https://www.youtube.com/watch?v=3n_V3prSJ_E
 
-I developed this code using the Arduino IDE 1.8.9 toolchain, with -Wall and -Wextra compiler options turned on, so
-it should compile on newer or older versions, but may result in slightly different binary output sizes.
+I developed this code using the Arduino IDE 1.8.9 toolchain, with -Wall and -Wextra compiler options turned on.
+Arduino IDE 1.8.13 was reported to compile too big (see https://groups.io/g/BITX20/topic/75008576), but this
+should be resolved in this project's tag R1.5.1.
 
 # Personalized Callsign
 
