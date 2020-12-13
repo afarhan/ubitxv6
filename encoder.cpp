@@ -16,7 +16,7 @@ static const uint8_t MOMENTUM_MULTIPLIER = 1;
 
 uint8_t enc_state (void)
 {
-  return (digitalRead(PIN_ENC_A)?1:0 + digitalRead(PIN_ENC_B)?2:0);
+  return ((digitalRead(PIN_ENC_A)?1:0) + (digitalRead(PIN_ENC_B)?2:0));
 }
 
 /*
