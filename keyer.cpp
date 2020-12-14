@@ -77,13 +77,8 @@ uint8_t keyerControl = 0;
 //create by KD8CEC for compatible with new CW Logic
 char update_PaddleLatch(bool isUpdateKeyState) {
   unsigned char tmpKeyerControl = 0;
-  
   unsigned int paddle = analogRead(PIN_ANALOG_KEYER);
-
-  //use the PTT as the key for tune up, quick QSOs
-  if (digitalRead(PIN_PTT) == 0)
-     tmpKeyerControl |= DIT_L;
-  else if (paddle >= cwAdcDashFrom && paddle <= cwAdcDashTo)
+  if (paddle >= cwAdcDashFrom && paddle <= cwAdcDashTo)
     tmpKeyerControl |= DAH_L;
   else if (paddle >= cwAdcDotFrom && paddle <= cwAdcDotTo)
     tmpKeyerControl |= DIT_L;
@@ -110,9 +105,41 @@ char update_PaddleLatch(bool isUpdateKeyState) {
 ******************************************************************************/
 void cwKeyer(void){
   bool continue_loop = true;
-  unsigned tmpKeyControl = 0;
+  char tmpKeyControl = 0;
   
-  if(KeyerMode_e::KEYER_STRAIGHT != globalSettings.keyerMode){
+  if((KeyerMode_e::KEYER_STRAIGHT == globalSettings.keyerMode)
+    || (digitalRead(PIN_PTT) == 0)){//use the PTT as the key for tune up, quick QSOs
+    while(1){
+      tmpKeyControl = update_PaddleLatch(0) | (digitalRead(PIN_PTT)?0:DIT_L);
+      //Serial.println((int)tmpKeyControl);
+      if ((tmpKeyControl & DIT_L) == DIT_L) {
+        // if we are here, it is only because the key is pressed
+        if (!globalSettings.txActive){
+          startTx(TuningMode_e::TUNE_CW);
+          globalSettings.cwExpirationTimeMs = millis() + globalSettings.cwActiveTimeoutMs;
+        }
+        cwKeydown();
+        
+        while ( tmpKeyControl & DIT_L == DIT_L){
+          tmpKeyControl = update_PaddleLatch(0) | (digitalRead(PIN_PTT)?0:DIT_L);
+          //Serial.println((int)tmpKeyControl);
+        }
+          
+        cwKeyUp();
+      }
+      else{
+        if (0 < globalSettings.cwExpirationTimeMs && globalSettings.cwExpirationTimeMs < millis()){
+          globalSettings.cwExpirationTimeMs = 0;
+          stopTx();
+        }
+        return;//Tx stop control by Main Loop
+      }
+
+      checkCAT();
+    } //end of while
+    
+  }
+  else{//KEYER_IAMBIC_*
     while(continue_loop){
       switch(keyerState){
         case IDLE:
@@ -193,34 +220,7 @@ void cwKeyer(void){
   
       checkCAT();
     } //end of while
-  }
-  else{//KEYER_STRAIGHT
-    while(1){
-     char state = update_PaddleLatch(0);
-     // Serial.println((int)state);
-      if (state == DIT_L) {
-        // if we are here, it is only because the key is pressed
-        if (!globalSettings.txActive){
-          startTx(TuningMode_e::TUNE_CW);
-          globalSettings.cwExpirationTimeMs = millis() + globalSettings.cwActiveTimeoutMs;
-        }
-        cwKeydown();
-        
-        while ( update_PaddleLatch(0) == DIT_L );
-          
-        cwKeyUp();
-      }
-      else{
-        if (0 < globalSettings.cwExpirationTimeMs && globalSettings.cwExpirationTimeMs < millis()){
-          globalSettings.cwExpirationTimeMs = 0;
-          stopTx();
-        }
-        return;//Tx stop control by Main Loop
-      }
-
-      checkCAT();
-    } //end of while
-  }//end of else KEYER_STRAIGHT
+  }//end of KEYER_IAMBIC_*
 }
 
 
