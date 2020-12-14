@@ -26,8 +26,9 @@ static const uint16_t EEPROM_ADDR_CW_DELAYTIME  = 48;//uint16_t
 static const uint16_t EEPROM_ADDR_VFO_A_MODE = 256;//uint8_t
 static const uint16_t EEPROM_ADDR_VFO_B_MODE = 257;//uint8_t
 static const uint16_t EEPROM_ADDR_CW_KEY_TYPE = 358;//uint8_t
-static const uint16_t EEPROM_ADDR_QUICKLIST_FREQ = 630;//uint32_t array
-static const uint16_t EEPROM_ADDR_QUICKLIST_MODE = 710;//uint8_t array
+static const uint16_t EEPROM_ADDR_QUICKLIST_FREQ = 630;//uint32_t array of size NUM_QUICKLIST_SETTINGS
+static const uint16_t EEPROM_ADDR_QUICKLIST_MODE = 710;//uint8_t array of size NUM_QUICKLIST_SETTINGS
+
 
 template<typename T>
 bool LoadSane(T& dest,uint16_t addr, T min, T max)
