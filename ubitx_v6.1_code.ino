@@ -302,7 +302,7 @@ void saveVFOs(){
 
 void setTXFilters(unsigned long freq){
   
-  if (freq > 21000000L){  // the default filter is with 35 MHz cut-off
+  if (freq >= 21000000L){  // the default filter is with 35 MHz cut-off
     digitalWrite(TX_LPF_A, 0);
     digitalWrite(TX_LPF_B, 0);
     digitalWrite(TX_LPF_C, 0);
@@ -312,7 +312,7 @@ void setTXFilters(unsigned long freq){
     digitalWrite(TX_LPF_B, 0);
     digitalWrite(TX_LPF_C, 0);
   }
-  else if (freq > 7000000L){
+  else if (freq >= 5000000L){
     digitalWrite(TX_LPF_A, 0);
     digitalWrite(TX_LPF_B, 1);
     digitalWrite(TX_LPF_C, 0);    
