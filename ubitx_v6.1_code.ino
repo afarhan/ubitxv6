@@ -312,7 +312,7 @@ void setTXFilters(unsigned long freq){
     digitalWrite(TX_LPF_B, 0);
     digitalWrite(TX_LPF_C, 0);
   }
-  else if (freq >= 5000000L){
+  else if (freq >= 4500000L){
     digitalWrite(TX_LPF_A, 0);
     digitalWrite(TX_LPF_B, 1);
     digitalWrite(TX_LPF_C, 0);    
