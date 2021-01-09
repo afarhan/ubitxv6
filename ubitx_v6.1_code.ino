@@ -405,11 +405,10 @@ void setFrequency(unsigned long f){
  */
  
 void startTx(byte txMode){
-  unsigned long tx_freq = 0;  
-    
+
   digitalWrite(TX_RX, 1);
   inTx = 1;
-  
+
   if (ritOn){
     //save the current as the rx frequency
     ritRxFrequency = frequency;
@@ -674,6 +673,7 @@ void doRIT(){
  */
 void initSettings(){
   byte x;
+
   //read the settings from the eeprom and restore them
   //if the readings are off, then set defaults
   EEPROM.get(MASTER_CAL, calibration);
@@ -843,8 +843,10 @@ void loop(){
     checkTouch();
   }
 
-  if ((swr_pace++ % 10000) == 0)
-      drawSWRStatus();
+  if ((swr_pace++ % 20000) == 0)
+      drawSWRStatus(1);
+  if ((swr_pace % 20000) == 10000)
+      drawSWRStatus(0);
 
   checkCAT();
 }

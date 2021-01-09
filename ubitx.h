@@ -193,7 +193,7 @@ void redrawVFOs();    //redraws only the changed digits of the vfo
 void guiUpdate();     //repaints the entire screen. Slow!!
 void drawCommandbar(char *text);
 void drawTx();
-void drawSWRStatus();
+void drawSWRStatus(byte ref);
 //getValueByKnob() provides a reusable dialog box to get a value from the encoder, the prefix and postfix 
 //are useful to concatanate the values with text like "Set Freq to " x " KHz"
 int getValueByKnob(int minimum, int maximum, int step_size,  int initial, char* prefix, char *postfix);
