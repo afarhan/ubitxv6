@@ -406,33 +406,18 @@ void enterFreq(){
   
 }
 
-void drawSWRStatus(byte ref){
+void drawSWRStatus(){
     int temp;
 
-
-
-    if (ref == 0)
-    {
-        displayFillrect(0, 201, 150, 39, DISPLAY_NAVY);
-        strcpy(b, " FWD: ");
-        temp = analogRead(ANALOG_FWD);
-        itoa(temp, c, 10);
-        strcat(b, c);
-        Serial.println(b);
-        displayRawText(b, 0, 210, DISPLAY_CYAN, DISPLAY_NAVY);
-    }
-    else
-    {
-        displayFillrect(150, 201, 320, 39, DISPLAY_NAVY);
-        strcpy(b, " REF: ");
-        temp = analogRead(ANALOG_REF);
-        itoa(temp, c, 10);
-        strcat(b, c);
-        Serial.println(b);
-        displayRawText(b, 150, 210, DISPLAY_CYAN, DISPLAY_NAVY);
-    }
-
-
+    displayFillrect(0, 201, 270, 39, DISPLAY_NAVY);
+    strcpy(b, " FWD: ");
+    itoa(forward, c, 10);
+    strcat(b, c);
+    strcat(b, " REF: ");
+    itoa(reflected, c, 10);
+    strcat(b, c);
+//        Serial.println(b);
+    displayRawText(b, 0, 210, DISPLAY_CYAN, DISPLAY_NAVY);
 }
 
 

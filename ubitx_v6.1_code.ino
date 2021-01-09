@@ -243,6 +243,11 @@ unsigned char txFilter = 0;   //which of the four transmit filters are in use
 boolean modeCalibrate = false;//this mode of menus shows extended menus to calibrate the oscillators and choose the proper
                               //beat frequency
 
+int reflected;
+int forward;
+
+boolean isHighSWR = false;
+
 /**
  * Below are the basic functions that control the uBitx. Understanding the functions before 
  * you start hacking around
@@ -814,10 +819,33 @@ void setup()
     setupBFO();
   }
   guiUpdate();
-  displayRawText("r6.1", 270, 210, DISPLAY_LIGHTGREY, DISPLAY_NAVY);
+  displayRawText("KP1", 276, 210, DISPLAY_LIGHTGREY, DISPLAY_NAVY);
 }
 
 
+void checkSWR(byte ref)
+{
+    if (ref == 0)
+        forward = analogRead(ANALOG_FWD);
+    else
+        reflected = analogRead(ANALOG_REF);
+
+#if 0
+    // TODO
+    // implement TX reflected protection here!!!
+    if (reflected > 0)
+    {
+        stopTx();
+        isHighSWR = true;
+    }
+#endif
+
+    if ((count++ % 10) == 0)
+    {
+        drawSWRStatus();
+    }
+
+}
 /**
  * The loop checks for keydown, ptt, function button and tuning.
  */
@@ -843,10 +871,10 @@ void loop(){
     checkTouch();
   }
 
-  if ((swr_pace++ % 20000) == 0)
-      drawSWRStatus(1);
-  if ((swr_pace % 20000) == 10000)
-      drawSWRStatus(0);
+  if ((swr_pace++ % 2000) == 500)
+      checkSWR(0);
+  if ((swr_pace % 2000) == 1500)
+      checkSWR(1);
 
   checkCAT();
 }

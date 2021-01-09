@@ -172,6 +172,10 @@ extern unsigned char txFilter ;   //which of the four transmit filters are in us
 extern boolean modeCalibrate;//this mode of menus shows extended menus to calibrate the oscillators and choose the proper
                               //beat frequency
 
+extern int reflected;
+extern int forward;
+extern boolean isHighSWR;
+
 /* these are functions implemented in the main file named as ubitx_xxx.ino */
 void active_delay(int delay_by);
 void saveVFOs();
@@ -183,6 +187,7 @@ void ritDisable();
 void checkCAT();
 void cwKeyer(void);
 void switchVFO(int vfoSelect);
+void checkSWR(byte ref);
 
 int enc_read(void); // returns the number of ticks in a short interval, +ve in clockwise, -ve in anti-clockwise
 int btnDown(); //returns true if the encoder button is pressed
@@ -193,7 +198,7 @@ void redrawVFOs();    //redraws only the changed digits of the vfo
 void guiUpdate();     //repaints the entire screen. Slow!!
 void drawCommandbar(char *text);
 void drawTx();
-void drawSWRStatus(byte ref);
+void drawSWRStatus();
 //getValueByKnob() provides a reusable dialog box to get a value from the encoder, the prefix and postfix 
 //are useful to concatanate the values with text like "Set Freq to " x " KHz"
 int getValueByKnob(int minimum, int maximum, int step_size,  int initial, char* prefix, char *postfix);

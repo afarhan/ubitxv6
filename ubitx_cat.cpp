@@ -365,7 +365,6 @@ void processCATCommand2(byte* cmd) {
        
   case 0xf7:
     {
-      boolean isHighSWR = false;
       boolean isSplitOn = false;
   
       /*
