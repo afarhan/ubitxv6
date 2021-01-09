@@ -408,8 +408,10 @@ void enterFreq(){
 
 void drawSWRStatus(){
   displayFillrect(0, 201, 320, 39, DISPLAY_NAVY);
-  strcpy(b, " FWD:");
-  int temp =  analogRead(ANALOG_FWD);
+
+
+  strcpy(b, " FWD: ");
+  int temp = analogRead(ANALOG_FWD);
   itoa(temp, c, 10);
   strcat(b, c);
 
