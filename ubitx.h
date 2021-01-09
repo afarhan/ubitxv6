@@ -7,8 +7,8 @@
 #define ENC_B (A1)          // Tuning encoder interface
 #define FBUTTON (A2)        // Tuning encoder interface
 #define PTT   (A3)          // Sense it for ssb and as a straight key for cw operation
-#define ANALOG_KEYER (A6)   // This is used as keyer. The analog port has 4.7K pull up resistor. Details are in the circuit description on www.hfsignals.com
-#define ANALOG_SPARE (A7)   // Not used yet
+#define ANALOG_FWD (A6)   // Forward power measure
+#define ANALOG_REF (A7)   // Reflected power measure
 
 #define TX_RX (7)           // Pin from the Nano to the radio to switch to TX (HIGH) and RX(LOW)
 #define CW_TONE (6)         // Generates a square wave sidetone while sending the CW. 
@@ -193,6 +193,7 @@ void redrawVFOs();    //redraws only the changed digits of the vfo
 void guiUpdate();     //repaints the entire screen. Slow!!
 void drawCommandbar(char *text);
 void drawTx();
+void drawSWRStatus();
 //getValueByKnob() provides a reusable dialog box to get a value from the encoder, the prefix and postfix 
 //are useful to concatanate the values with text like "Set Freq to " x " KHz"
 int getValueByKnob(int minimum, int maximum, int step_size,  int initial, char* prefix, char *postfix);

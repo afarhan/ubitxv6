@@ -124,31 +124,11 @@ unsigned char keyerState = IDLE;
 //create by KD8CEC for compatible with new CW Logic
 char update_PaddleLatch(byte isUpdateKeyState) {
   unsigned char tmpKeyerControl = 0;
-  
-  int paddle = analogRead(ANALOG_KEYER);
-  //diagnostic, VU2ESE
-  //itoa(paddle, b, 10);
-  //printLine2(b);
 
   //use the PTT as the key for tune up, quick QSOs
   if (digitalRead(PTT) == 0)
      tmpKeyerControl |= DIT_L;
-  else if (paddle >= cwAdcDashFrom && paddle <= cwAdcDashTo)
-    tmpKeyerControl |= DAH_L;
-  else if (paddle >= cwAdcDotFrom && paddle <= cwAdcDotTo)
-    tmpKeyerControl |= DIT_L;
-  else if (paddle >= cwAdcBothFrom && paddle <= cwAdcBothTo)
-    tmpKeyerControl |= (DAH_L | DIT_L) ;     
-  else 
-  {
-    if (Iambic_Key)
-      tmpKeyerControl = 0 ;
-    else if (paddle >= cwAdcSTFrom && paddle <= cwAdcSTTo)
-      tmpKeyerControl = DIT_L ;
-     else
-       tmpKeyerControl = 0 ; 
-  }
-  
+
   if (isUpdateKeyState == 1)
     keyerControl |= tmpKeyerControl;
 

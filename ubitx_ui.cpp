@@ -398,23 +398,30 @@ void enterFreq(){
     strcat(b, " KHz");
     displayText(b, 0, 42, 320, 30, DISPLAY_WHITE, DISPLAY_NAVY, DISPLAY_NAVY);
     delay(300);
+
+    
     while(readTouch())
       checkCAT();
   } // end of event loop : while(1)
   
 }
 
-void drawCWStatus(){
+void drawSWRStatus(){
   displayFillrect(0, 201, 320, 39, DISPLAY_NAVY);
-  strcpy(b, " cw:");
-  int wpm = 1200/cwSpeed;    
-  itoa(wpm,c, 10);
+  strcpy(b, " FWD:");
+  int temp =  analogRead(ANALOG_FWD);
+  itoa(temp, c, 10);
   strcat(b, c);
-  strcat(b, "wpm, ");
-  itoa(sideTone, c, 10);
+
+  strcat(b, " REF: ");
+
+  temp = analogRead(ANALOG_REF);
+  itoa(temp, c, 10);
   strcat(b, c);
-  strcat(b, "hz");
-  displayRawText(b, 0, 210, DISPLAY_CYAN, DISPLAY_NAVY);  
+
+  Serial.println(b);
+
+  displayRawText(b, 0, 210, DISPLAY_CYAN, DISPLAY_NAVY);
 }
 
 
@@ -423,9 +430,6 @@ void drawTx(){
     displayText("TX", 280, 48, 37, 28, DISPLAY_BLACK, DISPLAY_ORANGE, DISPLAY_BLUE);  
   else
     displayFillrect(280, 48, 37, 28, DISPLAY_NAVY);
-}
-void drawStatusbar(){
-  drawCWStatus();
 }
 
 void guiUpdate(){
@@ -455,7 +459,7 @@ void guiUpdate(){
     btnDraw(&b);
     checkCAT();
   }
-  drawStatusbar();
+
   checkCAT();  
 }
 
@@ -666,7 +670,7 @@ int setCwSpeed(){
 
     EEPROM.put(CW_SPEED, cwSpeed);
     active_delay(500);
-    drawStatusbar();      
+//    drawStatusbar();      
 //    printLine2("");
 //    updateDisplay();
 }
@@ -705,7 +709,7 @@ void setCwTone(){
   EEPROM.put(CW_SIDETONE, sideTone);
 
   displayFillrect(30,41,280, 32, DISPLAY_NAVY);
-  drawStatusbar();
+//  drawStatusbar();
 //  printLine2("");  
 //  updateDisplay();  
 }

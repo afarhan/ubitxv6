@@ -77,8 +77,8 @@
 #define ENC_B (A1)
 #define FBUTTON (A2)
 #define PTT   (A3)
-#define ANALOG_KEYER (A6)
-#define ANALOG_SPARE (A7)
+#define ANALOG_FWD (A6)
+#define ANALOG_REF (A7)
 
 
 /** pin assignments
@@ -770,7 +770,9 @@ void initPorts(){
 //  digitalWrite(FBUTTON, HIGH);
 
   pinMode(PTT, INPUT_PULLUP);
-//  pinMode(ANALOG_KEYER, INPUT_PULLUP);
+
+  pinMode(ANALOG_FWD, INPUT);
+  pinMode(ANALOG_REF, INPUT);
 
   pinMode(CW_TONE, OUTPUT);  
   digitalWrite(CW_TONE, 0);
@@ -812,7 +814,7 @@ void setup()
     setupBFO();
   }
   guiUpdate();
-  displayRawText("v6.1", 270, 210, DISPLAY_LIGHTGREY, DISPLAY_NAVY);
+  displayRawText("r6.1", 270, 210, DISPLAY_LIGHTGREY, DISPLAY_NAVY);
 }
 
 
@@ -822,6 +824,7 @@ void setup()
 
 byte flasher = 0;
 boolean wastouched = false;
+int swr_pace = 0;
 
 void loop(){ 
 
@@ -829,16 +832,19 @@ void loop(){
     cwKeyer(); 
   else if (!txCAT)
     checkPTT();
-    
+
   checkButton();
   //tune only when not tranmsitting 
   if (!inTx){
     if (ritOn)
       doRIT();
-    else 
+    else
       doTuning();
     checkTouch();
   }
+
+  if ((swr_pace++ % 10000) == 0)
+      drawSWRStatus();
 
   checkCAT();
 }
