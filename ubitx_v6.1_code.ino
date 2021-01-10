@@ -520,6 +520,7 @@ void checkPTT(){
   //we don't check for ptt when transmitting cw
   if (cwTimeout > 0)
     return;
+
     
   if (digitalRead(PTT) == 0 && inTx == 0){
     startTx(TX_SSB);
@@ -854,12 +855,15 @@ byte flasher = 0;
 boolean wastouched = false;
 int swr_pace = 0;
 
-void loop(){ 
+void loop(){
 
   if (cwMode)
-    cwKeyer(); 
+    cwKeyer();
+// our p2 input is engaging the ptt!
+#if 0
   else if (!txCAT)
     checkPTT();
+#endif
 
   checkButton();
   //tune only when not tranmsitting 
