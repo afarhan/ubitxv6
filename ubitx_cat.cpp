@@ -158,7 +158,8 @@ void catReadEEPRom(void)
       //5 : Memory/MTUNE select  0 = Memory, 1 = MTUNE
       //6 :
       //7 : MEM/VFO Select  0 = Memory, 1 = VFO (A or B - see bit 0)
-      cat[0] = 0x80 + (vfoActive == VFO_B ? 1 : 0);
+//      cat[0] = 0x80 + (vfoActive == VFO_B ? 1 : 0);
+      cat[0] = 0x80;
       cat[1] = 0x00;
       break;
     case 0x57 : //
@@ -251,7 +252,8 @@ void catReadEEPRom(void)
       //7A  6 ? ?
       //7A  7 SPL On/Off  0 = Off, 1 = On
 
-      cat[0] = (splitOn ? 0xFF : 0x7F);
+//      cat[0] = (splitOn ? 0xFF : 0x7F);
+      cat[0] = 0x7F;
       break;
     case 0xB3 : //
       cat[0] = 0x00;
@@ -283,15 +285,6 @@ void processCATCommand2(byte* cmd) {
     Serial.write(response, 1);
     //sprintf(b, "set:%ld", f); 
     //printLine2(b);
-    break;
-
-  case 0x02:
-    //split on
-    splitOn =  1;
-    break;
-  case 0x82:
-    //split off
-    splitOn = 0;
     break;
 
   case 0x03:
@@ -350,18 +343,6 @@ void processCATCommand2(byte* cmd) {
     updateDisplay();
     break;
 
-  case 0x81:
-    //toggle the VFOs
-    response[0] = 0;
-    if (vfoActive == VFO_A)
-      switchVFO(VFO_B);
-    else
-      switchVFO(VFO_A);
-    //menuVfoToggle(1); // '1' forces it to change the VFO
-    Serial.write(response,1);
-    updateDisplay();
-    break;
-
  case 0xBB:  //Read FT-817 EEPROM Data  (for comfirtable)
     catReadEEPRom();
     break;
@@ -375,14 +356,12 @@ void processCATCommand2(byte* cmd) {
        
   case 0xf7:
     {
-      boolean isSplitOn = false;
-  
       /*
         Inverted -> *ptt = ((p->tx_status & 0x80) == 0); <-- souce code in ft817.c (hamlib)
       */
       response[0] = ((inTx ? 0 : 1) << 7) +
         ((isHighSWR ? 1 : 0) << 6) +  //hi swr off / on
-        ((isSplitOn ? 1 : 0) << 5) + //Split on / off
+//        ((isSplitOn ? 1 : 0) << 5) + //Split on / off
         (0 << 4) +  //dummy data
         0x08;  //P0 meter data
 

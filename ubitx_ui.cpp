@@ -17,8 +17,8 @@
 #define MAX_BUTTONS 17
 const struct Button btn_set[MAX_BUTTONS] PROGMEM = { 
 //const struct Button  btn_set [] = {
-  {0, 10, 159, 36,  "VFOA", "A"},
-  {160, 10, 159, 36, "VFOB", "B"},
+  {0, 10, 318, 36,  "VFO", "A"},
+//  {160, 10, 159, 36, "VFOB", "B"},
   
   {0, 80, 60, 36,  "RIT", "R"},
   {64, 80, 60, 36, "USB", "U"},
@@ -170,60 +170,22 @@ void displayDialog(char *title, char *instructions){
 
 
 char vfoDisplay[12];
-void displayVFO(int vfo){
+void displayVFO(){
   int x, y;
   int displayColor, displayBorder;
   Button b;
 
-  if (vfo == VFO_A){
-    getButton("VFOA", &b);
-    if (splitOn){
-      if (vfoActive == VFO_A)
-        strcpy(c, "R:");
-      else 
-        strcpy(c, "T:");
-    }
-    else  
-      strcpy(c, "A:");
-    if (vfoActive == VFO_A){
-      formatFreq(frequency, c+2);
-      displayColor = DISPLAY_WHITE;
-      displayBorder = DISPLAY_BLACK;
-    }else{
-      formatFreq(vfoA, c+2);
-      displayColor = DISPLAY_GREEN;
-      displayBorder = DISPLAY_BLACK;      
-    }
-  }
+  getButton("VFO", &b);
 
-  if (vfo == VFO_B){
-    getButton("VFOB", &b);
+  strcpy(c,"     ");;
 
-    if (splitOn){
-      if (vfoActive == VFO_B)
-        strcpy(c, "R:");
-      else 
-        strcpy(c, "T:");
-    }
-    else  
-      strcpy(c, "B:");
-    if (vfoActive == VFO_B){
-      formatFreq(frequency, c+2);
-      displayColor = DISPLAY_WHITE;
-      displayBorder = DISPLAY_WHITE;
-    } else {
-      displayColor = DISPLAY_GREEN;
-      displayBorder = DISPLAY_BLACK;
-      formatFreq(vfoB, c+2);
-    }
-  }
+  formatFreq(frequency, c+5);
+  displayColor = DISPLAY_WHITE;
+  displayBorder = DISPLAY_BLACK;
 
   if (vfoDisplay[0] == 0){
     displayFillrect(b.x, b.y, b.w, b.h, DISPLAY_BLACK);
-    if (vfoActive == vfo)
-      displayRect(b.x, b.y, b.w , b.h, DISPLAY_WHITE);
-    else
-      displayRect(b.x, b.y, b.w , b.h, DISPLAY_NAVY);
+    displayRect(b.x, b.y, b.w , b.h, DISPLAY_WHITE);
   }
   x = b.x + 6;
   y = b.y + 3;
@@ -251,20 +213,14 @@ void displayVFO(int vfo){
 }
 
 void btnDraw(struct Button *b){
-  if (!strcmp(b->text, "VFOA"))
+  if (!strcmp(b->text, "VFO"))
   {
       memset(vfoDisplay, 0, sizeof(vfoDisplay));
-      displayVFO(VFO_A);
+      displayVFO();
   }
-  else if(!strcmp(b->text, "VFOB"))
-  {
-      memset(vfoDisplay, 0, sizeof(vfoDisplay));    
-      displayVFO(VFO_B);
-  }
-  else if ((!strcmp(b->text, "RIT") && ritOn == 1) || 
-      (!strcmp(b->text, "USB") && isUSB == 1) || 
-      (!strcmp(b->text, "LSB") && isUSB == 0) || 
-      (!strcmp(b->text, "SPL") && splitOn == 1))
+  else if ((!strcmp(b->text, "RIT") && ritOn == 1) ||
+      (!strcmp(b->text, "USB") && isUSB == 1) ||
+      (!strcmp(b->text, "LSB") && isUSB == 0))
       displayText(b->text, b->x, b->y, b->w, b->h, DISPLAY_BLACK, DISPLAY_ORANGE, DISPLAY_DARKGREY);
   else if (!strcmp(b->text, "CW") && cwMode == 1)
       displayText(b->text, b->x, b->y, b->w, b->h, DISPLAY_BLACK, DISPLAY_ORANGE, DISPLAY_DARKGREY);
@@ -279,21 +235,15 @@ void btnDraw(struct Button *b){
 
 
 void displayRIT(){
-  displayFillrect(0,41,320,30, DISPLAY_NAVY);
-  if (ritOn){
-    strcpy(c, "TX:");
-    formatFreq(ritTxFrequency, c+3);
-    if (vfoActive == VFO_A)
-      displayText(c, 0, 45,159, 30, DISPLAY_WHITE, DISPLAY_NAVY, DISPLAY_NAVY);
-    else
-      displayText(c, 160, 45,159, 30, DISPLAY_WHITE, DISPLAY_NAVY, DISPLAY_NAVY);      
-  }
-  else {
-    if (vfoActive == VFO_A)
-      displayText("", 0, 45,159, 30, DISPLAY_WHITE, DISPLAY_NAVY, DISPLAY_NAVY);
-    else
-      displayText("", 160, 45,159, 30, DISPLAY_WHITE, DISPLAY_NAVY, DISPLAY_NAVY);
-  }
+    displayFillrect(0,41,320,30, DISPLAY_NAVY);
+    if (ritOn){
+        strcpy(c, "TX:");
+        formatFreq(ritTxFrequency, c+3);
+        displayText(c, 0, 45,159, 30, DISPLAY_WHITE, DISPLAY_NAVY, DISPLAY_NAVY);
+    }
+    else {
+        displayText("", 0, 45,159, 30, DISPLAY_WHITE, DISPLAY_NAVY, DISPLAY_NAVY);
+    }
 }
 
 void fastTune(){
@@ -327,7 +277,7 @@ void fastTune(){
       else if (encoder < 0 && frequency > 600000l)
         frequency -= 50000l;
       setFrequency(frequency);
-      displayVFO(vfoActive);
+      displayVFO();
     }
   }// end of the event loop
 }
@@ -370,10 +320,6 @@ void enterFreq(){
             if(30000 >= f && f > 100){
               frequency = f * 1000l;
               setFrequency(frequency);
-              if (vfoActive == VFO_A)
-                vfoA = frequency;
-              else
-                vfoB = frequency;
               saveVFOs();
             }
             guiUpdate();
@@ -434,10 +380,8 @@ void guiUpdate(){
   displayClear(DISPLAY_NAVY);
 
   memset(vfoDisplay, 0, 12);
-  displayVFO(VFO_A);
+  displayVFO();
   checkCAT();
-  memset(vfoDisplay, 0, 12);  
-  displayVFO(VFO_B);  
 
   checkCAT();
   displayRIT();
@@ -459,7 +403,7 @@ void guiUpdate(){
 
 // this builds up the top line of the display with frequency and mode
 void updateDisplay() {
-   displayVFO(vfoActive);
+   displayVFO();
 }
 
 int enc_prev_state = 3;
@@ -536,50 +480,16 @@ void ritToggle(struct Button *b){
   displayRIT();
 }
 
-void splitToggle(struct Button *b){
-
-  if (splitOn)
-    splitOn = 0;
-  else
-    splitOn = 1;
-
-  btnDraw(b);
-
-  //disable rit as well
-  ritDisable();
-
-  struct Button b2;
-  getButton("RIT", &b2);
-  btnDraw(&b2);
-
-  displayRIT();
-  memset(vfoDisplay, 0, sizeof(vfoDisplay));
-  displayVFO(VFO_A);
-  memset(vfoDisplay, 0, sizeof(vfoDisplay));
-  displayVFO(VFO_B);  
-}
-
 void vfoReset(){
   Button b;
-  if (vfoActive = VFO_A)
-    vfoB = vfoA;
-  else
-    vfoA = vfoB;
-
-  if (splitOn){
-    getButton("SPL", &b);
-    splitToggle(&b);
-  }
 
   if (ritOn){
     getButton("RIT", &b);
     ritToggle(&b);
   }
-  
+
   memset(vfoDisplay, 0, sizeof(vfoDisplay));
-  displayVFO(VFO_A);
-  memset(vfoDisplay, 0, sizeof(vfoDisplay));
-  displayVFO(VFO_B);  
+  displayVFO();
 
   saveVFOs();
 }
@@ -619,15 +529,13 @@ void redrawVFOs(){
     btnDraw(&b);
     displayRIT();
     memset(vfoDisplay, 0, sizeof(vfoDisplay));
-    displayVFO(VFO_A);
-    memset(vfoDisplay, 0, sizeof(vfoDisplay));
-    displayVFO(VFO_B);
+    displayVFO();
 
     //draw the lsb/usb buttons, the sidebands might have changed
     getButton("LSB", &b);
     btnDraw(&b);
     getButton("USB", &b);
-    btnDraw(&b);  
+    btnDraw(&b);
 }
 
 
@@ -714,19 +622,8 @@ void doCommand(struct Button *b)
     sidebandToggle(b);
   else if (!strcmp(b->text, "CW"))
     cwToggle(b);
-  else if (!strcmp(b->text, "SPL"))
-    splitToggle(b);
-  else if (!strcmp(b->text, "VFOA")){
-    if (vfoActive == VFO_A)
+  else if (!strcmp(b->text, "VFO")){
       fastTune();
-    else
-      switchVFO(VFO_A);
-  }
-  else if (!strcmp(b->text, "VFOB")){
-    if (vfoActive == VFO_B)
-      fastTune();
-    else
-      switchVFO(VFO_B);
   }
   else if (!strcmp(b->text, "A=B"))
     vfoReset();
@@ -811,16 +708,11 @@ void doCommands(){
     if (btnState){
       struct Button b;
       memcpy_P(&b, btn_set + select/10, sizeof(struct Button));
-    
+
       doCommand(&b);
 
-      //unfocus the buttons
-      drawFocus(select, DISPLAY_BLUE);
-      if (vfoActive == VFO_A)
-        drawFocus(0, DISPLAY_WHITE);
-      else
-        drawFocus(1, DISPLAY_WHITE);
-        
+      drawFocus(0, DISPLAY_WHITE);
+
       //wait for the button to be up and debounce
       while(btnDown())
         active_delay(100);

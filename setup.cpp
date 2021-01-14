@@ -27,18 +27,18 @@ extern uint32_t si5351bx_vcoa;
 
 void setupFreq(){
   int knob = 0;
-  int32_t prev_calibration;
+//  int32_t prev_calibration;
 
   displayDialog("Set Frequency", "Push TUNE to Save"); 
 
   //round off the the nearest khz
-  frequency = (frequency/1000l)* 1000l;
-  setFrequency(frequency);
+//  frequency = (frequency/1000l)* 1000l;
+//  setFrequency(frequency);
   
   displayRawText("You should have a", 20, 50, DISPLAY_CYAN, DISPLAY_NAVY);
   displayRawText("signal exactly at ", 20, 75, DISPLAY_CYAN, DISPLAY_NAVY);
-  ltoa(frequency/1000l, c, 10);
-  strcat(c, " KHz");
+  ltoa(frequency, c, 10);
+  strcat(c, " Hz");
   displayRawText(c, 20, 100, DISPLAY_CYAN, DISPLAY_NAVY);
 
   displayRawText("Rotate to zerobeat", 20, 180, DISPLAY_CYAN, DISPLAY_NAVY);
@@ -46,9 +46,9 @@ void setupFreq(){
   while (btnDown())
     active_delay(100);
   active_delay(100);
-   
-  prev_calibration = calibration;
-  calibration = 0;
+
+//  prev_calibration = calibration;
+//  calibration = 0;
 
 //  ltoa(calibration/8750, c, 10);
 //  strcpy(b, c);
@@ -59,18 +59,19 @@ void setupFreq(){
   {
    knob = enc_read();
    if (knob != 0)
-      calibration += knob * 875;
+//      calibration += knob * 875;
+       calibration += knob * 50;
  /*   else if (knob < 0)
       calibration -= 875; */
-    else  
+    else
       continue; //don't update the frequency or the display
- 
+
     si5351bx_setfreq(0, usbCarrier);  //set back the cardrier oscillator anyway, cw tx switches it off  
     si5351_set_calibration(calibration);
     setFrequency(frequency);
 
     //displayRawText("Rotate to zerobeat", 20, 120, DISPLAY_CYAN, DISPLAY_NAVY);
-    
+
     ltoa(calibration, b, 10);
     displayText(b, 100, 140, 100, 26, DISPLAY_CYAN, DISPLAY_NAVY, DISPLAY_WHITE);
   }
@@ -78,7 +79,7 @@ void setupFreq(){
   EEPROM.put(MASTER_CAL, calibration);
   initOscillators();
   si5351_set_calibration(calibration);
-  setFrequency(frequency);    
+  setFrequency(frequency);
 
   //debounce and delay
   while(btnDown())
@@ -88,13 +89,13 @@ void setupFreq(){
 
 void setupBFO(){
   int knob = 0;
-  unsigned long prevCarrier;
-   
-  prevCarrier = usbCarrier;
+//  unsigned long prevCarrier;
 
-  displayDialog("Set BFO", "Press TUNE to Save"); 
-  
-  usbCarrier = 11053000l;
+//  prevCarrier = usbCarrier;
+
+  displayDialog("Set BFO", "Press TUNE to Save");
+
+//  usbCarrier = 11053000l;
   si5351bx_setfreq(0, usbCarrier);
   printCarrierFreq(usbCarrier);
 
@@ -105,11 +106,11 @@ void setupBFO(){
       usbCarrier -= 50 * knob;
     else
       continue; //don't update the frequency or the display
-      
+
     si5351bx_setfreq(0, usbCarrier);
     setFrequency(frequency);
     printCarrierFreq(usbCarrier);
-    
+
     active_delay(100);
   }
 
@@ -117,7 +118,7 @@ void setupBFO(){
   si5351bx_setfreq(0, usbCarrier);          
   setFrequency(frequency);
   updateDisplay();
-  menuOn = 0; 
+  menuOn = 0;
 }
 
 void setupCwDelay(){
@@ -160,23 +161,23 @@ void setupCwDelay(){
 
 void setupKeyer(){
   int tmp_key, knob;
-  
+
   displayDialog("Set CW Keyer", "Press tune to Save"); 
- 
+
   if (!Iambic_Key)
     displayText("< Hand Key >", 100, 100, 120, 26, DISPLAY_CYAN, DISPLAY_BLACK, DISPLAY_BLACK);
   else if (keyerControl & IAMBICB)
     displayText("< Iambic A >", 100, 100, 120, 26, DISPLAY_CYAN, DISPLAY_BLACK, DISPLAY_BLACK);
-  else 
+  else
     displayText("< Iambic B >", 100, 100, 120, 26, DISPLAY_CYAN, DISPLAY_BLACK, DISPLAY_BLACK);
 
   if (!Iambic_Key)
     tmp_key = 0; //hand key
   else if (keyerControl & IAMBICB)
     tmp_key = 2; //Iambic B
-  else 
+  else
     tmp_key = 1;
- 
+
   while (!btnDown())
   {
     knob = enc_read();
@@ -210,18 +211,18 @@ void setupKeyer(){
     Iambic_Key = true;
     keyerControl |= IAMBICB;
   }
-  
+
   EEPROM.put(CW_KEY_TYPE, tmp_key);
-  
-  menuOn = 0;  
+
+  menuOn = 0;
 }
 
 void drawSetupMenu(){
   displayClear(DISPLAY_BLACK);
- 
+
   displayText("Setup", 10, 10, 300, 35, DISPLAY_WHITE, DISPLAY_NAVY, DISPLAY_WHITE); 
   displayRect(10,10,300,220, DISPLAY_WHITE);
-  
+
   displayRawText("Set Freq...", 30, 50, DISPLAY_WHITE, DISPLAY_NAVY);       
   displayRawText("Set BFO...", 30, 80, DISPLAY_WHITE, DISPLAY_NAVY);       
   displayRawText("CW Delay...", 30, 110, DISPLAY_WHITE, DISPLAY_NAVY);       
@@ -249,15 +250,15 @@ void doSetup2(){
   while(btnDown())
     active_delay(50);
   active_delay(50);  //debounce
-  
+
   menuOn = 2;
- 
+
   while (menuOn){
     i = enc_read();
 
     if (i > 0){
-      if (select + i < 60)
-        select += i;
+        if (select + i < 60)
+            select += i;
         movePuck(select/10);
     }
     if (i < 0 && select - i >= 0){

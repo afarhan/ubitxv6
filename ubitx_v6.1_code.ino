@@ -153,8 +153,8 @@ int count = 0;          //to generally count ticks, loops, etc
 #define USB_CAL 8
 #define SIDE_TONE 12
 //these are ids of the vfos as well as their offset into the eeprom storage, don't change these 'magic' values
-#define VFO_A 16
-#define VFO_B 20
+#define VFO 16
+#define RESERVED 20 // OLD VFO B
 #define CW_SIDETONE 24
 #define CW_SPEED 28
 // the screen calibration parameters : int slope_x=104, slope_y=137, offset_x=28, offset_y=29;
@@ -166,8 +166,7 @@ int count = 0;          //to generally count ticks, loops, etc
 
 //These are defines for the new features back-ported from KD8CEC's software
 //these start from beyond 256 as Ian, KD8CEC has kept the first 256 bytes free for the base version
-#define VFO_A_MODE  256 // 2: LSB, 3: USB
-#define VFO_B_MODE  257
+#define VFO_MODE  256 // 2: LSB, 3: USB
 
 //values that are stroed for the VFO modes
 #define VFO_MODE_LSB 2
@@ -196,8 +195,8 @@ int count = 0;          //to generally count ticks, loops, etc
  
 #define INIT_USB_FREQ   (11059200l)
 // limits the tuning and working range of the ubitx between 3 MHz and 30 MHz
-#define LOWEST_FREQ   (100000l)
-#define HIGHEST_FREQ (30000000l)
+#define LOWEST_FREQ   (50000l)
+#define HIGHEST_FREQ (4000000l)
 
 //we directly generate the CW by programmin the Si5351 to the cw tx frequency, hence, both are different modes
 //these are the parameter passed to startTx
@@ -205,11 +204,9 @@ int count = 0;          //to generally count ticks, loops, etc
 #define TX_CW 1
 
 char ritOn = 0;
-char vfoActive = VFO_A;
 int8_t meter_reading = 0; // a -1 on meter makes it invisible
-unsigned long vfoA=7150000L, vfoB=14200000L, sideTone=800, usbCarrier;
-char isUsbVfoA=0, isUsbVfoB=1;
-unsigned long frequency, ritRxFrequency, ritTxFrequency;  //frequency is the current frequency on the dial
+unsigned long sideTone=800, usbCarrier;
+unsigned long frequency=7150000L, ritRxFrequency, ritTxFrequency;  //frequency is the current frequency on the dial
 unsigned long firstIF =   45005000L;
 
 // if cwMode is flipped on, the rx frequency is tuned down by sidetone hz instead of being zerobeat
@@ -232,7 +229,6 @@ boolean enablePTT = false;
  */
 boolean txCAT = false;        //turned on if the transmitting due to a CAT command
 char inTx = 0;                //it is set to 1 if in transmit mode (whatever the reason : cw, ptt or cat)
-int splitOn = 0;             //working split, uses VFO B as the transmit frequency
 char keyDown = 0;             //in cw mode, denotes the carrier is being transmitted
 char isUSB = 0;               //upper sideband was selected, this is reset to the default for the 
                               //frequency when it crosses the frequency border of 10 MHz
@@ -268,39 +264,11 @@ void active_delay(int delay_by){
 
 void saveVFOs(){
 
-    if (vfoActive == VFO_A)
-    {
-        EEPROM.put(VFO_A, frequency);
-        if (isUSB == 1)
-            EEPROM.put(VFO_A_MODE, VFO_MODE_USB);
-        else
-            EEPROM.put(VFO_A_MODE, VFO_MODE_LSB);
-    }
+    EEPROM.put(VFO, frequency);
+    if (isUSB == 1)
+        EEPROM.put(VFO_MODE, VFO_MODE_USB);
     else
-    {
-        EEPROM.put(VFO_A, vfoA);
-        if (isUsbVfoA == 1)
-            EEPROM.put(VFO_A_MODE, VFO_MODE_USB);
-        else
-            EEPROM.put(VFO_A_MODE, VFO_MODE_LSB);
-    }
-
-    if (vfoActive == VFO_B)
-    {
-        EEPROM.put(VFO_B, frequency);
-        if (isUSB == 1)
-            EEPROM.put(VFO_B_MODE, VFO_MODE_USB);
-        else
-            EEPROM.put(VFO_B_MODE, VFO_MODE_LSB);
-    }
-    else
-    {
-        EEPROM.put(VFO_B, vfoB);
-        if (isUsbVfoB == 1)
-            EEPROM.put(VFO_B_MODE, VFO_MODE_USB);
-        else
-            EEPROM.put(VFO_B_MODE, VFO_MODE_LSB);
-    }
+        EEPROM.put(VFO_MODE, VFO_MODE_LSB);
 }
 
 /**
@@ -424,79 +392,54 @@ void setFrequency(unsigned long f){
  
 void startTx(byte txMode){
 
-  digitalWrite(TX_RX, 1);
-  inTx = 1;
+    digitalWrite(TX_RX, 1);
+    inTx = 1;
 
-  if (ritOn){
-    //save the current as the rx frequency
-    ritRxFrequency = frequency;
-    setFrequency(ritTxFrequency);
-  }
-  else 
-  {
-    if (splitOn == 1) {
-      if (vfoActive == VFO_B) {
-        vfoActive = VFO_A;
-        isUSB = isUsbVfoA;
-        frequency = vfoA;
-      }
-      else if (vfoActive == VFO_A){
-        vfoActive = VFO_B;
-        frequency = vfoB;
-        isUSB = isUsbVfoB;        
-      }
+    if (ritOn){
+        //save the current as the rx frequency
+        ritRxFrequency = frequency;
+        setFrequency(ritTxFrequency);
     }
-    setFrequency(frequency);
-  }
-
-  if (txMode == TX_CW){
-    digitalWrite(TX_RX, 0);
-
-    //turn off the second local oscillator and the bfo
-    si5351bx_setfreq(0, 0);
-    si5351bx_setfreq(1, 0);
-
-    //shif the first oscillator to the tx frequency directly
-    //the key up and key down will toggle the carrier unbalancing
-    //the exact cw frequency is the tuned frequency + sidetone
-    if (isUSB)
-      si5351bx_setfreq(2, frequency + sideTone);
     else
-      si5351bx_setfreq(2, frequency - sideTone);
+    {
+        setFrequency(frequency);
+    }
 
-    delay(20);
-    digitalWrite(TX_RX, 1);     
-  }
-  drawTx();
-  //updateDisplay();
+    if (txMode == TX_CW){
+        digitalWrite(TX_RX, 0);
+
+        //turn off the second local oscillator and the bfo
+        si5351bx_setfreq(0, 0);
+        si5351bx_setfreq(1, 0);
+
+        //shif the first oscillator to the tx frequency directly
+        //the key up and key down will toggle the carrier unbalancing
+        //the exact cw frequency is the tuned frequency + sidetone
+        if (isUSB)
+            si5351bx_setfreq(2, frequency + sideTone);
+        else
+            si5351bx_setfreq(2, frequency - sideTone);
+
+        delay(20);
+        digitalWrite(TX_RX, 1);
+    }
+    drawTx();
+    //updateDisplay();
 }
 
 void stopTx(){
-  inTx = 0;
+    inTx = 0;
 
-  digitalWrite(TX_RX, 0);           //turn off the tx
-  si5351bx_setfreq(0, usbCarrier);  //set back the cardrier oscillator anyway, cw tx switches it off
+    digitalWrite(TX_RX, 0);           //turn off the tx
+    si5351bx_setfreq(0, usbCarrier);  //set back the cardrier oscillator anyway, cw tx switches it off
 
-  if (ritOn)
-    setFrequency(ritRxFrequency);
-  else{
-    if (splitOn == 1) {
-      //vfo Change
-      if (vfoActive == VFO_B){
-        vfoActive = VFO_A;
-        frequency = vfoA;
-        isUSB = isUsbVfoA;        
-      }
-      else if (vfoActive == VFO_A){
-        vfoActive = VFO_B;
-        frequency = vfoB;
-        isUSB = isUsbVfoB;        
-      }
+    if (ritOn)
+        setFrequency(ritRxFrequency);
+    else{
+        setFrequency(frequency);
     }
-    setFrequency(frequency);
-  }
-  //updateDisplay();
-  drawTx();
+    //updateDisplay();
+    drawTx();
 }
 
 /**
@@ -546,7 +489,7 @@ void checkPTT(){
 
 //check if the encoder button was pressed
 void checkButton(){
-  
+
   //only if the button is pressed
   if (!btnDown())
     return;
@@ -570,43 +513,6 @@ void checkButton(){
   while(btnDown())
     active_delay(10);
   active_delay(50);//debounce
-}
-
-void switchVFO(int vfoSelect){
-     if (vfoSelect == VFO_A){
-      if (vfoActive == VFO_B){
-        vfoB = frequency;
-        isUsbVfoB = isUSB;
-        EEPROM.put(VFO_B, frequency);
-        if (isUsbVfoB)
-          EEPROM.put(VFO_B_MODE, VFO_MODE_USB);
-        else
-          EEPROM.put(VFO_B_MODE, VFO_MODE_LSB);
-      }
-      vfoActive = VFO_A;
-//      printLine2("Selected VFO A  ");
-      frequency = vfoA;
-      isUSB = isUsbVfoA;
-    }
-    else {
-      if (vfoActive == VFO_A){
-        vfoA = frequency;
-        isUsbVfoA = isUSB;
-        EEPROM.put(VFO_A, frequency);
-        if (isUsbVfoA)
-          EEPROM.put(VFO_A_MODE, VFO_MODE_USB);
-        else
-          EEPROM.put(VFO_A_MODE, VFO_MODE_LSB);
-      }
-      vfoActive = VFO_B;
-//      printLine2("Selected VFO B  ");      
-      frequency = vfoB;
-      isUSB = isUsbVfoB;
-    }
-
-    setFrequency(frequency);
-    redrawVFOs();
-    saveVFOs();
 }
 
 /**
@@ -682,71 +588,49 @@ void doRIT(){
  * variables.
  */
 void initSettings(){
-  byte x;
+    byte x;
 
-  //read the settings from the eeprom and restore them
-  //if the readings are off, then set defaults
-  EEPROM.get(MASTER_CAL, calibration);
-  EEPROM.get(USB_CAL, usbCarrier);
-  EEPROM.get(VFO_A, vfoA);
-  EEPROM.get(VFO_B, vfoB);
-  EEPROM.get(CW_SIDETONE, sideTone);
-  EEPROM.get(CW_SPEED, cwSpeed);
-  EEPROM.get(CW_DELAYTIME, cwDelayTime);
-  
+    //read the settings from the eeprom and restore them
+    //if the readings are off, then set defaults
+    EEPROM.get(MASTER_CAL, calibration);
+    EEPROM.get(USB_CAL, usbCarrier);
+    EEPROM.get(VFO, frequency);
+    // EEPROM.get(RESERVED, isHighSWR); // ??
+    EEPROM.get(CW_SIDETONE, sideTone);
+    EEPROM.get(CW_SPEED, cwSpeed);
+    EEPROM.get(CW_DELAYTIME, cwDelayTime);
+
 // the screen calibration parameters : int slope_x=104, slope_y=137, offset_x=28, offset_y=29;
-  
-  if (usbCarrier > 11060000l || usbCarrier < 11048000l)
-    usbCarrier = 11052000l;
-  if (vfoA > 35000000l || 3500000l > vfoA)
-     vfoA = 7150000l;
-  if (vfoB > 35000000l || 3500000l > vfoB)
-     vfoB = 14150000l;  
-  if (sideTone < 100 || 2000 < sideTone) 
-    sideTone = 800;
-  if (cwSpeed < 10 || 1000 < cwSpeed) 
-    cwSpeed = 100;
-  if (cwDelayTime < 10 || cwDelayTime > 100)
-    cwDelayTime = 50;
 
-  /*
-   * The VFO modes are read in as either 2 (USB) or 3(LSB), 0, the default
-   * is taken as 'uninitialized
-   */
+    if (usbCarrier > 11060000l || usbCarrier < 11048000l)
+        usbCarrier = 11052000l;
+    if (frequency > 40000000l || 500000l > frequency)
+        frequency = 7150000l;
 
-  EEPROM.get(VFO_A_MODE, x);
- 
-  switch(x){
+    if (sideTone < 100 || 2000 < sideTone)
+        sideTone = 800;
+    if (cwSpeed < 10 || 1000 < cwSpeed)
+        cwSpeed = 100;
+    if (cwDelayTime < 10 || cwDelayTime > 100)
+        cwDelayTime = 50;
+
+    /*
+     * The VFO modes are read in as either 2 (USB) or 3(LSB), 0, the default
+     * is taken as 'uninitialized
+     */
+
+    EEPROM.get(VFO_MODE, x);
+
+    switch(x){
     case VFO_MODE_USB:
-      isUsbVfoA = 1;
-      break;
+        isUSB = 1;
+        break;
     case VFO_MODE_LSB:
-      isUsbVfoA = 0;
-      break;
+        isUSB = 0;
+        break;
     default:
-      if (vfoA > 10000000l)
-        isUsbVfoA = 1;
-      else 
-        isUsbVfoA = 0;      
-  }
-
-  EEPROM.get(VFO_B_MODE, x);
-  switch(x){
-    case VFO_MODE_USB:
-      isUsbVfoB = 1;
-      break;
-    case VFO_MODE_LSB:
-      isUsbVfoB = 0;
-      break;
-    default:
-      if (vfoA > 10000000l)
-        isUsbVfoB = 1;
-      else 
-        isUsbVfoB = 0;      
-  }
-
-  //set the current mode
-  isUSB = isUsbVfoA;
+        isUSB = 0;
+    }
 
   /*
    * The keyer type splits into two variables
@@ -763,7 +647,7 @@ void initSettings(){
     Iambic_Key = true;
     keyerControl |= IAMBICB;
   }
-  
+
 }
 
 void initPorts(){
@@ -810,8 +694,7 @@ void setup()
   initSettings();
   initPorts();
   initOscillators();
-  frequency = vfoA;
-  setFrequency(vfoA);
+  setFrequency(frequency);
   enc_setup();
 
   if (btnDown()){
