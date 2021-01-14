@@ -14,12 +14,6 @@
 
 #define BUTTON_SELECTED 1
 
-struct Button {
-  int x, y, w, h;
-  char *text;
-  char *morse;
-};
-
 #define MAX_BUTTONS 17
 const struct Button btn_set[MAX_BUTTONS] PROGMEM = { 
 //const struct Button  btn_set [] = {
@@ -230,7 +224,7 @@ void displayVFO(int vfo){
       displayRect(b.x, b.y, b.w , b.h, DISPLAY_WHITE);
     else
       displayRect(b.x, b.y, b.w , b.h, DISPLAY_NAVY);
-  }  
+  }
   x = b.x + 6;
   y = b.y + 3;
 
@@ -239,10 +233,10 @@ void displayVFO(int vfo){
   for (int i = 0; i <= strlen(c); i++){
     char digit = c[i];
     if (digit != vfoDisplay[i]){
-      
+
       displayFillrect(x, y, 15, b.h-6, DISPLAY_BLACK);
       //checkCAT();
-     
+
       displayChar(x, y + TEXT_LINE_HEIGHT + 3, digit, displayColor, DISPLAY_BLACK);
       checkCAT();
     }
@@ -252,7 +246,7 @@ void displayVFO(int vfo){
       x += 16;
     text++;
   }//end of the while loop of the characters to be printed  
-  
+
   strcpy(vfoDisplay, c);
 }
 
@@ -414,7 +408,6 @@ void enterFreq(){
 }
 
 void drawSWRStatus(){
-    int temp;
 
     displayFillrect(0, 201, 270, 39, DISPLAY_NAVY);
     strcpy(b, " FWD: ");
@@ -558,11 +551,11 @@ void splitToggle(struct Button *b){
 
   //disable rit as well
   ritDisable();
-  
+
   struct Button b2;
   getButton("RIT", &b2);
   btnDraw(&b2);
-  
+
   displayRIT();
   memset(vfoDisplay, 0, sizeof(vfoDisplay));
   displayVFO(VFO_A);
@@ -657,12 +650,11 @@ void switchBand(long bandfreq){
 //  Serial.println(offset);
 
   setFrequency(bandfreq + offset);
-  updateDisplay(); 
+  updateDisplay();
   saveVFOs();
 }
 
 int setCwSpeed(){
-    int knob = 0;
     int wpm;
 
     wpm = 1200/cwSpeed;
@@ -680,11 +672,10 @@ int setCwSpeed(){
 
 void setCwTone(){
   int knob = 0;
-  int prev_sideTone;
-     
+
   tone(CW_TONE, sideTone);
 
-  //disable all clock 1 and clock 2 
+  //disable all clock 1 and clock 2
   while (digitalRead(PTT) == HIGH && !btnDown())
   {
     knob = enc_read();
@@ -695,7 +686,7 @@ void setCwTone(){
       sideTone -= 10;
     else
       continue; //don't update the frequency or the display
-        
+
     tone(CW_TONE, sideTone);
     itoa(sideTone, c, 10);
     strcpy(b, "CW Tone: ");
@@ -777,7 +768,7 @@ void  checkTouch(){
   /* //debug code
   Serial.print(ts_point.x); Serial.print(' ');Serial.println(ts_point.y);
   */
-  int total = sizeof(btn_set)/sizeof(struct Button);
+  // int total = sizeof(btn_set)/sizeof(struct Button);
   for (int i = 0; i < MAX_BUTTONS; i++){
     struct Button b;
     memcpy_P(&b, btn_set + i, sizeof(struct Button));

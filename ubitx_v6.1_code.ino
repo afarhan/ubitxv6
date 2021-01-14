@@ -270,25 +270,39 @@ void active_delay(int delay_by){
 
 void saveVFOs(){
 
-  if (vfoActive == VFO_A)
-    EEPROM.put(VFO_A, frequency);
-  else
-    EEPROM.put(VFO_A, vfoA);
-    
-  if (isUsbVfoA)
-    EEPROM.put(VFO_A_MODE, VFO_MODE_USB);
-  else
-    EEPROM.put(VFO_A_MODE, VFO_MODE_LSB);
+    if (vfoActive == VFO_A)
+    {
+        EEPROM.put(VFO_A, frequency);
+        if (isUSB == 1)
+            EEPROM.put(VFO_A_MODE, VFO_MODE_USB);
+        else
+            EEPROM.put(VFO_A_MODE, VFO_MODE_LSB);
+    }
+    else
+    {
+        EEPROM.put(VFO_A, vfoA);
+        if (isUsbVfoA == 1)
+            EEPROM.put(VFO_A_MODE, VFO_MODE_USB);
+        else
+            EEPROM.put(VFO_A_MODE, VFO_MODE_LSB);
+    }
 
-  if (vfoActive == VFO_B)
-    EEPROM.put(VFO_B, frequency);
-  else
-    EEPROM.put(VFO_B, vfoB);
-    
-  if (isUsbVfoB)
-    EEPROM.put(VFO_B_MODE, VFO_MODE_USB);
-  else 
-    EEPROM.put(VFO_B_MODE, VFO_MODE_LSB);
+    if (vfoActive == VFO_B)
+    {
+        EEPROM.put(VFO_B, frequency);
+        if (isUSB == 1)
+            EEPROM.put(VFO_B_MODE, VFO_MODE_USB);
+        else
+            EEPROM.put(VFO_B_MODE, VFO_MODE_LSB);
+    }
+    else
+    {
+        EEPROM.put(VFO_B, vfoB);
+        if (isUsbVfoB == 1)
+            EEPROM.put(VFO_B_MODE, VFO_MODE_USB);
+        else
+            EEPROM.put(VFO_B_MODE, VFO_MODE_LSB);
+    }
 }
 
 /**
@@ -371,7 +385,6 @@ void setTXFilters_v5(unsigned long freq){
  */
  
 void setFrequency(unsigned long f){
-  uint64_t osc_f, firstOscillator, secondOscillator;
  
   setTXFilters(f);
 
@@ -400,7 +413,7 @@ void setFrequency(unsigned long f){
       si5351bx_setfreq(2, firstIF + f);
     si5351bx_setfreq(1, firstIF - usbCarrier);
   }
-    
+
   frequency = f;
 }
 
@@ -535,7 +548,6 @@ void checkPTT(){
 
 //check if the encoder button was pressed
 void checkButton(){
-  int i, t1, t2, knob, new_knob;
   
   //only if the button is pressed
   if (!btnDown())
@@ -658,8 +670,6 @@ void doTuning(){
  * RIT only steps back and forth by 100 hz at a time
  */
 void doRIT(){
-  unsigned long newFreq;
- 
   int knob = enc_read();
   unsigned long old_freq = frequency;
 
@@ -802,11 +812,11 @@ void initPorts(){
 void setup()
 {
   Serial.begin(38400);
-  Serial.flush();  
+  Serial.flush();
 
   displayInit();
   initSettings();
-  initPorts();     
+  initPorts();
   initOscillators();
   frequency = vfoA;
   setFrequency(vfoA);

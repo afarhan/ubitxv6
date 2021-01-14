@@ -16,9 +16,8 @@
 static unsigned long rxBufferArriveTime = 0;
 static byte rxBufferCheckCount = 0;
 #define CAT_RECEIVE_TIMEOUT 500
-static byte cat[5]; 
-static byte insideCat = 0; 
-static byte useOpenRadioControl = 0;
+static byte cat[5];
+static byte insideCat = 0;
 
 //for broken protocol
 #define CAT_RECEIVE_TIMEOUT 500
@@ -268,13 +267,13 @@ void catReadEEPRom(void)
 void processCATCommand2(byte* cmd) {
   byte response[5];
   unsigned long f;
-  
+
   switch(cmd[4]){
 /*  case 0x00:
     response[0]=0;
     Serial.write(response, 1);
     break;
-*/    
+*/
   case 0x01:
     //set frequency
     f = readFreq(cmd);
@@ -287,14 +286,14 @@ void processCATCommand2(byte* cmd) {
     break;
 
   case 0x02:
-    //split on 
+    //split on
     splitOn =  1;
     break;
   case 0x82:
     //split off
     splitOn = 0;
     break;
-    
+
   case 0x03:
     writeFreq(frequency,response); // Put the frequency into the buffer
     if (isUSB)
@@ -304,19 +303,32 @@ void processCATCommand2(byte* cmd) {
     Serial.write(response,5);
     //printLine2("cat:getfreq");
     break;
-    
+
   case 0x07: // set mode
     if (cmd[0] == 0x00 || cmd[0] == 0x03)
-      isUSB = 0;
+        isUSB = 0;
     else
-      isUSB = 1;
+        isUSB = 1;
+
     response[0] = 0x00;
     Serial.write(response, 1);
     setFrequency(frequency);
-      //printLine2("cat: mode changed");
-    //updateDisplay();
-    break;   
- 
+
+/*
+    if (vfoActive == VFO_A)
+        isUsbVfoA = isUSB;
+    else if (vfoActive == VFO_B)
+        isUsbVfoB = isUSB;
+
+    struct Button ssb;
+    getButton("USB", &ssb);
+    btnDraw(&ssb);
+    getButton("LSB", &ssb);
+    btnDraw(&ssb);
+    updateDisplay();
+    saveVFOs(); */
+    break;
+
   case 0x08: // PTT On
     if (!inTx) {
       response[0] = 0;
@@ -325,7 +337,7 @@ void processCATCommand2(byte* cmd) {
       updateDisplay();
     } else {
       response[0] = 0xf0;
-    } 
+    }
     Serial.write(response,1);
     updateDisplay();
     break;
@@ -420,16 +432,15 @@ void checkCAT(){
     return;
   }
 
-    
   //Arived CAT DATA
   for (i = 0; i < 5; i++)
-    cat[i] = Serial.read();
-
+      cat[i] = Serial.read();
 
   //this code is not re-entrant.
   if (insideCat == 1)
     return;
   insideCat = 1;
+
 
 /**
  *  This routine is enabled to debug the cat protocol
@@ -441,8 +452,7 @@ void checkCAT(){
     sprintf(b, "%d %02x %02x%02x%02x%02x", catCount, cat[4],cat[0], cat[1], cat[2], cat[3]);  
     printLine2(b);  
   }
-*/  
-
+*/
 /*
   if (!doingCAT){
     doingCAT = 1;

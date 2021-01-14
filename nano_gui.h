@@ -7,6 +7,15 @@ struct Point {
 };
 extern struct Point ts_point;
 
+struct Button {
+  int x, y, w, h;
+  char *text;
+  char *morse;
+};
+
+extern boolean getButton(char *text, struct Button *b);
+extern void btnDraw(struct Button *b);
+
 void displayInit();
 void displayClear(unsigned int color);
 void displayPixel(unsigned int x, unsigned int y, unsigned int c);
