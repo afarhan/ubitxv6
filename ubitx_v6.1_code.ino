@@ -220,12 +220,14 @@ int cwMode = 0;
 int cwSpeed = 100; //this is actuall the dot period in milliseconds
 extern int32_t calibration;
 int cwDelayTime = 60;
-bool Iambic_Key = true;
+bool Iambic_Key = false;
 #define IAMBICB 0x10 // 0 for Iambic A, 1 for Iambic B
-unsigned char keyerControl = IAMBICB;
+unsigned char keyerControl = 0;
 //during CAT commands, we will freeeze the display until CAT is disengaged
 unsigned char doingCAT = 0;
 
+boolean enableSWR = false;
+boolean enablePTT = false;
 
 /**
  * Raduino needs to keep track of current state of the transceiver. These are a few variables that do it
@@ -860,10 +862,8 @@ void loop(){
   if (cwMode)
     cwKeyer();
 // our p2 input is engaging the ptt!
-#if 0
-  else if (!txCAT)
+  else if (!txCAT && enablePTT)
     checkPTT();
-#endif
 
   checkButton();
   //tune only when not tranmsitting 
@@ -875,10 +875,13 @@ void loop(){
     checkTouch();
   }
 
-  if ((swr_pace++ % 2000) == 500)
-      checkSWR(0);
-  if ((swr_pace % 2000) == 1500)
-      checkSWR(1);
+  if (enableSWR)
+  {
+      if ((swr_pace++ % 2000) == 500)
+          checkSWR(0);
+      if ((swr_pace % 2000) == 1500)
+          checkSWR(1);
+  }
 
   checkCAT();
 }

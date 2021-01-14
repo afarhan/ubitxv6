@@ -176,6 +176,9 @@ extern int reflected;
 extern int forward;
 extern boolean isHighSWR;
 
+extern boolean enableSWR;
+extern boolean enablePTT;
+
 /* these are functions implemented in the main file named as ubitx_xxx.ino */
 void active_delay(int delay_by);
 void saveVFOs();

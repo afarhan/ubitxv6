@@ -38,8 +38,8 @@ const struct Button btn_set[MAX_BUTTONS] PROGMEM = {
   {192, 120, 60, 36, "20", "2"},
   {256, 120, 60, 36, "17", "7"},
 
-  {0, 160, 60, 36, "15", "5"},
-  {64, 160, 60, 36, "10", "1"},
+  {0, 160, 60, 36, "PTT", "5"},
+  {64, 160, 60, 36, "SWR", "1"},
   {128, 160, 60, 36, "WPM", "W"},
   {192, 160, 60, 36, "TON", "T"},
   {256, 160, 60, 36, "FRQ", "F"},
@@ -257,23 +257,30 @@ void displayVFO(int vfo){
 }
 
 void btnDraw(struct Button *b){
-  if (!strcmp(b->text, "VFOA")){
-    memset(vfoDisplay, 0, sizeof(vfoDisplay));
-    displayVFO(VFO_A);
+  if (!strcmp(b->text, "VFOA"))
+  {
+      memset(vfoDisplay, 0, sizeof(vfoDisplay));
+      displayVFO(VFO_A);
   }
-  else if(!strcmp(b->text, "VFOB")){
-    memset(vfoDisplay, 0, sizeof(vfoDisplay));    
-    displayVFO(VFO_B);
+  else if(!strcmp(b->text, "VFOB"))
+  {
+      memset(vfoDisplay, 0, sizeof(vfoDisplay));    
+      displayVFO(VFO_B);
   }
   else if ((!strcmp(b->text, "RIT") && ritOn == 1) || 
       (!strcmp(b->text, "USB") && isUSB == 1) || 
       (!strcmp(b->text, "LSB") && isUSB == 0) || 
       (!strcmp(b->text, "SPL") && splitOn == 1))
-    displayText(b->text, b->x, b->y, b->w, b->h, DISPLAY_BLACK, DISPLAY_ORANGE, DISPLAY_DARKGREY);   
+      displayText(b->text, b->x, b->y, b->w, b->h, DISPLAY_BLACK, DISPLAY_ORANGE, DISPLAY_DARKGREY);
   else if (!strcmp(b->text, "CW") && cwMode == 1)
-      displayText(b->text, b->x, b->y, b->w, b->h, DISPLAY_BLACK, DISPLAY_ORANGE, DISPLAY_DARKGREY);   
+      displayText(b->text, b->x, b->y, b->w, b->h, DISPLAY_BLACK, DISPLAY_ORANGE, DISPLAY_DARKGREY);
+  else if (!strcmp(b->text, "PTT") && enablePTT == true)
+      displayText(b->text, b->x, b->y, b->w, b->h, DISPLAY_BLACK, DISPLAY_ORANGE, DISPLAY_DARKGREY);
+  else if (!strcmp(b->text, "SWR") && enableSWR == true)
+      displayText(b->text, b->x, b->y, b->w, b->h, DISPLAY_BLACK, DISPLAY_ORANGE, DISPLAY_DARKGREY);
   else
-    displayText(b->text, b->x, b->y, b->w, b->h, DISPLAY_GREEN, DISPLAY_BLACK, DISPLAY_DARKGREY);
+      displayText(b->text, b->x, b->y, b->w, b->h, DISPLAY_GREEN, DISPLAY_BLACK, DISPLAY_DARKGREY);
+
 }
 
 
@@ -710,8 +717,8 @@ void setCwTone(){
 //  updateDisplay();  
 }
 
-void doCommand(struct Button *b){
-  
+void doCommand(struct Button *b)
+{
   if (!strcmp(b->text, "RIT"))
     ritToggle(b);
   else if (!strcmp(b->text, "LSB"))
@@ -746,12 +753,10 @@ void doCommand(struct Button *b){
     switchBand(14000000l);
   else if (!strcmp(b->text, "17"))
     switchBand(18000000l);
-  else if (!strcmp(b->text, "15"))
-    switchBand(21000000l);
-  else if (!strcmp(b->text, "13"))
-    switchBand(24800000l);
-  else if (!strcmp(b->text, "10"))
-    switchBand(28000000l);  
+  else if (!strcmp(b->text, "PTT")){
+    enablePTT = !enablePTT; btnDraw(b); }
+  else if (!strcmp(b->text, "SWR")){
+    enableSWR = !enableSWR; btnDraw(b); }
   else if (!strcmp(b->text, "FRQ"))
     enterFreq();
   else if (!strcmp(b->text, "WPM"))
