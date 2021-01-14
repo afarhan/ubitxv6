@@ -314,19 +314,17 @@ void processCATCommand2(byte* cmd) {
     Serial.write(response, 1);
     setFrequency(frequency);
 
-/*
-    if (vfoActive == VFO_A)
-        isUsbVfoA = isUSB;
-    else if (vfoActive == VFO_B)
-        isUsbVfoB = isUSB;
-
     struct Button ssb;
-    getButton("USB", &ssb);
-    btnDraw(&ssb);
-    getButton("LSB", &ssb);
-    btnDraw(&ssb);
-    updateDisplay();
-    saveVFOs(); */
+    if (isUSB == 1)
+    {
+        getButton("USB", &ssb);
+        sidebandToggle(&ssb);
+    } else
+    {
+        getButton("LSB", &ssb);
+        sidebandToggle(&ssb);
+    }
+
     break;
 
   case 0x08: // PTT On

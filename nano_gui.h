@@ -15,6 +15,7 @@ struct Button {
 
 extern boolean getButton(char *text, struct Button *b);
 extern void btnDraw(struct Button *b);
+extern void sidebandToggle(struct Button *b);
 
 void displayInit();
 void displayClear(unsigned int color);

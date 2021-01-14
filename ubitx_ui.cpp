@@ -352,7 +352,7 @@ void enterFreq(){
     checkCAT();
     if(!readTouch())
       continue;
-      
+
     scaleTouch(&ts_point);
 
     int total = sizeof(btn_set)/sizeof(struct Button);
@@ -362,8 +362,8 @@ void enterFreq(){
 
       int x2 = b.x + b.w;
       int y2 = b.y + b.h;
-  
-      if (b.x < ts_point.x && ts_point.x < x2 && 
+
+      if (b.x < ts_point.x && ts_point.x < x2 &&
         b.y < ts_point.y && ts_point.y < y2){
           if (!strcmp(b.text, "OK")){
             long f = atol(c);
@@ -382,7 +382,7 @@ void enterFreq(){
           else if (!strcmp(b.text, "<-")){
             c[cursor_pos] = 0;
             if (cursor_pos > 0)
-              cursor_pos--;      
+              cursor_pos--;
             c[cursor_pos] = 0;
           }
           else if (!strcmp(b.text, "Can")){
@@ -430,10 +430,6 @@ void drawTx(){
 
 void guiUpdate(){
 
-/*
-  if (doingCAT)
-    return;
-*/
   // use the current frequency as the VFO frequency for the active VFO
   displayClear(DISPLAY_NAVY);
 
@@ -456,14 +452,14 @@ void guiUpdate(){
     checkCAT();
   }
 
-  checkCAT();  
+  checkCAT();
 }
 
 
 
 // this builds up the top line of the display with frequency and mode
 void updateDisplay() {
-   displayVFO(vfoActive);    
+   displayVFO(vfoActive);
 }
 
 int enc_prev_state = 3;

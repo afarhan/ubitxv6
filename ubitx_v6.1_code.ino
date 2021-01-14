@@ -223,8 +223,6 @@ int cwDelayTime = 60;
 bool Iambic_Key = false;
 #define IAMBICB 0x10 // 0 for Iambic A, 1 for Iambic B
 unsigned char keyerControl = 0;
-//during CAT commands, we will freeeze the display until CAT is disengaged
-unsigned char doingCAT = 0;
 
 boolean enableSWR = false;
 boolean enablePTT = false;
@@ -556,9 +554,6 @@ void checkButton(){
   if (!btnDown()) //debounce
     return;
 
-  //disengage any CAT work
-  doingCAT = 0;
-
  int downTime = 0;
  while(btnDown()){
     active_delay(10);
@@ -570,7 +565,6 @@ void checkButton(){
  }
  active_delay(100);
 
- 
   doCommands();
   //wait for the button to go up again
   while(btnDown())
@@ -628,7 +622,7 @@ void doTuning(){
   static unsigned long nextFrequencyUpdate = 0;
 
   unsigned long now = millis();
-  
+
   if (now >= nextFrequencyUpdate && prev_freq != frequency){
     updateDisplay();
     nextFrequencyUpdate = now + 500;
@@ -639,9 +633,7 @@ void doTuning(){
   if (!s)
     return;
 
-  doingCAT = 0; // go back to manual mode if you were doing CAT
   prev_freq = frequency;
-
 
   if (s > 10)
     frequency += 200l * s;
@@ -655,14 +647,14 @@ void doTuning(){
     frequency += 100l * s;
   else if (s  < 0)
     frequency += 50l * s;
-   
+
   if (prev_freq < 10000000l && frequency > 10000000l)
     isUSB = true;
-    
+
   if (prev_freq > 10000000l && frequency < 10000000l)
     isUSB = false;
 
-  setFrequency(frequency);    
+  setFrequency(frequency);
 }
 
 
