@@ -100,22 +100,19 @@ void initPorts(){
 
   analogReference(DEFAULT);
 
-  //??
   pinMode(PIN_ENC_A, INPUT_PULLUP);
   pinMode(PIN_ENC_B, INPUT_PULLUP);
   pinMode(PIN_ENC_PUSH_BUTTON, INPUT_PULLUP);
   enc_setup();
-  
-  //configure the function button to use the external pull-up
-//  pinMode(PIN_ENC_PUSH_BUTTON, INPUT);
-//  digitalWrite(PIN_ENC_PUSH_BUTTON, HIGH);
 
   pinMode(PIN_PTT, INPUT_PULLUP);
-//  pinMode(PIN_ANALOG_KEYER, INPUT_PULLUP);
+
+  pinMode(PIN_ANALOG_FWD, INPUT);
+  pinMode(PIN_ANALOG_REF, INPUT);
 
   pinMode(PIN_CW_TONE, OUTPUT);
   digitalWrite(PIN_CW_TONE, 0);
-  
+
   pinMode(PIN_TX_RXn,OUTPUT);
   digitalWrite(PIN_TX_RXn, 0);
 

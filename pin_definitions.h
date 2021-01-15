@@ -24,8 +24,8 @@ static const uint8_t PIN_ENC_PUSH_BUTTON = A2;        // Tuning encoder interfac
 static const uint8_t PIN_PTT = A3;            // Sense it for ssb and as a straight key for cw operation
 //A4 is I2C SDA
 //A5 is I2C SCK
-static const uint8_t PIN_ANALOG_KEYER = A6;   // This is used as keyer. The analog port has 4.7K pull up resistor. Details are in the circuit description on www.hfsignals.com
-static const uint8_t PIN_ANALOG_SPARE = A7;   // Not used yet
+static const uint8_t PIN_ANALOG_FWD = A6;   // Forward power measure
+static const uint8_t PIN_ANALOG_REF = A7;   // Reflected power measure
 
 //13 is SPI CLK
 //12 is SPI MISO

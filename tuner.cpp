@@ -50,7 +50,7 @@ void setTXFilters(unsigned long freq){
     digitalWrite(PIN_TX_LPF_B, 0);
     digitalWrite(PIN_TX_LPF_C, 0);
   }
-  else if (freq > 7000000L){
+  else if (freq > 4500000L){
     digitalWrite(PIN_TX_LPF_A, 0);
     digitalWrite(PIN_TX_LPF_B, 1);
     digitalWrite(PIN_TX_LPF_C, 0);
