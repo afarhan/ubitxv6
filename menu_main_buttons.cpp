@@ -549,9 +549,6 @@ ButtonStatus_e bsBand(const uint8_t band){
 void osBand(const uint8_t band){
   const uint32_t old_freq = GetActiveVfoFreq();
   SetActiveVfoFreq(getFreqInBand(old_freq,band));
-  if(autoSelectSidebandChanged(old_freq)){
-    updateSidebandButtons();
-  }
 
   Button button;
   if(Vfo_e::VFO_A == globalSettings.activeVfo){

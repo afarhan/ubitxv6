@@ -102,9 +102,8 @@ void mainMenuTune(int16_t knob)
 
   const uint32_t current_freq = GetActiveVfoFreq();
   const uint32_t new_freq = current_freq + (50 * knob);
-  
+
   SetActiveVfoFreq(new_freq);
-  autoSelectSidebandChanged(current_freq);
 }
 
 MenuReturn_e runMainMenu(const ButtonPress_e tuner_button,

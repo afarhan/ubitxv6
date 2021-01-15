@@ -76,12 +76,12 @@ void checkPTT(){
   if (globalSettings.cwExpirationTimeMs > 0){
     return;
   }
-    
+
   if(digitalRead(PIN_PTT) == 0 && !globalSettings.txActive){
     startTx(TuningMode_e::TUNE_SSB);
     delay(50); //debounce the PTT
   }
-	
+
   if (digitalRead(PIN_PTT) == 1 && globalSettings.txActive)
     stopTx();
 }
@@ -107,8 +107,8 @@ void initPorts(){
 
   pinMode(PIN_PTT, INPUT_PULLUP);
 
-  pinMode(PIN_ANALOG_FWD, INPUT);
   pinMode(PIN_ANALOG_REF, INPUT);
+  pinMode(PIN_ANALOG_FWD, INPUT);
 
   pinMode(PIN_CW_TONE, OUTPUT);
   digitalWrite(PIN_CW_TONE, 0);
@@ -125,6 +125,7 @@ void initPorts(){
 
   pinMode(PIN_CW_KEY, OUTPUT);
   digitalWrite(PIN_CW_KEY, 0);
+
 }
 
 void setup()
@@ -133,9 +134,9 @@ void setup()
   Serial.flush();
 
   initSettings();
+  initPorts();
   displayInit();
   initTouch();
-  initPorts();
   initOscillators();
   setFrequency(globalSettings.vfoA.frequency);
 
