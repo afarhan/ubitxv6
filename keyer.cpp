@@ -1,5 +1,7 @@
-#include <Arduino.h>
-#include "ubitx.h"
+#include "toneAC2/toneAC2.h"
+#include "pin_definitions.h"
+#include "settings.h"
+#include "tuner.h"
 
 /**
  CW Keyer
@@ -28,72 +30,25 @@
  */
 
  //CW ADC Range
-int cwAdcSTFrom = 0;
-int cwAdcSTTo = 50;
-int cwAdcBothFrom = 51;
-int cwAdcBothTo = 300;
-int cwAdcDotFrom = 301;
-int cwAdcDotTo = 600;
-int cwAdcDashFrom = 601;
-int cwAdcDashTo = 800;
-//byte cwKeyType = 0; //0: straight, 1 : iambica, 2: iambicb
+//static const unsigned int cwAdcSTFrom = 0;
+static const unsigned int cwAdcSTTo = 50;
+static const unsigned int cwAdcBothFrom = cwAdcSTTo + 1;
+static const unsigned int cwAdcBothTo = 300;
+static const unsigned int cwAdcDotFrom = cwAdcBothTo + 1;
+static const unsigned int cwAdcDotTo = 600;
+static const unsigned int cwAdcDashFrom = cwAdcDotTo + 1;
+static const unsigned int cwAdcDashTo = 800;
 
-byte delayBeforeCWStartTime = 50;
-
-
-
-
-// in milliseconds, this is the parameter that determines how long the tx will hold between cw key downs
-//#define CW_TIMEOUT (600l)   //Change to CW Delaytime for value save to eeprom
-#define PADDLE_DOT 1
-#define PADDLE_DASH 2
-#define PADDLE_BOTH 3
-#define PADDLE_STRAIGHT 4
-
-//we store the last padde's character 
-//to alternatively send dots and dashes 
-//when both are simultaneously pressed
-char lastPaddle = 0;
-
-/*
-//reads the analog keyer pin and reports the paddle
-byte getPaddle(){
-  int paddle = analogRead(ANALOG_KEYER);
-  //handle the ptt as the straight key 
-
-  if (digitalRead(PTT) == 0)
-     return PADDLE_STRAIGHT;
-
-  if (paddle > 800)         // above 4v is up
-    return 0;
-
-  if (!Iambic_Key)
-    return PADDLE_STRAIGHT;
-    
-  if (paddle > 600)    // 4-3v is dot
-    return PADDLE_DASH;
-  else if (paddle > 300)    //1-2v is dash
-    return PADDLE_DOT;
-  else if (paddle > 50)
-    return PADDLE_BOTH;     //both are between 1 and 2v
-  else
-    return PADDLE_STRAIGHT; //less than 1v is the straight key
-}
-*/
 /**
  * Starts transmitting the carrier with the sidetone
  * It assumes that we have called cwTxStart and not called cwTxStop
  * each time it is called, the cwTimeOut is pushed further into the future
  */
 void cwKeydown(){
+  toneAC2(PIN_CW_TONE, globalSettings.cwSideToneFreq);
+  digitalWrite(PIN_CW_KEY, 1);
 
-  keyDown = 1;                  //tracks the CW_KEY
-  tone(CW_TONE, (int)sideTone); 
-  digitalWrite(CW_KEY, 1);     
-
-  //Modified by KD8CEC, for CW Delay Time save to eeprom
-  //cwTimeout = millis() + CW_TIMEOUT;
-  cwTimeout = millis() + cwDelayTime * 10;  
+  globalSettings.cwExpirationTimeMs = millis() + globalSettings.cwActiveTimeoutMs;
 }
 
 /**
@@ -101,13 +56,10 @@ void cwKeydown(){
  * Pushes the cwTimeout further into the future
  */
 void cwKeyUp(){
-  keyDown = 0;    //tracks the CW_KEY
-  noTone(CW_TONE);
-  digitalWrite(CW_KEY, 0);    
+  noToneAC2();
+  digitalWrite(PIN_CW_KEY, 0);
   
-  //Modified by KD8CEC, for CW Delay Time save to eeprom
-  //cwTimeout = millis() + CW_TIMEOUT;
-  cwTimeout = millis() + cwDelayTime * 10;
+  globalSettings.cwExpirationTimeMs = millis() + globalSettings.cwActiveTimeoutMs;
 }
 
 //Variables for Ron's new logic
@@ -119,17 +71,29 @@ void cwKeyUp(){
 enum KSTYPE {IDLE, CHK_DIT, CHK_DAH, KEYED_PREP, KEYED, INTER_ELEMENT };
 static unsigned long ktimer;
 unsigned char keyerState = IDLE;
+uint8_t keyerControl = 0;
 
 //Below is a test to reduce the keying error. do not delete lines
 //create by KD8CEC for compatible with new CW Logic
-char update_PaddleLatch(byte isUpdateKeyState) {
+char update_PaddleLatch(bool isUpdateKeyState) {
   unsigned char tmpKeyerControl = 0;
-
-  //use the PTT as the key for tune up, quick QSOs
-  if (digitalRead(PTT) == 0)
-     tmpKeyerControl |= DIT_L;
-
-  if (isUpdateKeyState == 1)
+  unsigned int paddle = analogRead(PIN_ANALOG_KEYER);
+  if (paddle >= cwAdcDashFrom && paddle <= cwAdcDashTo)
+    tmpKeyerControl |= DAH_L;
+  else if (paddle >= cwAdcDotFrom && paddle <= cwAdcDotTo)
+    tmpKeyerControl |= DIT_L;
+  else if (paddle >= cwAdcBothFrom && paddle <= cwAdcBothTo)
+    tmpKeyerControl |= (DAH_L | DIT_L) ;
+  else{
+    if (KeyerMode_e::KEYER_STRAIGHT != globalSettings.keyerMode)
+      tmpKeyerControl = 0 ;
+    else if (paddle <= cwAdcDashTo)
+      tmpKeyerControl = DIT_L ;
+     else
+       tmpKeyerControl = 0 ;
+  }
+  
+  if (isUpdateKeyState)
     keyerControl |= tmpKeyerControl;
 
   return tmpKeyerControl;
@@ -140,22 +104,56 @@ char update_PaddleLatch(byte isUpdateKeyState) {
 // modified by KD8CEC
 ******************************************************************************/
 void cwKeyer(void){
-  lastPaddle = 0;
   bool continue_loop = true;
-  unsigned tmpKeyControl = 0;
+  char tmpKeyControl = 0;
   
-  if( Iambic_Key ) {
-    while(continue_loop) {
-      switch (keyerState) {
+  if((KeyerMode_e::KEYER_STRAIGHT == globalSettings.keyerMode)
+    || (digitalRead(PIN_PTT) == 0)){//use the PTT as the key for tune up, quick QSOs
+    while(1){
+      tmpKeyControl = update_PaddleLatch(0) | (digitalRead(PIN_PTT)?0:DIT_L);
+      //Serial.println((int)tmpKeyControl);
+      if ((tmpKeyControl & DIT_L) == DIT_L) {
+        // if we are here, it is only because the key is pressed
+        if (!globalSettings.txActive){
+          startTx(TuningMode_e::TUNE_CW);
+          globalSettings.cwExpirationTimeMs = millis() + globalSettings.cwActiveTimeoutMs;
+        }
+        cwKeydown();
+        
+        while ( tmpKeyControl & DIT_L == DIT_L){
+          tmpKeyControl = update_PaddleLatch(0) | (digitalRead(PIN_PTT)?0:DIT_L);
+          //Serial.println((int)tmpKeyControl);
+        }
+          
+        cwKeyUp();
+      }
+      else{
+        if (0 < globalSettings.cwExpirationTimeMs && globalSettings.cwExpirationTimeMs < millis()){
+          globalSettings.cwExpirationTimeMs = 0;
+          stopTx();
+        }
+        return;//Tx stop control by Main Loop
+      }
+
+      checkCAT();
+    } //end of while
+    
+  }
+  else{//KEYER_IAMBIC_*
+    while(continue_loop){
+      switch(keyerState){
         case IDLE:
           tmpKeyControl = update_PaddleLatch(0);
-          if ( tmpKeyControl == DAH_L || tmpKeyControl == DIT_L || 
-            tmpKeyControl == (DAH_L | DIT_L) || (keyerControl & 0x03)) {
-             update_PaddleLatch(1);
+          if((tmpKeyControl == DAH_L)//Currently dah
+           ||(tmpKeyControl == DIT_L)//Currently dit
+           ||(tmpKeyControl == (DAH_L | DIT_L))//Currently both
+           ||( keyerControl  & (DAH_L | DIT_L))){//Resolving either
+             update_PaddleLatch(true);
              keyerState = CHK_DIT;
-          }else{
-            if (0 < cwTimeout && cwTimeout < millis()){
-              cwTimeout = 0;
+          }
+          else{
+            if (0 < globalSettings.cwExpirationTimeMs && globalSettings.cwExpirationTimeMs < millis()){
+              globalSettings.cwExpirationTimeMs = 0;
               stopTx();
             }
             continue_loop = false;
@@ -165,7 +163,7 @@ void cwKeyer(void){
         case CHK_DIT:
           if (keyerControl & DIT_L) {
             keyerControl |= DIT_PROC;
-            ktimer = cwSpeed;
+            ktimer = globalSettings.cwDitDurationMs;
             keyerState = KEYED_PREP;
           }else{
             keyerState = CHK_DAH;
@@ -174,7 +172,7 @@ void cwKeyer(void){
     
         case CHK_DAH:
           if (keyerControl & DAH_L) {
-            ktimer = cwSpeed*3;
+            ktimer = 3*globalSettings.cwDitDurationMs;
             keyerState = KEYED_PREP;
           }else{
             keyerState = IDLE;
@@ -183,13 +181,9 @@ void cwKeyer(void){
     
         case KEYED_PREP:
           //modified KD8CEC
-          if (!inTx){
-            //DelayTime Option
-            active_delay(delayBeforeCWStartTime * 2);
-            
-            keyDown = 0;
-            cwTimeout = millis() + cwDelayTime * 10;  //+ CW_TIMEOUT;
-            startTx(TX_CW);
+          if (!globalSettings.txActive){
+            globalSettings.cwExpirationTimeMs = millis() + globalSettings.cwActiveTimeoutMs;
+            startTx(TuningMode_e::TUNE_CW);
           }
           ktimer += millis(); // set ktimer to interval end time
           keyerControl &= ~(DIT_L + DAH_L); // clear both paddle latch bits
@@ -200,10 +194,11 @@ void cwKeyer(void){
     
         case KEYED:
           if (millis() > ktimer) { // are we at end of key down ?
-           cwKeyUp();
-           ktimer = millis() + cwSpeed; // inter-element time
+            cwKeyUp();
+            ktimer = millis() + globalSettings.cwDitDurationMs; // inter-element time
             keyerState = INTER_ELEMENT; // next state
-          }else if (keyerControl & IAMBICB) {
+          }
+          else if(KeyerMode_e::KEYER_IAMBIC_B == globalSettings.keyerMode){
             update_PaddleLatch(1); // early paddle latch in Iambic B mode
           }
           break;
@@ -225,48 +220,7 @@ void cwKeyer(void){
   
       checkCAT();
     } //end of while
-  }
-  else{
-    while(1){
-     char state = update_PaddleLatch(0);
-     // Serial.println((int)state); 
-      if (state == DIT_L) {
-        // if we are here, it is only because the key is pressed
-        if (!inTx){
-          startTx(TX_CW);
-
-          //DelayTime Option
-          active_delay(delayBeforeCWStartTime * 2);
-          
-          keyDown = 0;
-          cwTimeout = millis() + cwDelayTime * 10;  //+ CW_TIMEOUT; 
-        }
-        cwKeydown();
-        
-        while ( update_PaddleLatch(0) == DIT_L ) 
-          active_delay(1);
-          
-        cwKeyUp();
-      }
-      else{
-        if (0 < cwTimeout && cwTimeout < millis()){
-          cwTimeout = 0;
-          keyDown = 0;
-          stopTx();
-        }
-        //if (!cwTimeout) //removed by KD8CEC
-        //   return;
-        // got back to the beginning of the loop, if no further activity happens on straight key
-        // we will time out, and return out of this routine 
-        //delay(5);
-        //delay_background(5, 3); //removed by KD8CEC
-        //continue;               //removed by KD8CEC
-        return;                   //Tx stop control by Main Loop
-      }
-
-      checkCAT();
-    } //end of while
-  }   //end of elese
+  }//end of KEYER_IAMBIC_*
 }
 
 

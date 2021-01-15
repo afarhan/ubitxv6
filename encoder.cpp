@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include <stdint.h>
-#include "ubitx.h"//Pin definitions
+
+#include "encoder.h"
+#include "pin_definitions.h"
 
 //Normal encoder state
 uint8_t prev_enc = 0;
@@ -14,7 +16,7 @@ static const uint8_t MOMENTUM_MULTIPLIER = 1;
 
 uint8_t enc_state (void)
 {
-  return (digitalRead(ENC_A)?1:0 + digitalRead(ENC_B)?2:0);
+  return (digitalRead(PIN_ENC_B) << 1) + (digitalRead(PIN_ENC_A) << 0);
 }
 
 /*
@@ -30,7 +32,7 @@ ISR (PCINT1_vect)
   }
   //Serial.print(prev_enc);
   //Serial.println(cur_enc);
-
+  
   //these transitions point to the enccoder being rotated anti-clockwise
   if ((prev_enc == 0 && cur_enc == 2) || 
       (prev_enc == 2 && cur_enc == 3) || 
@@ -69,19 +71,19 @@ void enc_setup(void)
 {
   enc_count = 0;
   // This is already done in setup() ?
-  //pinMode(ENC_A, INPUT);
-  //pinMode(ENC_B, INPUT);
+  //pinMode(PIN_ENC_A, INPUT);
+  //pinMode(PIN_ENC_B, INPUT);
   prev_enc = enc_state();
 
   // Setup Pin Change Interrupts for the encoder inputs
-  pci_setup(ENC_A);
-  pci_setup(ENC_B);
+  pci_setup(PIN_ENC_A);
+  pci_setup(PIN_ENC_B);
 
   //Set up timer interrupt for momentum
   TCCR1A = 0;//"normal" mode
   TCCR1B = 3;//clock divider of 64
   TCNT1  = 0;//start counting at 0
-  OCR1A  = F_CPU * CALLBACK_PERIOD_MS / 1000 / 64;//set target number
+  OCR1A  = F_CPU * (unsigned long)CALLBACK_PERIOD_MS / 1000 / 64;//set target number
   TIMSK1 |= (1 << OCIE1A);//enable interrupt
 }
 
