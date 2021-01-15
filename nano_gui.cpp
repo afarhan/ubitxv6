@@ -72,7 +72,7 @@ static void touch_update(){
 
   uint32_t now = millis();
   if (now - msraw < MSEC_THRESHOLD) return;
-  
+
   SPI.beginTransaction(SPI_SETTING);
   digitalWrite(CS_PIN, LOW);
   SPI.transfer(0xB1 /* Z1 */);
