@@ -10,6 +10,17 @@
 #define ANALOG_FWD (A6)   // Forward power measure
 #define ANALOG_REF (A7)   // Reflected power measure
 
+/**
+ *  The second set of 16 pins on the Raduino's bottom connector are have the three clock outputs and the digital lines to control the rig.
+ *  This assignment is as follows :
+ *    Pin   1   2    3    4    5    6    7    8    9    10   11   12   13   14   15   16
+ *         GND +5V CLK0  GND  GND  CLK1 GND  GND  CLK2  GND  D2   D3   D4   D5   D6   D7  
+ *  These too are flexible with what you may do with them, for the Raduino, we use them to :
+ *  - TX_RX line : Switches between Transmit and Receive after sensing the PTT or the morse keyer
+ *  - CW_KEY line : turns on the carrier for CW
+ */
+
+
 #define TX_RX (7)           // Pin from the Nano to the radio to switch to TX (HIGH) and RX(LOW)
 #define CW_TONE (6)         // Generates a square wave sidetone while sending the CW. 
 #define TX_LPF_A (5)        // The 30 MHz LPF is permanently connected in the output of the PA... 
@@ -83,8 +94,8 @@ extern int count;          //to generally count ticks, loops, etc
 #define USB_CAL 8
 #define SIDE_TONE 12
 //these are ids of the vfos as well as their offset into the eeprom storage, don't change these 'magic' values
-#define VFO_A 16
-#define VFO_B 20
+#define VFO 16
+#define RESERVED 20 // OLD VFO B
 #define CW_SIDETONE 24
 #define CW_SPEED 28
 // the screen calibration parameters : int slope_x=104, slope_y=137, offset_x=28, offset_y=29;
@@ -96,8 +107,7 @@ extern int count;          //to generally count ticks, loops, etc
 
 //These are defines for the new features back-ported from KD8CEC's software
 //these start from beyond 256 as Ian, KD8CEC has kept the first 256 bytes free for the base version
-#define VFO_A_MODE  256 // 2: LSB, 3: USB
-#define VFO_B_MODE  257
+#define VFO_MODE  256 // 2: LSB, 3: USB
 
 //values that are stroed for the VFO modes
 #define VFO_MODE_LSB 2
@@ -123,10 +133,11 @@ extern int count;          //to generally count ticks, loops, etc
  * 11 MHz where its fifth harmonic beats with the arduino's 16 Mhz oscillator's fourth harmonic
  */
 
-#define INIT_USB_FREQ   (11059200l)
+
+#define INIT_USB_FREQ 11052000UL
 // limits the tuning and working range of the ubitx between 3 MHz and 30 MHz
-#define LOWEST_FREQ   (50000l)
-#define HIGHEST_FREQ (4000000l)
+#define LOWEST_FREQ     500000UL
+#define HIGHEST_FREQ 109000000UL
 
 //we directly generate the CW by programmin the Si5351 to the cw tx frequency, hence, both are different modes
 //these are the parameter passed to startTx
@@ -141,6 +152,7 @@ extern unsigned long firstIF;
 // if cwMode is flipped on, the rx frequency is tuned down by sidetone hz instead of being zerobeat
 extern int cwMode;
 
+#define IAMBICB 0x10 // 0 for Iambic A, 1 for Iambic B
 
 //these are variables that control the keyer behaviour
 extern int cwSpeed; //this is actuall the dot period in milliseconds
@@ -148,7 +160,7 @@ extern int32_t calibration;
 extern int cwDelayTime;
 extern bool Iambic_Key;
 
-#define IAMBICB 0x10 // 0 for Iambic A, 1 for Iambic B
+
 extern unsigned char keyerControl;
 //during CAT commands, we will freeeze the display until CAT is disengaged
 extern unsigned char doingCAT;

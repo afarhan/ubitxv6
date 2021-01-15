@@ -30,7 +30,7 @@ ISR (PCINT1_vect)
   }
   //Serial.print(prev_enc);
   //Serial.println(cur_enc);
-  
+
   //these transitions point to the enccoder being rotated anti-clockwise
   if ((prev_enc == 0 && cur_enc == 2) || 
       (prev_enc == 2 && cur_enc == 3) || 
