@@ -8,16 +8,6 @@ enum TextJustification_e : uint8_t
   Center
 };
 
-struct Button {
-  int x, y, w, h;
-  char *text;
-  char *morse;
-};
-
-extern boolean getButton(char *text, struct Button *b);
-extern void btnDraw(struct Button *b);
-extern void sidebandToggle(struct Button *b);
-
 void displayInit();
 void displayClear(unsigned int color);
 void displayPixel(unsigned int x, unsigned int y, unsigned int c);
