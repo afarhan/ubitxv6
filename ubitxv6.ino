@@ -156,6 +156,33 @@ void setup()
 }
 
 
+// check the forward and reflected power
+
+uint16_t swr_pace = 0;
+
+void checkSWR(uint8_t ref)
+{
+
+//    if (!globalSettings.txActive)
+//        return;
+
+    if (ref == 0)
+        globalSettings.forward = analogRead(PIN_ANALOG_FWD);
+    else
+        globalSettings.reflected = analogRead(PIN_ANALOG_REF);
+
+#if 0
+    // TODO
+    // implement TX reflected protection here!!!
+    if (globalSettings.reflected > ... || globalSettings.isHighSWR)
+    {
+        stopTx();
+        globalSettings.isHighSWR = true;
+    }
+#endif
+
+}
+
 /**
  * The loop checks for keydown, ptt, function button and tuning.
  */
@@ -164,9 +191,22 @@ void loop(){
   if(TuningMode_e::TUNE_CW == globalSettings.tuningMode){
     cwKeyer();
   }
-  else if(!globalSettings.txCatActive){
+  else if(!globalSettings.txCatActive && globalSettings.enablePTT){
     checkPTT();
   }
+
+  if (globalSettings.enableSWR)
+  {
+      swr_pace++;
+      // we use a trick not to create much I/O...
+      if ((swr_pace % 2000) == 500)
+          checkSWR(0);
+      if ((swr_pace % 2000) == 1500)
+          checkSWR(1);
+      if ((swr_pace % 17000) == 1)
+          drawSWRStatus();
+  }
+
 
   checkCAT();
 
@@ -174,7 +214,7 @@ void loop(){
     //Don't run menus when transmitting
     return;
   }
-    
+
   ButtonPress_e tuner_button = CheckTunerButton();
   Point touch_point;
   ButtonPress_e touch_button = checkTouch(&touch_point);

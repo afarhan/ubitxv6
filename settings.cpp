@@ -84,6 +84,12 @@ void LoadDefaultSettings()
   globalSettings.ritOn = false;
   globalSettings.ritFrequency = globalSettings.vfoA.frequency;
 
+  globalSettings.isHighSWR = false;
+
+  globalSettings.enableSWR = false;
+  globalSettings.enablePTT = false;
+
+
   globalSettings.tuningMode = TuningMode_e::TUNE_SSB;
 
   globalSettings.splitOn = false;

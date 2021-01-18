@@ -30,6 +30,7 @@ Menu_t* const rootMenu = &mainMenu;
 bool mainMenuSelecting = false;//Tracks if we're selecting buttons with knob, or adjusting frequency
 int16_t mainMenuSelectedItemRaw = 0;//Allow negative only for easier checks on wrap around
 
+
 void drawMainMenu(void)
 {
   displayClear(COLOR_BACKGROUND);
@@ -40,7 +41,11 @@ void drawMainMenu(void)
     extractAndDrawButton(&button,bp);
   }
   drawVersion();
-  drawCallsign();
+
+  if (globalSettings.enableSWR)
+      drawSWRStatus();
+  else
+      drawCallsign();
 
   ltoa(GetActiveVfoFreq(),b,10);
   morseText(b);

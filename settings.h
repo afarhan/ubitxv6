@@ -100,6 +100,13 @@ struct SettingsRam
 
   bool splitOn;
 
+  uint16_t reflected;
+  uint16_t forward;
+  bool isHighSWR;
+
+  bool enableSWR;
+  bool enablePTT;
+
   bool txActive;
   bool txCatActive;
   uint32_t cwExpirationTimeMs;

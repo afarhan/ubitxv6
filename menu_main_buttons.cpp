@@ -53,6 +53,21 @@ static const unsigned int LAYOUT_TX_Y = LAYOUT_MODE_TEXT_Y;
 static const unsigned int LAYOUT_TX_WIDTH = 40;
 static const unsigned int LAYOUT_TX_HEIGHT = 36;
 
+void drawSWRStatus(){
+
+    displayFillrect(LAYOUT_CW_TEXT_X,LAYOUT_CW_TEXT_Y,LAYOUT_CW_TEXT_WIDTH,LAYOUT_CW_TEXT_HEIGHT,COLOR_BACKGROUND);
+    strcpy(b, " FWD: ");
+    itoa(globalSettings.forward, c, 10);
+    strcat(b, c);
+    strcat(b, " REF: ");
+    itoa(globalSettings.reflected, c, 10);
+    strcat(b, c);
+//        Serial.println(b);
+    displayText(b,LAYOUT_CW_TEXT_X,LAYOUT_CW_TEXT_Y,LAYOUT_CW_TEXT_WIDTH,LAYOUT_CW_TEXT_HEIGHT,COLOR_VERSION_TEXT,COLOR_BACKGROUND,COLOR_BACKGROUND);
+//    displayRawText(b, 0,LAYOUT_CW_TEXT_Y,LAYOUT_CW_TEXT_WIDTH,COLOR_VERSION_TEXT,COLOR_BACKGROUND);
+}
+
+
 void drawTx()
 {
   if(globalSettings.txActive){
@@ -72,8 +87,8 @@ void drawVersion()
 
 void drawCallsign()
 {
-  strncpy_P(b,CALLSIGN_STRING,sizeof(b));
-  displayText(b,LAYOUT_CW_TEXT_X,LAYOUT_CW_TEXT_Y,LAYOUT_CW_TEXT_WIDTH,LAYOUT_CW_TEXT_HEIGHT,COLOR_VERSION_TEXT,COLOR_BACKGROUND,COLOR_BACKGROUND);
+    strncpy_P(b,CALLSIGN_STRING,sizeof(b));
+    displayText(b,LAYOUT_CW_TEXT_X,LAYOUT_CW_TEXT_Y,LAYOUT_CW_TEXT_WIDTH,LAYOUT_CW_TEXT_HEIGHT,COLOR_VERSION_TEXT,COLOR_BACKGROUND,COLOR_BACKGROUND);
 }
 
 void toVfoA(char* text_out, const uint16_t max_text_size);
@@ -256,34 +271,34 @@ constexpr Button b17 PROGMEM = {
   '7'
 };
 
-constexpr char txt15 [] PROGMEM = "15";
-ButtonStatus_e bs15();
-void os15();
-constexpr Button b15 PROGMEM = {
+constexpr char txtSwr [] PROGMEM = "SWR";
+ButtonStatus_e bsSwr();
+void osSwr();
+constexpr Button bSwr PROGMEM = {
   LAYOUT_BUTTON_X + 0*LAYOUT_BUTTON_PITCH_X,
   LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y,
   LAYOUT_BUTTON_WIDTH,
   LAYOUT_BUTTON_HEIGHT,
-  txt15,
+  txtSwr,
   nullptr,
-  bs15,
-  os15,
-  '5'
+  bsSwr,
+  osSwr,
+  'G'
 };
 
-constexpr char txt10 [] PROGMEM = "10";
-ButtonStatus_e bs10();
-void os10();
-constexpr Button b10 PROGMEM = {
+constexpr char txtPtt [] PROGMEM = "PTT";
+ButtonStatus_e bsPtt();
+void osPtt();
+constexpr Button bPtt PROGMEM = {
   LAYOUT_BUTTON_X + 1*LAYOUT_BUTTON_PITCH_X,
   LAYOUT_BUTTON_Y + 2*LAYOUT_BUTTON_PITCH_Y,
   LAYOUT_BUTTON_WIDTH,
   LAYOUT_BUTTON_HEIGHT,
-  txt10,
+  txtPtt,
   nullptr,
-  bs10,
-  os10,
-  '1'
+  bsPtt,
+  osPtt,
+  'P'
 };
 
 constexpr char txtQuickList [] PROGMEM = "\x83";//star icon
@@ -336,15 +351,15 @@ const Button* const mainMenuButtons [] PROGMEM = {
 
    &bRit, &bUsb, &bLsb,          &bCw,    &bSpl,
     &b80,  &b40,  &b30,          &b20,     &b17,
-    &b15,  &b10, &bQuickList,  &bMenu, &bNumpad
+    &bSwr,  &bPtt, &bQuickList,  &bMenu, &bNumpad
 };
 
 const uint8_t MAIN_MENU_NUM_BUTTONS = sizeof(mainMenuButtons) / sizeof(mainMenuButtons[0]);
 
 void updateBandButtons(const uint32_t old_freq)
 {
-  const Button* band_buttons[] = {&b80,&b40,&b30,&b20,&b17,&b15,&b10};
-  const uint8_t bands [] =       {  80,  40,  30,  20,  17,  15,  10};
+  const Button* band_buttons[] = {&b80,&b40,&b30,&b20,&b17};
+  const uint8_t bands [] =       {  80,  40,  30,  20,  17};
   const uint32_t curr_freq = GetActiveVfoFreq();
 
   Button button;
@@ -476,7 +491,7 @@ void osRit(){
       extractAndDrawButton(&button,&bVfoB);
     }
   }
-  
+
   extractAndDrawButton(&button,&bRit);
 }
 
@@ -601,20 +616,29 @@ void os17(){
   osBand(17);
 }
 
-ButtonStatus_e bs15(){
-  return bsBand(15);
+ButtonStatus_e bsSwr(){
+    return globalSettings.enableSWR ? ButtonStatus_e::Active : ButtonStatus_e::Inactive;
 }
 
-void os15(){
-  osBand(15);
+void osSwr(){
+    globalSettings.enableSWR = !globalSettings.enableSWR;
+
+    Button button;
+    extractAndDrawButton(&button,&bSwr);
+
+    if (!globalSettings.enableSWR)
+        drawCallsign();
 }
 
-ButtonStatus_e bs10(){
-  return bsBand(10);
+ButtonStatus_e bsPtt(){
+    return globalSettings.enablePTT ? ButtonStatus_e::Active : ButtonStatus_e::Inactive;
 }
 
-void os10(){
-  osBand(10);
+void osPtt(){
+    globalSettings.enablePTT = !globalSettings.enablePTT;
+
+    Button button;
+    extractAndDrawButton(&button,&bPtt);
 }
 
 ButtonStatus_e bsIgnore(){

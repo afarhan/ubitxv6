@@ -17,6 +17,7 @@ void displayRect(unsigned int x,unsigned int y,unsigned int w,unsigned int h,uns
 void displayFillrect(unsigned int x,unsigned int y,unsigned int w,unsigned int h,unsigned int c);
 void displayChar(int16_t x, int16_t y, unsigned char c, uint16_t color, uint16_t bg);
 void displayText(const char *const text, int x1, int y1, int w, int h, int color, int background, int border, TextJustification_e justification = TextJustification_e::Center);
+void displayRawText(const char *text, int x1, int y1, int w, int color, int background);
 
 /* these functions are called universally to update the display */
 void drawTx();
