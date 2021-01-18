@@ -330,52 +330,6 @@ const SettingScreen_t ssCwSwitchDelay PROGMEM = {
 };
 void runCwSwitchDelaySetting(){activateSetting(&ssCwSwitchDelay);}
 
-//CW Keyer
-void ssKeyerInitialize(long int* start_value_out)
-{
-  *start_value_out = globalSettings.keyerMode;
-}
-void ssKeyerValidate(const long int candidate_value_in, long int* validated_value_out)
-{
-  *validated_value_out = LIMIT(candidate_value_in,(uint8_t)KeyerMode_e::KEYER_STRAIGHT,(uint8_t)KeyerMode_e::KEYER_IAMBIC_B);
-}
-void ssKeyerChange(const long int new_value, char* buff_out, const size_t buff_out_size)
-{
-  char m;
-  if(KeyerMode_e::KEYER_STRAIGHT == new_value){
-    strncpy_P(buff_out,(const char*)F("Hand Key"),buff_out_size);
-    m = 'S';
-  }
-  else if(KeyerMode_e::KEYER_IAMBIC_A == new_value){
-    strncpy_P(buff_out,(const char*)F("Iambic A"),buff_out_size);
-    m = 'A';
-  }
-  else{
-    strncpy_P(buff_out,(const char*)F("Iambic B"),buff_out_size);
-    m = 'B';
-  }
-  morseLetter(m);
-  enc_read();//Consume any rotations during morse playback
-}
-void ssKeyerFinalize(const long int final_value)
-{
-  globalSettings.keyerMode = (KeyerMode_e)final_value;
-  SaveSettingsToEeprom();
-}
-const char SS_KEYER_T [] PROGMEM = "Keyer Type";
-const char SS_KEYER_A [] PROGMEM = "Select which type of keyer\nor paddle is being used";
-const SettingScreen_t ssKeyer PROGMEM = {
-  SS_KEYER_T,
-  SS_KEYER_A,
-  10,
-  1,
-  ssKeyerInitialize,
-  ssKeyerValidate,
-  ssKeyerChange,
-  ssKeyerFinalize
-};
-void runKeyerSetting(){activateSetting(&ssKeyer);}
-
 //Morse menu playback
 void ssMorseMenuInitialize(long int* start_value_out)
 {
@@ -561,7 +515,6 @@ const MenuItem_t menuItemsCw [] PROGMEM {
   {MT_CW,nullptr},//Title
   {SS_CW_TONE_T,runToneSetting},
   {SS_CW_SWITCH_T,runCwSwitchDelaySetting},
-  {SS_KEYER_T,runKeyerSetting},
   {SS_MORSE_MENU_T,runMorseMenuSetting},
   {SS_CW_SPEED_T,runCwSpeedSetting},
 };

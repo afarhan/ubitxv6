@@ -45,7 +45,6 @@ static const unsigned int cwAdcDashTo = 800;
  * each time it is called, the cwTimeOut is pushed further into the future
  */
 void cwKeydown(){
-  toneAC2(PIN_CW_TONE, globalSettings.cwSideToneFreq);
   digitalWrite(PIN_CW_KEY, 1);
 
   globalSettings.cwExpirationTimeMs = millis() + globalSettings.cwActiveTimeoutMs;
@@ -56,9 +55,8 @@ void cwKeydown(){
  * Pushes the cwTimeout further into the future
  */
 void cwKeyUp(){
-  noToneAC2();
   digitalWrite(PIN_CW_KEY, 0);
-  
+
   globalSettings.cwExpirationTimeMs = millis() + globalSettings.cwActiveTimeoutMs;
 }
 
@@ -68,9 +66,6 @@ void cwKeyUp(){
 #define DIT_PROC 0x04 // DIT is being processed
 #define PDLSWAP 0x08 // 0 for normal, 1 for swap
 #define IAMBICB 0x10 // 0 for Iambic A, 1 for Iambic B
-enum KSTYPE {IDLE, CHK_DIT, CHK_DAH, KEYED_PREP, KEYED, INTER_ELEMENT };
-unsigned char keyerState = IDLE;
-uint8_t keyerControl = 0;
 
 
 /*****************************************************************************
@@ -80,8 +75,7 @@ uint8_t keyerControl = 0;
 void cwKeyer(void){
   char tmpKeyControl = 0;
 
-  if((KeyerMode_e::KEYER_STRAIGHT == globalSettings.keyerMode)
-    || (digitalRead(PIN_PTT) == 0)){//use the PTT as the key for tune up, quick QSOs
+  if(digitalRead(PIN_PTT) == 0){//use the PTT as the key for tune up, quick QSOs
     while(1){
       tmpKeyControl = (digitalRead(PIN_PTT)?0:DIT_L);
       //Serial.println((int)tmpKeyControl);

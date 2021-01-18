@@ -71,7 +71,6 @@ void LoadDefaultSettings()
     globalSettings.quickList[i].mode = VfoMode_e::VFO_MODE_LSB;
   }
 
-  globalSettings.keyerMode = KEYER_STRAIGHT;
   globalSettings.cwSideToneFreq = 800;
   globalSettings.cwDitDurationMs = 100;
   globalSettings.cwActiveTimeoutMs = 50;
@@ -112,7 +111,6 @@ void LoadSettingsFromEeprom()
   }
   LoadSane(globalSettings.vfoA.mode,EEPROM_ADDR_VFO_A_MODE,VFO_MODE_LSB,VFO_MODE_USB);
   LoadSane(globalSettings.vfoB.mode,EEPROM_ADDR_VFO_B_MODE,VFO_MODE_LSB,VFO_MODE_USB);
-  LoadSane(globalSettings.keyerMode,EEPROM_ADDR_CW_KEY_TYPE,KEYER_STRAIGHT,KEYER_IAMBIC_B);
 
   uint8_t morse_on = 0;
   LoadSane(morse_on,EEPROM_ADDR_MORSE_MENU,(uint8_t)0,(uint8_t)1);
@@ -147,7 +145,6 @@ void SaveSettingsToEeprom()
   EEPROM.put(EEPROM_ADDR_CW_DELAYTIME,globalSettings.cwActiveTimeoutMs/10);//scale by 10 for legacy reasons
   EEPROM.put(EEPROM_ADDR_VFO_A_MODE,globalSettings.vfoA.mode);
   EEPROM.put(EEPROM_ADDR_VFO_B_MODE,globalSettings.vfoB.mode);
-  EEPROM.put(EEPROM_ADDR_CW_KEY_TYPE,globalSettings.keyerMode);
   EEPROM.put(EEPROM_ADDR_MORSE_MENU,(uint8_t)globalSettings.morseMenuOn);
 
   for(uint8_t i = 0; i < NUM_QUICKLIST_SETTINGS; ++i){

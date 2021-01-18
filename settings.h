@@ -62,13 +62,6 @@ enum TuningMode_e : uint8_t
   TUNE_CW
 };
 
-enum KeyerMode_e : uint8_t
-{
-  KEYER_STRAIGHT,
-  KEYER_IAMBIC_A,
-  KEYER_IAMBIC_B
-};
-
 /*
  * This is the definition of the settings/state variables
  */
@@ -83,7 +76,6 @@ struct SettingsRam
 
   VfoSettings_t quickList[4];
 
-  KeyerMode_e keyerMode;
   uint32_t cwSideToneFreq;
   uint16_t cwDitDurationMs;
   uint16_t cwActiveTimeoutMs;
