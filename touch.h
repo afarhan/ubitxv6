@@ -2,10 +2,9 @@
 
 #include "point.h"
 
-void initTouch();
+void initTouch(void);
 
 //Returns true if touched, false otherwise
-bool readTouch(Point *const touch_point_out);
+bool readTouch(Point &point);
 
-//Applies the touch calibration the point passed in
-void scaleTouch(Point *const touch_point_in_out);
+void scaleTouch(Point &p);

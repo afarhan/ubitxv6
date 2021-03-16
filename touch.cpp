@@ -1,11 +1,19 @@
 #include "touch.h"
 
+#include "radio.h"
+#include "defines.h"
+#include "pins.h"
+#include "display.h"
+#include "point.h"
+
+// #define DO_DEBUG
+
 #include <SPI.h>
 
-#include "pin_definitions.h"
-#include "settings.h"
+// #include "pin_definitions.h"
+// #include "settings.h"
 
-constexpr int16_t Z_THRESHOLD = 400;
+constexpr int16_t Z_THRESHOLD = 200;
 constexpr uint8_t MSEC_THRESHOLD = 3;//Max sample rate is 125kHz, but we'll limit ourselves conservatively
 
 constexpr uint8_t START_COMMAND = 1 << 7;
@@ -33,7 +41,7 @@ uint32_t msraw=0x80000000;
 int16_t xraw=0, yraw=0, zraw=0;
 constexpr uint8_t rotation = 1;
 
-SPISettings spiSettingsTouch(2000000,MSBFIRST,SPI_MODE0);
+SPISettings spiSettingsTouch(2000000, MSBFIRST, SPI_MODE0);
 
 int16_t touch_besttwoavg( int16_t x , int16_t y , int16_t z ) {
   int16_t da, db, dc;
@@ -50,10 +58,10 @@ int16_t touch_besttwoavg( int16_t x , int16_t y , int16_t z ) {
 }
 
 uint16_t touchReadChannel(uint8_t channel_command){
-  //We assume that SPI.beginTransaction has already been called, and CS is LOW
-  SPI.transfer(channel_command);//Throw away any bytes here
-  const uint16_t tmpH = SPI.transfer(0) & 0x7F;//Leading 0 (during "busy" signal), followed by bits 11-5
-  const uint16_t tmpL = SPI.transfer(0);//Bits 4-0, followed by 0s
+                                                  // We assume that SPI.beginTransaction has already been called, and CS is LOW
+  SPI.transfer(channel_command);                  // Throw away any bytes here
+  const uint16_t tmpH = SPI.transfer(0) & 0x7F;   // Leading 0 (during "busy" signal), followed by bits 11-5
+  const uint16_t tmpL = SPI.transfer(0);          // Bits 4-0, followed by 0s
   return tmpH << 5 | tmpL >> 3;
 }
 
@@ -66,14 +74,26 @@ void touch_update(){
   SPI.beginTransaction(spiSettingsTouch);
   digitalWrite(PIN_TOUCH_CS, LOW);
 
-  int16_t z1 = touchReadChannel(MEASURE_Z1);//~0 when not pressed, increases with pressure
+  int16_t z1 = touchReadChannel(MEASURE_Z1); // ~0 when not pressed, increases with pressure
   int32_t z = z1;
-  int16_t z2 = touchReadChannel(MEASURE_Z2);//~4095 when not pressed, decreases with pressure
+  int16_t z2 = touchReadChannel(MEASURE_Z2); // ~4095 when not pressed, decreases with pressure
   z += (4095 - z2);
-  //Serial.print(F("z1:"));Serial.print(z1);Serial.print(F(" z2:"));Serial.print(z2);Serial.print(F(" z:"));Serial.println(z);
+
+  #ifdef DO_DEBUG
+  #ifdef USE_SERIAL
+  if (z > Z_THRESHOLD) {
+    Serial.print(F("z1:"));
+    Serial.print(z1);
+    Serial.print(F(" z2:"));
+    Serial.print(z2);
+    Serial.print(F(" z:"));
+    Serial.println(z);
+  }
+  #endif
+  #endif
 
   zraw = z;
-  if (zraw < Z_THRESHOLD) {//Don't bother reading x/y if we're not being touched
+  if (zraw < Z_THRESHOLD) { //Don't bother reading x/y if we're not being touched
     digitalWrite(PIN_TOUCH_CS, HIGH);
     SPI.endTransaction();
     return;
@@ -119,21 +139,35 @@ void initTouch(){
   digitalWrite(PIN_TOUCH_CS, HIGH);
 }
 
-bool readTouch(Point *const touch_point_out){
+bool readTouch(Point &touch_point_out){
   touch_update();
-  //Serial.print(F("readTouch found zraw of "));Serial.println(zraw);
+  touch_point_out.x = xraw;
+  touch_point_out.y = yraw;
+  touch_point_out.z = zraw;
   if (zraw >= Z_THRESHOLD) {
-    touch_point_out->x = xraw;
-    touch_point_out->y = yraw;
-    //Serial.print(ts_point.x); Serial.print(",");Serial.println(ts_point.y);
+    #ifdef DO_DEBUG
+    #ifdef USE_SERIAL
+    Serial.print(F("readTouch found zraw of "));Serial.println(zraw);
+    Serial.print(touch_point_out.x);
+    Serial.print(",");
+    Serial.print(touch_point_out.y);
+    Serial.print(",");
+    Serial.println(touch_point_out.z);
+    #endif
+    #endif
     return true;
   }
   return false;
 }
 
-void scaleTouch(Point *const touch_point_in_out){
-  touch_point_in_out->x = ((long)(touch_point_in_out->x - globalSettings.touchOffsetX) * 10L)/ (long)globalSettings.touchSlopeX;
-  touch_point_in_out->y = ((long)(touch_point_in_out->y - globalSettings.touchOffsetY) * 10L)/ (long)globalSettings.touchSlopeY;
-
-  //Serial.print(p->x); Serial.print(",");Serial.println(p->y);
+void scaleTouch(Point &p) {
+  p.x = ((long)(p.x - radio_obj.offset_x) * 10l) / (long) radio_obj.slope_x / BUTTON_WIDTH;
+  p.y = ((long)(p.y - radio_obj.offset_y) * 10l) / (long) radio_obj.slope_y / BUTTON_HEIGHT;
+  #ifdef DO_DEBUG
+  #ifdef USE_SERIAL
+  if (p.z > Z_THRESHOLD) {
+    Serial.print(p.x); Serial.print(",");Serial.println(p.y);
+  }
+  #endif
+  #endif
 }

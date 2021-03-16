@@ -145,7 +145,6 @@ public:
 	static void drawChar(coord_t x, coord_t y, unsigned char c, color_t color, color_t bg, uint8_t size);
 	static void drawCharGFX(coord_t x, coord_t y, unsigned char c, color_t color, color_t bg, uint8_t size);
 	static inline void setCursor(coord_t x, coord_t y);
-	static inline void setBound(coord_t x, coord_t y);
 	static inline void setTextColor(color_t c);
 	static inline void setTextColor(color_t c, color_t bg);
 	static inline void setTextSize(uint8_t s);
@@ -158,8 +157,8 @@ public:
 	static inline uint8_t getRotation() __attribute__ ((always_inline))		{ return rotation; }
 	static inline coord_t getCursorX() __attribute__ ((always_inline))		{ return cursor_x; }
 	static inline coord_t getCursorY() __attribute__ ((always_inline))		{ return cursor_y; }
-	static inline void getTextBounds(const char *string, coord_t x, coord_t y, int16_t *x1, int16_t *y1, uint16_t *w, uint16_t *h, coord_t wi = _width);
-	static inline void getTextBounds(const __FlashStringHelper *s, coord_t x, coord_t y, int16_t *x1, int16_t *y1, uint16_t *w, uint16_t *h, coord_t wi = _width);
+	static inline void getTextBounds(char *string, coord_t x, coord_t y, int16_t *x1, int16_t *y1, uint16_t *w, uint16_t *h);
+	static inline void getTextBounds(const __FlashStringHelper *s, coord_t x, coord_t y, int16_t *x1, int16_t *y1, uint16_t *w, uint16_t *h);
 
 	virtual size_t write(uint8_t);		// used by Arduino "Print.h" (and the one required virtual function)
 
@@ -168,7 +167,6 @@ protected:
 	static coord_t	WIDTH, HEIGHT;		// This is the 'raw' display w/h - never changes
 	static coord_t	_width, _height;	// Display w/h as modified by current rotation
 	static coord_t	cursor_x, cursor_y;
-	static coord_t	bound_x1, bound_x2;
 	static color_t	textcolor, textbgcolor;
 	static uint8_t	textsize;
 	static uint8_t	rotation;
@@ -206,21 +204,17 @@ private:
 extern const unsigned char glcdfont[] PROGMEM;
 
 template<class HW>
-int16_t		PDQ_GFX<HW>::WIDTH;			// This is the 'raw' display w/h - never changes
+coord_t		PDQ_GFX<HW>::WIDTH;			// This is the 'raw' display w/h - never changes
 template<class HW>
-int16_t		PDQ_GFX<HW>::HEIGHT;
+coord_t		PDQ_GFX<HW>::HEIGHT;
 template<class HW>
-int16_t		PDQ_GFX<HW>::_width;		// Display w/h as modified by current rotation
+coord_t		PDQ_GFX<HW>::_width;		// Display w/h as modified by current rotation
 template<class HW>
-int16_t		PDQ_GFX<HW>::_height;
+coord_t		PDQ_GFX<HW>::_height;
 template<class HW>
-int16_t		PDQ_GFX<HW>::cursor_x;
+coord_t		PDQ_GFX<HW>::cursor_x;
 template<class HW>
-int16_t		PDQ_GFX<HW>::cursor_y;
-template<class HW>
-int16_t		PDQ_GFX<HW>::bound_x1;
-template<class HW>
-int16_t		PDQ_GFX<HW>::bound_x2;
+coord_t		PDQ_GFX<HW>::cursor_y;
 template<class HW>
 color_t		PDQ_GFX<HW>::textcolor;
 template<class HW>
@@ -245,8 +239,6 @@ PDQ_GFX<HW>::PDQ_GFX(coord_t w, coord_t h)
 	_height		= (int16_t)h;
 	cursor_x	= 0;
 	cursor_y	= 0;
-	bound_x1	= 0;
-	bound_x2	= WIDTH;
 	rotation	= 0;
 	textsize	= 1;
 	textcolor	= 0xffff;
@@ -748,7 +740,7 @@ size_t PDQ_GFX<HW>::write(uint8_t c)
 	{
 		if(c == '\n')
 		{
-			cursor_x	= bound_x1;
+			cursor_x	= 0;
 			cursor_y += (coord_t)textsize * (uint8_t)pgm_read_byte(&gfxFont->yAdvance);
 		}
 		else if (c != '\r')
@@ -764,10 +756,10 @@ size_t PDQ_GFX<HW>::write(uint8_t c)
 				if ((w > 0) && (h > 0))
 				{
 					coord_t xo = (int8_t)pgm_read_byte(&glyph->xOffset); // sic
-					if(wrap && ((cursor_x + textsize * (xo + w)) >= bound_x2))
+					if(wrap && ((cursor_x + textsize * (xo + w)) >= _width))
 					{
 						// Drawing character would go off right edge; wrap to new line
-						cursor_x	= bound_x1;
+						cursor_x	= 0;
 						cursor_y += (coord_t)textsize *
 						(uint8_t)pgm_read_byte(&gfxFont->yAdvance);
 					}
@@ -839,7 +831,7 @@ void PDQ_GFX<HW>::drawChar(coord_t x, coord_t y, unsigned char c, color_t color,
 
 // Draw a character with GFX font
 template<class HW>
-void PDQ_GFX<HW>::drawCharGFX(coord_t x, coord_t y, unsigned char c, color_t color, color_t /*bg*/, uint8_t size)
+void PDQ_GFX<HW>::drawCharGFX(coord_t x, coord_t y, unsigned char c, color_t color, color_t bg, uint8_t size)
 {
   // Character is assumed previously filtered by write() to eliminate
   // newlines, returns, non-printable characters, etc.	Calling drawChar()
@@ -979,13 +971,6 @@ void PDQ_GFX<HW>::setCursor(coord_t x, coord_t y)
 }
 
 template<class HW>
-void PDQ_GFX<HW>::setBound(coord_t x1, coord_t x2)
-{
-	bound_x1 = (int16_t)x1;
-	bound_x2 = (int16_t)x2;
-}
-
-template<class HW>
 void PDQ_GFX<HW>::setTextSize(uint8_t s)
 {
 	textsize = (s > 0) ? s : 1;
@@ -1061,12 +1046,9 @@ void PDQ_GFX<HW>::setFont(const GFXfont *f)
 
 // Pass string and a cursor position, returns UL corner and W,H.
 template<class HW>
-void PDQ_GFX<HW>::getTextBounds(const char *str, coord_t x, coord_t y, int16_t *x1, int16_t *y1, uint16_t *w, uint16_t *h, coord_t wi)
+void PDQ_GFX<HW>::getTextBounds(char *str, coord_t x, coord_t y, int16_t *x1, int16_t *y1, uint16_t *w, uint16_t *h)
 {
 	uint8_t c; // Current character
-
-	coord_t xs = x;
-	coord_t xe = xs+wi;
 
 	*x1 = x;
 	*y1 = y;
@@ -1098,9 +1080,9 @@ void PDQ_GFX<HW>::getTextBounds(const char *str, coord_t x, coord_t y, int16_t *
 						xa		= pgm_read_byte(&glyph->xAdvance);
 						xo		= pgm_read_byte(&glyph->xOffset);
 						yo		= pgm_read_byte(&glyph->yOffset);
-						if (wrap && ((x + (((int16_t)xo + gw) * ts)) >= xe)) // Line wrap
+						if (wrap && ((x + (((int16_t)xo + gw) * ts)) >= _width)) // Line wrap
 						{
-							x = xs;	// Reset x to 0
+							x = 0;	// Reset x to 0
 							y += ya; // Advance y by 1 line
 						}
 						gx1 = x	+ xo * ts;
@@ -1121,7 +1103,7 @@ void PDQ_GFX<HW>::getTextBounds(const char *str, coord_t x, coord_t y, int16_t *
 			}
 			else	// Newline
 			{
-				x	= xs;	// Reset x
+				x	= 0;	// Reset x
 				y += ya; // Advance y by 1 line
 			}
 		}
@@ -1168,6 +1150,8 @@ void PDQ_GFX<HW>::getTextBounds(const char *str, coord_t x, coord_t y, int16_t *
 		// End of string
 		if (lineWidth) 							// Add height of last (or only) line
 			y += textsize * 8;
+		if (lineWidth > maxWidth)				// Save widest line
+			maxWidth = lineWidth;
 		*w = maxWidth - 1;						// Don't include last interchar x gap
 		*h = y - *y1;
 
@@ -1176,12 +1160,10 @@ void PDQ_GFX<HW>::getTextBounds(const char *str, coord_t x, coord_t y, int16_t *
 
 // Same as above, but for PROGMEM strings
 template<class HW>
-void PDQ_GFX<HW>::getTextBounds(const __FlashStringHelper *str, coord_t x, coord_t y, int16_t *x1, int16_t *y1, uint16_t *w, uint16_t *h, coord_t wi)
+void PDQ_GFX<HW>::getTextBounds(const __FlashStringHelper *str, coord_t x, coord_t y, int16_t *x1, int16_t *y1, uint16_t *w, uint16_t *h)
 {
 	uint8_t *s = (uint8_t *)str;
 	uint8_t c;
-	coord_t xs = x;
-	coord_t xe = xs+wi;
 
 	*x1 = x;
 	*y1 = y;
@@ -1214,9 +1196,9 @@ void PDQ_GFX<HW>::getTextBounds(const __FlashStringHelper *str, coord_t x, coord
 						xa		= pgm_read_byte(&glyph->xAdvance);
 						xo		= pgm_read_byte(&glyph->xOffset);
 						yo		= pgm_read_byte(&glyph->yOffset);
-						if (wrap && ((x + (((int16_t)xo + gw) * ts)) >= xe)) // Line wrap
+						if (wrap && ((x + (((int16_t)xo + gw) * ts)) >= _width)) // Line wrap
 						{
-							x	= xs;	// Reset x to 0
+							x	= 0;	// Reset x to 0
 							y += ya;	// Advance y by 1 line
 						}
 						gx1 = x	+ xo * ts;
@@ -1237,7 +1219,7 @@ void PDQ_GFX<HW>::getTextBounds(const __FlashStringHelper *str, coord_t x, coord
 			}
 			else // Newline
 			{
-				x	= xs;	// Reset x
+				x	= 0;	// Reset x
 				y += ya;	// Advance y by 1 line
 			}
 		}
@@ -1286,6 +1268,8 @@ void PDQ_GFX<HW>::getTextBounds(const __FlashStringHelper *str, coord_t x, coord
 		// End of string
 		if (lineWidth) 								// Add height of last (or only) line
 			y += textsize * 8;
+		if (lineWidth > maxWidth)				// Save widest line
+			maxWidth = lineWidth;
 		*w = maxWidth - 1;							// Don't include last interchar x gap
 		*h = y - *y1;
 
