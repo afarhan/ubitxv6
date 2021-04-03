@@ -151,8 +151,6 @@ void key_on(int serial_fd, int radio_type)
         key_on[4] = 0x08;
         write(serial_fd, key_on, key_on_size);
 
-//        char tmp;
-//        read(serial_fd, &tmp, 1);
     }
 }
 
@@ -185,8 +183,6 @@ void key_off(int serial_fd, int radio_type)
         key_off[4] = 0x88;
         write(serial_fd, key_off, key_off_size);
 
-//        char tmp;
-//        read(serial_fd, &tmp, 1);
     }
 }
 
@@ -219,7 +215,6 @@ void set_ssb_mode(int serial_fd, int radio_type, int ssb_mode)
             buffer[4] = 0x07;
             write(serial_fd, buffer, write_size);
        }
-        // read(serial_fd, buffer, 1);
     }
 
 
@@ -227,4 +222,53 @@ void set_ssb_mode(int serial_fd, int radio_type, int ssb_mode)
 
 void set_frequency(int serial_fd, int radio_type, int frequency)
 {
+    uint8_t buffer[8];
+    int write_size = 5;
+
+    memcpy (buffer, &frequency, 4);
+    buffer[4] = 0xfb;
+
+    write(serial_fd, buffer, write_size);
+}
+
+void get_frequency(int serial_fd, int radio_type, int *frequency)
+{
+    uint8_t buffer[8];
+    int write_size = 5;
+
+    buffer[0] = 0x00;
+    buffer[1] = 0x00;
+    buffer[2] = 0x00;
+    buffer[3] = 0x00;
+    buffer[4] = 0xfb;
+
+    write(serial_fd, buffer, write_size);
+}
+
+void get_mastercal(int serial_fd, int radio_type, int *frequency)
+{
+    uint8_t buffer[8];
+    int write_size = 5;
+
+    buffer[0] = 0x00;
+    buffer[1] = 0x00;
+    buffer[2] = 0x00;
+    buffer[3] = 0x00;
+    buffer[4] = 0xff;
+
+    write(serial_fd, buffer, write_size);
+}
+
+void get_bfo(int serial_fd, int radio_type, int *frequency)
+{
+    uint8_t buffer[8];
+    int write_size = 5;
+
+    buffer[0] = 0x00;
+    buffer[1] = 0x00;
+    buffer[2] = 0x00;
+    buffer[3] = 0x00;
+    buffer[4] = 0xff;
+
+    write(serial_fd, buffer, write_size);
 }

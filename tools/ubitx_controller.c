@@ -31,11 +31,64 @@
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <dirent.h>
-#include <pthread.h>
 #include <ctype.h>
+#include <errno.h>
+#include <threads.h>
 
 #include "serial.h"
 #include "ubitx_controller.h"
+
+static bool running;
+
+int cat_rcv(void *arg)
+{
+    int *target_fd_ptr = (int *)arg;
+    int target_fd = *target_fd_ptr;
+    char buf[MAX_BUF_SIZE];
+
+    if (thrd_detach(thrd_current()) != thrd_success) {
+        /* Handle error */
+    }
+
+    fd_set fds, fds1;
+    int i, cc, max;
+
+    FD_ZERO(&fds);
+    FD_SET(target_fd, &fds);
+    max = target_fd + 1;
+    fprintf(stderr, "aqui 1\n");
+
+    while (running) {
+        memcpy(&fds1, &fds, sizeof(fd_set));
+        i = select(max, &fds1, NULL, NULL, NULL);
+        if (i < 0) {
+            if (errno == EINTR)
+                continue;
+            fprintf(stderr, "select() error\n");
+            exit(1);
+        }
+
+        fprintf(stderr, "aqui 2\n");
+
+        if (FD_ISSET(target_fd, &fds1)) {
+            fprintf(stderr, "aqui 3\n");
+            cc = read(target_fd, buf, sizeof buf);
+            if (cc <= 0) {
+                fprintf(stderr, "EOF/error on target tty\n");
+                exit(1);
+            }
+            buf[cc] = 0;
+            fprintf(stderr, "read %d bytes. they are: ", cc);
+            for (int j = 0; j < cc; j++)
+                fprintf(stderr, "0x%hhx ", buf[j]);
+            int tmp;
+            memcpy(&tmp, buf+1, 4);
+            fprintf(stderr, "\n%d\n", tmp);
+        }
+
+    }
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -119,10 +172,31 @@ int main(int argc, char *argv[])
     // mamma mia!!!!
     sleep(2);
 
-    if (ssb_mode != UNDEFINED)
-    {
-        set_ssb_mode(serial_fd, radio_type, ssb_mode);
-    }
+    thrd_t rx_thread;
+    thrd_create(&rx_thread, cat_rcv, &serial_fd );
 
+    running = true;
+    //while (running)
+    {
+        // if (has_some_command...)
+
+        
+
+        get_frequency(serial_fd, radio_type, &frequency);
+
+        get_mastercal(serial_fd, radio_type, &frequency);
+
+        get_bfo(serial_fd, radio_type, &frequency);
+
+
+        if (ssb_mode != UNDEFINED)
+        {
+            set_ssb_mode(serial_fd, radio_type, ssb_mode);
+            ssb_mode = UNDEFINED;
+        }
+
+        sleep(10);
+
+    }
 
 }

@@ -143,17 +143,19 @@ extern boolean enableSWR;
 extern boolean enablePTT;
 
 /* these are functions implemented in the main file named as ubitx_xxx.ino */
-void saveVFOs();
+
 void setFrequency(unsigned long f);
 void startTx();
 void stopTx();
 
+
+// eeprom stuff
+void setMasterCal(int32_t calibration_offset);
+void setBFO(uint32_t usbcarrier_freq);
+void saveVFOs();
+
 void switchVFO(int vfoSelect);
 void checkSWR(byte ref);
-
-// TODO
-void setupBFO();
-void setupFreq();
 
 
 void checkCAT();

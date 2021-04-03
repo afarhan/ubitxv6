@@ -1,24 +1,41 @@
+/* Rhizomatica Firmware for uBitx based Kurupira-1
+ * Copyright (C) 2021 Rhizomatica
+ * Author: Rafael Diniz <rafael@riseup.net>
+ *
+ * This is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3, or (at your option)
+ * any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this software; see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 51 Franklin Street,
+ * Boston, MA 02110-1301, USA.
+ *
+ */
+
+
 #include <Arduino.h>
 #include "ubitx.h"
 
 /**
- * The CAT protocol is used by many radios to provide remote control to comptuers through
- * the serial port.
- * 
- * This is very much a work in progress. Parts of this code have been liberally
- * borrowed from other GPLicensed works like hamlib.
- * 
- * WARNING : This is an unstable version and it has worked with fldigi, 
- * it gives time out error with WSJTX 1.8.0  
+ * The CAT protocol is ad-hoc, make for Rhizomatica's Kurupira 1 radio,
+ * which provide remote control to computers through the serial port.
+ *
  */
 
-static unsigned long rxBufferArriveTime = 0;
-static byte rxBufferCheckCount = 0;
+static uint32_t rxBufferArriveTime = 0;
+static uint8_t rxBufferCheckCount = 0;
 #define CAT_RECEIVE_TIMEOUT 500
-static byte cat[5];
-static byte insideCat = 0;
+static uint8_t cat[5];
+static uint8_t insideCat = 0;
 
-//for broken protocol
+// to cope with wrong sized commands
 #define CAT_RECEIVE_TIMEOUT 500
 
 #define CAT_MODE_LSB            0x00
@@ -31,9 +48,11 @@ static byte insideCat = 0;
 #define CAT_MODE_PKT            0x0C
 #define CAT_MODE_FMN            0x88
 
-#define ACK 0
+#define ACK 0 // 1 byte response
+#define LONG_ACK 1 // 5 bytes response
+#define NACK 1
 
-unsigned int skipTimeCount = 0;
+uint16_t skipTimeCount = 0;
 
 byte setHighNibble(byte b,byte v) {
   // Clear the high nibble
@@ -114,30 +133,17 @@ unsigned long readFreq(byte* cmd) {
         (unsigned long)d0 * 10L; 
 }
 
-//void ReadEEPRom_FT817(byte fromType)
-void catReadEEPRom(void)
-{
-    
-    // sent the data
-    Serial.write(cat, 2);
-}
-
 void processCATCommand(byte* cmd) {
   byte response[5];
   unsigned long f;
 
   switch(cmd[4]){
-/*  case 0x00:
-    response[0]=0;
-    Serial.write(response, 1);
-    break;
-*/
   case 0x01:
       //set frequency
       f = readFreq(cmd);
       setFrequency(f);
       saveVFOs();
-      response[0]=0;
+      response[0] = ACK;
       Serial.write(response, 1);
       break;
 
@@ -155,57 +161,85 @@ void processCATCommand(byte* cmd) {
         isUSB = 0;
     else
         isUSB = 1;
+    response[0] = ACK;
 
-    response[0] = 0x00;
-    Serial.write(response, 1);
     setFrequency(frequency);
 
+    Serial.write(response, 1);
     break;
 
   case 0x08: // PTT On
     if (!inTx) {
-        response[0] = 0;
+        response[0] = ACK;
         startTx();
     } else {
-        response[0] = 0xf0;
+        response[0] = NACK;
     }
     Serial.write(response,1);
     break;
 
   case 0x88 : //PTT OFF
-    if (inTx) {
-        response[0] = 0;
-        stopTx();
-    }
-    response[0] = 0;
-    Serial.write(response,1);
-    break;
-
- case 0xBB:  //Read FT-817 EEPROM Data  (for comfirtable)
-    catReadEEPRom();
-    break;
-
-  case 0xE7:
-    // get receiver status, we have hardcoded this as
-    //as we dont' support ctcss, etc.
-    response[0] = 0x09;
-    Serial.write(response,1);
-    break;
+      if (inTx) {
+          response[0] = ACK;
+          stopTx();
+      }
+      else {
+          response[0] = NACK;
+      }
+      Serial.write(response,1);
+      break;
 
   case 0xf7:
-    {
+      
       /*
         Inverted -> *ptt = ((p->tx_status & 0x80) == 0); <-- souce code in ft817.c (hamlib)
       */
       response[0] = ((inTx ? 0 : 1) << 7) +
-        ((isHighSWR ? 1 : 0) << 6) +  //hi swr off / on
+          ((isHighSWR ? 1 : 0) << 6) +  //hi swr off / on
 //        ((isSplitOn ? 1 : 0) << 5) + //Split on / off
-        (0 << 4) +  //dummy data
-        0x08;  //P0 meter data
-
+          (0 << 4) +  //dummy data
+          0x08;  //P0 meter data
+      
       Serial.write(response, 1);
-    }
-    break;
+      
+      break;
+
+// RHIZOMATICA EXCLUSIVE...
+  case 0xfa: // SET FREQUENCY
+      memcpy(&frequency, cmd, 4);
+      setFrequency(frequency);
+      response[0] = ACK;
+      Serial.write(response,1);
+      break;
+  case 0xfb: // GET FREQUENCY
+      response[0] = LONG_ACK;
+      memcpy(response+1, &frequency, 4);
+      Serial.write(response,5);
+      break;
+
+  case 0xfc: // SET BFO
+      memcpy(&usbCarrier, cmd, 4);
+      setBFO(usbCarrier);
+      response[0] = ACK;
+      Serial.write(response,1);
+
+  case 0xfd: // SET MASTER CAL
+      memcpy(&calibration, cmd, 4);
+      setMasterCal(calibration);
+      response[0] = ACK;
+      Serial.write(response,1);
+
+  case 0xfe: // GET BFO
+      response[0] = LONG_ACK;
+      memcpy(response+1, &usbCarrier, 4);
+      Serial.write(response,5);
+      break;
+
+  case 0xff: // GET MASTER CAL
+      response[0] = LONG_ACK;
+      memcpy(response+1, &calibration, 4);
+      Serial.write(response,5);
+
   default:
       response[0] = 0xf0;
       Serial.write(response, 1);

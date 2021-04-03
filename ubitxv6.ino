@@ -120,6 +120,28 @@ boolean isHighSWR = false;
  * you start hacking around
  */
 
+void setMasterCal(int32_t calibration_offset)
+{
+    calibration = calibration_offset;
+
+    si5351_set_calibration(calibration);
+    setFrequency(frequency);
+
+    EEPROM.put(MASTER_CAL, calibration);
+
+}
+
+
+void setBFO(uint32_t usbcarrier_freq)
+{
+    usbCarrier = usbcarrier_freq;
+
+    si5351bx_setfreq(0, usbCarrier);
+    setFrequency(frequency);
+
+    EEPROM.put(USB_CAL, usbCarrier);
+}
+
 void saveVFOs(){
 
     EEPROM.put(VFO, frequency);
