@@ -178,7 +178,7 @@ void processCATCommand(byte* cmd) {
     Serial.write(response,1);
     break;
 
-  case 0x88 : //PTT OFF
+  case 0x88 : // PTT OFF
       if (inTx) {
           response[0] = ACK;
           stopTx();
@@ -189,28 +189,65 @@ void processCATCommand(byte* cmd) {
       Serial.write(response,1);
       break;
 
-  case 0xf7:
-      
-      /*
-        Inverted -> *ptt = ((p->tx_status & 0x80) == 0); <-- souce code in ft817.c (hamlib)
-      */
+  case 0xf7: // old stuff... leaving here for compatibility...
       response[0] = ((inTx ? 0 : 1) << 7) +
           ((isHighSWR ? 1 : 0) << 6) +  //hi swr off / on
 //        ((isSplitOn ? 1 : 0) << 5) + //Split on / off
           (0 << 4) +  //dummy data
           0x08;  //P0 meter data
-      
+
       Serial.write(response, 1);
-      
       break;
 
 // RHIZOMATICA EXCLUSIVE...
+
+  case 0xf1: // GET TX STATUS
+      // TODO
+      break;
+
+  case 0xf2: // GET PROTECTION STATUS
+      // TODO
+      break;
+
+  case 0xf3: // GET FWD
+      // TODO
+      break;
+
+  case 0xf4: // GET REF
+      // TODO
+      break;
+
+  case 0xf5: // SET LED STATUS
+      // TODO
+      break;
+
+  case 0xf6: // GET LED STATUS
+      // TODO
+      break;
+
+
+  case 0xf8: // GET BYPASS STATUS 
+      response[0] = LONG_ACK;
+      response[1] = by_pass;
+      Serial.write(response,5);
+      break;
+
+  case 0xf9: // SET BYPASS STATUS
+      by_pass = cmd[0];
+      // setBypass()
+      response[0] = ACK;
+      Serial.write(response,1);
+      // TODO
+      break;
+
   case 0xfa: // SET FREQUENCY
       memcpy(&frequency, cmd, 4);
       setFrequency(frequency);
+      saveVFOs();
       response[0] = ACK;
       Serial.write(response,1);
       break;
+
   case 0xfb: // GET FREQUENCY
       response[0] = LONG_ACK;
       memcpy(response+1, &frequency, 4);
@@ -222,12 +259,14 @@ void processCATCommand(byte* cmd) {
       setBFO(usbCarrier);
       response[0] = ACK;
       Serial.write(response,1);
+      break;
 
   case 0xfd: // SET MASTER CAL
       memcpy(&calibration, cmd, 4);
       setMasterCal(calibration);
       response[0] = ACK;
       Serial.write(response,1);
+      break;
 
   case 0xfe: // GET BFO
       response[0] = LONG_ACK;
