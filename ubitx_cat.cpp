@@ -239,9 +239,10 @@ void processCATCommand(byte* cmd) {
       response[0] = LONG_ACK;
       memcpy(response+1, &calibration, 4);
       Serial.write(response,5);
+      break;
 
   default:
-      response[0] = 0xf0;
+      response[0] = NACK;
       Serial.write(response, 1);
   }
 

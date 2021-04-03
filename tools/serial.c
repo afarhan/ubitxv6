@@ -268,7 +268,7 @@ void get_bfo(int serial_fd, int radio_type, int *frequency)
     buffer[1] = 0x00;
     buffer[2] = 0x00;
     buffer[3] = 0x00;
-    buffer[4] = 0xff;
+    buffer[4] = 0xfe;
 
     write(serial_fd, buffer, write_size);
 }
