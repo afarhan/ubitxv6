@@ -60,8 +60,6 @@
  * the serial port as we can easily run out of buffer space. This is done in the serial_in_count variable.
  */
 extern char c[30], b[30];      
-extern char printBuff[2][20];  //mirrors what is showing on the two lines of the display
-extern int count;          //to generally count ticks, loops, etc
 
 /** 
  *  The second set of 16 pins on the Raduino's bottom connector are have the three clock outputs and the digital lines to control the rig.
@@ -118,9 +116,9 @@ extern int count;          //to generally count ticks, loops, etc
 #define LOWEST_FREQ     500000UL
 #define HIGHEST_FREQ 109000000UL
 
-extern unsigned long usbCarrier;
-extern unsigned long frequency;  //frequency is the current frequency on the dial
-extern unsigned long firstIF;
+extern uint32_t usbCarrier;
+extern uint32_t frequency;  //frequency is the current frequency on the dial
+extern uint32_t firstIF;
 extern uint8_t by_pass;
 
 extern int32_t calibration;
@@ -129,15 +127,15 @@ extern int32_t calibration;
  * Raduino needs to keep track of current state of the transceiver. These are a few variables that do it
  */
 extern char inTx;                //it is set to 1 if in transmit mode (whatever the reason : cw, ptt or cat)
-extern int splitOn;             //working split, uses VFO B as the transmit frequency
 extern char isUSB;               //upper sideband was selected, this is reset to the default for the 
-extern unsigned char txFilter ;   //which of the four transmit filters are in use
-extern boolean modeCalibrate;//this mode of menus shows extended menus to calibrate the oscillators and choose the proper
-                              //beat frequency
+extern unsigned char txFilter;   //which of the four transmit filters are in use
 
-extern int reflected;
-extern int forward;
-extern boolean isHighSWR;
+extern uint8_t by_pass; // PA by-pass
+
+extern boolean is_swr_protect_enabled;
+
+extern uint16_t reflected;
+extern uint16_t forward;
 
 extern boolean enableSWR;
 extern boolean enablePTT;
@@ -157,8 +155,6 @@ void saveVFOs();
 void switchVFO(int vfoSelect);
 void checkSWR(byte ref);
 
-
-void checkCAT();
 
 /* these are functiosn implemented in ubitx_si5351.cpp */
 void si5351bx_setfreq(uint8_t clknum, uint32_t fout);

@@ -1,6 +1,10 @@
  /**
  * This source file is under General Public License version 3.
- * 
+ *
+ * Modified by Rafael Diniz <rafael@rhizomatica.org>
+ *
+ * Original file by Farhan's original ubitxv6 firmware
+ *
  * This verision uses a built-in Si5351 library
  * Most source code are meant to be understood by the compilers and the computers. 
  * Code that has to be hackable needs to be well understood and properly documented. 
@@ -32,6 +36,7 @@
 #include <Wire.h>
 #include <EEPROM.h>
 #include "ubitx.h"
+#include "ubitx_cat.h"
 
 /**
     The main chip which generates upto three oscillators of various frequencies in the
@@ -44,6 +49,7 @@
     code). Here are some defines and declarations used by Jerry's routines:
 */
 
+// MODIFIED BY RHIZOMATICA
 
 /**
  * We need to carefully pick assignment of pin for various purposes.
@@ -53,6 +59,7 @@
  * ground and six pins. Each of these six pins can be individually programmed 
  * either as an analog input, a digital input or a digital output. 
  * The pins are assigned as follows (left to right, display facing you): 
+
  *      Pin 1 (Violet), A7, REF measure input
  *      Pin 2 (Blue),   A6, FWD measure input
  *      Pin 3 (Green), +5v
@@ -60,7 +67,8 @@
  *      Pin 5 (Orange), A3, LED Control output
  *      Pin 6 (Red),    A2, BY-PASS CONTROL output
  *      Pin 7 (Brown),  A1, SWR protection input
- *      Pin 8 (Black),  A0,
+ *      Pin 8 (Black),  A0, UNUSED
+
  *Note: A5, A4 are wired to the Si5351 as I2C interface 
  *       *     
  */
@@ -82,18 +90,10 @@ it uses an ILI9341 display controller and an  XPT2046 touch controller.
  */
 
 char c[30], b[30];
-char printBuff[2][20];  //mirrors what is showing on the two lines of the display
-int count = 0;          //to generally count ticks, loops, etc
 
-
-uint8_t by_pass = 0;
-
-unsigned long sideTone=800, usbCarrier;
-unsigned long frequency=7150000UL; //frequency is the current frequency on the dial
-unsigned long firstIF =   45005000UL;
-
-// if cwMode is flipped on, the rx frequency is tuned down by sidetone hz instead of being zerobeat
-int cwMode = 0;
+uint32_t usbCarrier;
+uint32_t frequency = 7150000UL; //frequency is the current frequency on the dial
+uint32_t firstIF   = 45005000UL;
 
 extern int32_t calibration;
 
@@ -106,14 +106,16 @@ boolean enablePTT = false;
 char inTx = 0;                //it is set to 1 if in transmit mode (whatever the reason : cw, ptt or cat)
 char isUSB = 0;               //upper sideband was selected, this is reset to the default for the 
                               //frequency when it crosses the frequency border of 10 MHz
-unsigned char txFilter = 0;   //which of the four transmit filters are in use
-boolean modeCalibrate = false;//this mode of menus shows extended menus to calibrate the oscillators and choose the proper
-                              //beat frequency
+uint8_t txFilter = 0;   //which of the four transmit filters are in use
 
-int reflected;
-int forward;
+uint8_t by_pass = 0; // PA by-pass
 
-boolean isHighSWR = false;
+boolean is_swr_protect_enabled = false;
+
+uint16_t reflected;
+uint16_t forward;
+
+
 
 /**
  * Below are the basic functions that control the uBitx. Understanding the functions before 
@@ -169,19 +171,19 @@ void saveVFOs(){
 
 void setTXFilters(unsigned long freq){
 
-  if (freq >= 21000000L){  // the default filter is with 35 MHz cut-off
+  if (freq >= 21000000UL){  // the default filter is with 35 MHz cut-off
     digitalWrite(TX_LPF_A, 0);
     digitalWrite(TX_LPF_B, 0);
     digitalWrite(TX_LPF_C, 0);
     txFilter = 0;
   }
-  else if (freq >= 14000000L){ //thrown the KT1 relay on, the 30 MHz LPF is bypassed and the 14-18 MHz LPF is allowd to go through
+  else if (freq >= 14000000UL){ //thrown the KT1 relay on, the 30 MHz LPF is bypassed and the 14-18 MHz LPF is allowd to go through
     digitalWrite(TX_LPF_A, 1);
     digitalWrite(TX_LPF_B, 0);
     digitalWrite(TX_LPF_C, 0);
     txFilter = 'A';
   }
-  else if (freq >= 4500000L){
+  else if (freq >= 4500000UL){
     digitalWrite(TX_LPF_A, 0);
     digitalWrite(TX_LPF_B, 1);
     digitalWrite(TX_LPF_C, 0);
