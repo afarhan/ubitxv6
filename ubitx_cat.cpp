@@ -81,7 +81,11 @@ void processCATCommand(byte* cmd)
       break;
 
   case 0xf0: // GET SSB MODE
-      // TODO
+      if (isUSB)
+          response[0] = CMD_RESP_GET_SSB_MODE_USB;
+      else
+          response[0] = CMD_RESP_GET_SSB_MODE_LSB;
+      Serial.write(response,1);
       break;
 
   case 0xf1: // GET TX/RX STATUS

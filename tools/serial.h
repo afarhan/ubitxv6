@@ -37,9 +37,9 @@ int open_serial_port(char *ttyport);
 void set_fixed_baudrate(char *baudname, int target_fd);
 
 void set_ssb_mode(int serial_fd, int radio_type, int ssb_mode);
+void get_ssb_mode(int serial_fd, int radio_type, int *ssb_mode);
 
 void set_frequency(int serial_fd, int radio_type, int frequency);
-
 void get_frequency(int serial_fd, int radio_type, int *frequency);
 
 void get_mastercal(int serial_fd, int radio_type, int *frequency);

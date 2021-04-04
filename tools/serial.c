@@ -220,6 +220,20 @@ void set_ssb_mode(int serial_fd, int radio_type, int ssb_mode)
 
 }
 
+void get_ssb_mode(int serial_fd, int radio_type, int *ssb_mode)
+{
+    uint8_t buffer[8];
+    int write_size = 5;
+
+    buffer[0] = 0x00;
+    buffer[1] = 0x00;
+    buffer[2] = 0x00;
+    buffer[3] = 0x00;
+    buffer[4] = 0xf0;
+
+    write(serial_fd, buffer, write_size);
+}
+
 void set_frequency(int serial_fd, int radio_type, int frequency)
 {
     uint8_t buffer[8];
