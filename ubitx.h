@@ -1,14 +1,20 @@
-
-/* The ubitx is powered by an arduino nano. The pin assignment is as folows 
- *  
+ /**
+ * This source file is under General Public License version 3.
+ *
+ * Modified by Rafael Diniz <rafael@rhizomatica.org>
+ *
+ * Original file by Farhan's original ubitxv6 firmware
+ *
+ * The ubitx is powered by an arduino nano. The pin assignment is as folows 
+ *
  */
 
-#define NOT_USED    (A0)          // Tuning encoder interface
-#define SWR_PROT    (A1)          // Tuning encoder interface
-#define BY_PASS     (A2)        // Tuning encoder interface
-#define LED_CONTROL (A3)          // Sense it for ssb and as a straight key for cw operation
-#define ANALOG_FWD  (A6)   // Forward power measure
-#define ANALOG_REF  (A7)   // Reflected power measure
+#define NOT_USED    (A0)        // -
+#define SWR_PROT    (A1)        // SWR Protection enabled!
+#define BY_PASS     (A2)        // PA by-pass
+#define LED_CONTROL (A3)        // LED control light
+#define ANALOG_FWD  (A6)        // Forward power measure
+#define ANALOG_REF  (A7)        // Reflected power measure
 
 /**
  *  The second set of 16 pins on the Raduino's bottom connector are have the three clock outputs and the digital lines to control the rig.
@@ -21,12 +27,12 @@
  */
 
 
-#define TX_RX (7)           // Pin from the Nano to the radio to switch to TX (HIGH) and RX(LOW)
-#define CW_TONE (6)         // Generates a square wave sidetone while sending the CW. 
+#define TX_RX    (7)           // Pin from the Nano to the radio to switch to TX (HIGH) and RX(LOW)
+#define CW_TONE  (6)         // Generates a square wave sidetone while sending the CW. 
 #define TX_LPF_A (5)        // The 30 MHz LPF is permanently connected in the output of the PA... 
 #define TX_LPF_B (4)        //  ...Alternatively, either 3.5 MHz, 7 MHz or 14 Mhz LPFs are...
 #define TX_LPF_C (3)        //  ...switched inline depending upon the TX frequency
-#define CW_KEY (2)          //  Pin goes high during CW keydown to transmit the carrier. 
+#define CW_KEY   (2)          //  Pin goes high during CW keydown to transmit the carrier. 
                             // ... The CW_KEY is needed in addition to the TX/RX key as the...
                             // ...key can be up within a tx period
 
@@ -59,7 +65,7 @@
  * the input and output from the USB port. We must keep a count of the bytes used while reading
  * the serial port as we can easily run out of buffer space. This is done in the serial_in_count variable.
  */
-extern char c[30], b[30];      
+extern char c[30], b[30];
 
 /** 
  *  The second set of 16 pins on the Raduino's bottom connector are have the three clock outputs and the digital lines to control the rig.
@@ -110,11 +116,13 @@ extern char c[30], b[30];
  * 11 MHz where its fifth harmonic beats with the arduino's 16 Mhz oscillator's fourth harmonic
  */
 
-
 #define INIT_USB_FREQ 11052000UL
 // limits the tuning and working range of the ubitx between 3 MHz and 30 MHz
 #define LOWEST_FREQ     500000UL
 #define HIGHEST_FREQ 109000000UL
+
+// used to signal no reading made...
+#define NO_MEASURE 65535
 
 extern uint32_t usbCarrier;
 extern uint32_t frequency;  //frequency is the current frequency on the dial
@@ -153,8 +161,10 @@ void setBFO(uint32_t usbcarrier_freq);
 void saveVFOs();
 
 void switchVFO(int vfoSelect);
-void checkSWR(byte ref);
 
+void checkSWRProtection();
+void checkFWD();
+void checkREF();
 
 /* these are functiosn implemented in ubitx_si5351.cpp */
 void si5351bx_setfreq(uint8_t clknum, uint32_t fout);

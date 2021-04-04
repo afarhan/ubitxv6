@@ -33,10 +33,6 @@
  *  The Wire.h library is used to talk to the Si5351 and we also declare an instance of 
  *  Si5351 object to control the clocks.
  */
-#include <Wire.h>
-#include <EEPROM.h>
-#include "ubitx.h"
-#include "ubitx_cat.h"
 
 /**
     The main chip which generates upto three oscillators of various frequencies in the
@@ -89,23 +85,25 @@ it uses an ILI9341 display controller and an  XPT2046 touch controller.
  * the serial port as we can easily run out of buffer space. This is done in the serial_in_count variable.
  */
 
+#include <Wire.h>
+#include <EEPROM.h>
+#include "ubitx.h"
+#include "ubitx_cat.h"
+
 char c[30], b[30];
 
-uint32_t usbCarrier;
+uint32_t usbCarrier; // bfo
 uint32_t frequency = 7150000UL; //frequency is the current frequency on the dial
 uint32_t firstIF   = 45005000UL;
 
-extern int32_t calibration;
+extern int32_t calibration; // main calibration offset
 
-boolean enableSWR = false;
-boolean enablePTT = false;
 
 /**
  * Raduino needs to keep track of current state of the transceiver. These are a few variables that do it
  */
-char inTx = 0;                //it is set to 1 if in transmit mode (whatever the reason : cw, ptt or cat)
-char isUSB = 0;               //upper sideband was selected, this is reset to the default for the 
-                              //frequency when it crosses the frequency border of 10 MHz
+char inTx = 0;                //it is set to 1 if in transmit mode
+char isUSB = 0;               //upper sideband was selected
 uint8_t txFilter = 0;   //which of the four transmit filters are in use
 
 uint8_t by_pass = 0; // PA by-pass
@@ -279,7 +277,7 @@ void initSettings(){
         by_pass = 1;
         break;
     default:
-        by_pass = 1;
+        by_pass = 0;
     }
 
 
@@ -287,8 +285,8 @@ void initSettings(){
     EEPROM.get(VFO, frequency);
 
 
-    if (frequency > 40000000l || 500000l > frequency) // bigger than 40 MHz and smaller than 500 kHz
-        frequency = 7150000l;
+    if (frequency > 40000000UL || 500000UL > frequency) // bigger than 40 MHz and smaller than 500 kHz
+        frequency = 7150000UL;
 
     /*
      * The VFO modes are read in as either 2 (USB) or 3(LSB), 0, the default
@@ -322,10 +320,10 @@ void initPorts(){
   pinMode(ANALOG_REF, INPUT);
 
   pinMode(BY_PASS, OUTPUT);
-  digitalWrite(BY_PASS, by_pass);
+  digitalWrite(BY_PASS, by_pass ? HIGH : LOW);
 
   pinMode(LED_CONTROL, OUTPUT);
-  digitalWrite(LED_CONTROL, 0);
+  digitalWrite(LED_CONTROL, LOW);
 
   pinMode(CW_TONE, OUTPUT);
   digitalWrite(CW_TONE, 0);
@@ -357,42 +355,43 @@ void setup()
 }
 
 
-void checkSWR(byte ref)
+void checkREF()
 {
-    if (ref == 0)
+    if (inTx)
+        reflected = analogRead(ANALOG_REF);
+    else
+        reflected = NO_MEASURE;
+}
+
+void checkFWD()
+{
+    if (inTx)
         forward = analogRead(ANALOG_FWD);
     else
-        reflected = analogRead(ANALOG_REF);
-
-#if 0
-    // TODO
-    // implement TX reflected protection here!!!
-    if (reflected > 0)
-    {
-        stopTx();
-        isHighSWR = true;
-    }
-#endif
-
+        forward = NO_MEASURE;
 }
+
+void checkSWRProtection()
+{
+    uint16_t reading;
+    reading = analogRead(SWR_PROT);
+    // digitalRead(inPin); ?
+    // The analog input pins can be used as digital pins, referred
+    // to as A0, A1, etc. The exception is the Arduino Nano, Pro Mini,
+    // and Mini’s A6 and A7 pins, which can only be used as analog inputs.
+
+    // adjust this...
+    if (reading > 100)
+        is_swr_protect_enabled = true;
+    else
+        is_swr_protect_enabled = false;
+}
+
 /**
  * The loop checks for keydown, ptt, function button and tuning.
  */
 
-boolean wastouched = false;
-int swr_pace = 0;
 
 void loop(){
-
-// this should go to a task..
-#if 0
-    if (enableSWR)
-    {
-        if ((swr_pace++ % 2000) == 500)
-            checkSWR(0);
-        if ((swr_pace % 2000) == 1500)
-            checkSWR(1);
-    }
-#endif
     checkCAT();
 }
