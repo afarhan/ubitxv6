@@ -226,7 +226,7 @@ void set_frequency(int serial_fd, int radio_type, int frequency)
     int write_size = 5;
 
     memcpy (buffer, &frequency, 4);
-    buffer[4] = 0xfb;
+    buffer[4] = 0xfa;
 
     write(serial_fd, buffer, write_size);
 }

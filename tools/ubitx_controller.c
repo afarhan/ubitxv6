@@ -180,11 +180,19 @@ int main(int argc, char *argv[])
     {
         // if (has_some_command...)
 
-//        get_frequency(serial_fd, radio_type, &frequency);
+        get_frequency(serial_fd, radio_type, &frequency);
+
+        sleep(1);
+
+        set_frequency(serial_fd, radio_type, frequency);
+
+        sleep(1);
+
+        get_frequency(serial_fd, radio_type, &frequency);
 
 //        get_mastercal(serial_fd, radio_type, &frequency);
 
-        get_bfo(serial_fd, radio_type, &frequency);
+//        get_bfo(serial_fd, radio_type, &frequency);
 
 
         if (ssb_mode != UNDEFINED)
