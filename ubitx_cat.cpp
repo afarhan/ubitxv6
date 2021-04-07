@@ -24,6 +24,7 @@
 #include <Arduino.h>
 #include "ubitx.h"
 #include "ubitx_cat.h"
+#include "common/radio_cmds.h"
 
 /**
  * The CAT protocol is ad-hoc, make for Rhizomatica's Kurupira 1 radio,
@@ -46,7 +47,43 @@ void processCATCommand(byte* cmd)
     uint8_t response[5];
 
     switch(cmd[4]){
-    case 0x07: // set mode
+    case CMD_PTT_ON: // PTT On
+        if (!inTx) {
+            response[0] = CMD_RESP_PTT_ON_ACK;
+            startTx();
+        } else {
+            response[0] = CMD_RESP_PTT_ON_NACK;
+        }
+        Serial.write(response,1);
+        break;
+
+    case CMD_PTT_OFF: // PTT OFF
+        if (inTx) {
+            response[0] = CMD_RESP_PTT_OFF_ACK;
+            stopTx();
+        }
+        else {
+            response[0] = CMD_RESP_PTT_OFF_NACK;
+        }
+        Serial.write(response,1);
+        break;
+
+    case CMD_GET_FREQ: // GET FREQUENCY
+        response[0] = CMD_RESP_GET_FREQ_ACK;
+        memcpy(response+1, &frequency, 4);
+        Serial.write(response,5);
+        break;
+
+    case CMD_SET_FREQ: // SET FREQUENCY
+        memcpy(&frequency, cmd, 4);
+        setFrequency(frequency);
+        saveVFOs();
+        response[0] = CMD_RESP_SET_FREQ_ACK;
+        Serial.write(response,1);
+        break;
+
+
+    case CMD_SET_MODE: // set mode
         if (cmd[0] == 0x00 || cmd[0] == 0x03)
             isUSB = 0;
         else
@@ -55,120 +92,103 @@ void processCATCommand(byte* cmd)
         saveVFOs();
         setFrequency(frequency);
 
-        response[0] = ACK;
+        response[0] = CMD_RESP_SET_MODE_ACK;
         Serial.write(response, 1);
         break;
 
-  case 0x08: // PTT On
-    if (!inTx) {
-        response[0] = ACK;
-        startTx();
-    } else {
-        response[0] = NACK;
-    }
-    Serial.write(response,1);
-    break;
 
-  case 0x88 : // PTT OFF
-      if (inTx) {
-          response[0] = ACK;
-          stopTx();
-      }
-      else {
-          response[0] = NACK;
-      }
+    case CMD_GET_MODE: // GET SSB MODE
+        if (isUSB)
+            response[0] = CMD_RESP_GET_MODE_USB;
+        else
+            response[0] = CMD_RESP_GET_MODE_LSB;
+        Serial.write(response,1);
+        break;
+
+    case CMD_GET_TXRX_STATUS: // GET TX/RX STATUS
+        if (inTx)
+            response[0] = CMD_RESP_GET_TXRX_INTX;
+        else
+            response[0] = CMD_RESP_GET_TXRX_INRX;
+        Serial.write(response,1);
+        break;
+
+    case CMD_GET_PROTECTION_STATUS: // GET PROTECTION STATUS
+        if (is_swr_protect_enabled)
+            response[0] = CMD_RESP_GET_PROTECTION_ON;
+        else
+            response[0] = CMD_RESP_GET_PROTECTION_OFF;
+        Serial.write(response,1);
+        break;
+
+    case CMD_GET_MASTERCAL: // GET MASTER CAL
+        response[0] = CMD_RESP_GET_MASTERCAL_ACK;
+        memcpy(response+1, &calibration, 4);
+        Serial.write(response,5);
+        break;
+
+    case CMD_SET_MASTERCAL: // SET MASTER CAL
+        memcpy(&calibration, cmd, 4);
+        setMasterCal(calibration);
+        response[0] = CMD_RESP_SET_MASTERCAL_ACK;
+        Serial.write(response,1);
+        break;
+
+    case CMD_GET_BFO: // GET BFO
+        response[0] = CMD_RESP_GET_BFO_ACK;
+        memcpy(response+1, &usbCarrier, 4);
+        Serial.write(response,5);
+        break;
+
+    case CMD_SET_BFO: // SET BFO
+        memcpy(&usbCarrier, cmd, 4);
+        setBFO(usbCarrier);
+        response[0] = CMD_RESP_SET_BFO_ACK;
+        Serial.write(response,1);
+        break;
+
+    case CMD_GET_FWD: // GET FWD
+        response[0] = CMD_RESP_GET_FWD_ACK;
+        memcpy(response+1, &forward, 2);
+        Serial.write(response,5);
+        break;
+
+    case CMD_GET_REF: // GET REF
+        response[0] = CMD_RESP_GET_REF_ACK;
+        memcpy(response+1, &reflected, 2);
+        Serial.write(response,5);
+        break;
+
+    case CMD_GET_LED_STATUS: // GET LED STATUS
+        if (led_status)
+            response[0] = CMD_RESP_GET_LED_STATUS_ON;
+        else
+            response[0] = CMD_RESP_GET_LED_STATUS_OFF;
+        Serial.write(response,1);
+        break;
+
+    case CMD_SET_LED_STATUS: // SET LED STATUS
+        setLed(cmd[0]);
+        response[0] = CMD_RESP_SET_LED_STATUS_ACK;
+        Serial.write(response,1);
+        break;
+
+    case CMD_GET_BYPASS_STATUS: // GET BYPASS STATUS
+        if (by_pass)
+          response[0] = CMD_RESP_GET_BYPASS_STATUS_ON;
+        else
+            response[0] = CMD_RESP_GET_BYPASS_STATUS_OFF;
       Serial.write(response,1);
       break;
 
-  case 0xf0: // GET SSB MODE
-      if (isUSB)
-          response[0] = CMD_RESP_GET_SSB_MODE_USB;
-      else
-          response[0] = CMD_RESP_GET_SSB_MODE_LSB;
+  case CMD_SET_BYPASS_STATUS: // SET BYPASS STATUS
+      setPAbypass(cmd[0]);
+      response[0] = CMD_RESP_SET_BYPASS_STATUS_ACK;
       Serial.write(response,1);
-      break;
-
-  case 0xf1: // GET TX/RX STATUS
-      // TODO
-      break;
-
-  case 0xf2: // GET PROTECTION STATUS
-      // TODO
-      break;
-
-  case 0xf3: // GET FWD
-      // TODO
-      break;
-
-  case 0xf4: // GET REF
-      // TODO
-      break;
-
-  case 0xf5: // SET LED STATUS
-      // TODO
-      break;
-
-  case 0xf6: // GET LED STATUS
-      // TODO
-      break;
-
-
-  case 0xf8: // GET BYPASS STATUS 
-      response[0] = LONG_ACK;
-      response[1] = by_pass;
-      Serial.write(response,5);
-      break;
-
-  case 0xf9: // SET BYPASS STATUS
-      by_pass = cmd[0];
-      // setBypass()
-      response[0] = ACK;
-      Serial.write(response,1);
-      // TODO
-      break;
-
-  case 0xfa: // SET FREQUENCY
-      memcpy(&frequency, cmd, 4);
-      setFrequency(frequency);
-      saveVFOs();
-      response[0] = ACK;
-      Serial.write(response,1);
-      break;
-
-  case 0xfb: // GET FREQUENCY
-      response[0] = LONG_ACK;
-      memcpy(response+1, &frequency, 4);
-      Serial.write(response,5);
-      break;
-
-  case 0xfc: // SET BFO
-      memcpy(&usbCarrier, cmd, 4);
-      setBFO(usbCarrier);
-      response[0] = ACK;
-      Serial.write(response,1);
-      break;
-
-  case 0xfd: // SET MASTER CAL
-      memcpy(&calibration, cmd, 4);
-      setMasterCal(calibration);
-      response[0] = ACK;
-      Serial.write(response,1);
-      break;
-
-  case 0xfe: // GET BFO
-      response[0] = LONG_ACK;
-      memcpy(response+1, &usbCarrier, 4);
-      Serial.write(response,5);
-      break;
-
-  case 0xff: // GET MASTER CAL
-      response[0] = LONG_ACK;
-      memcpy(response+1, &calibration, 4);
-      Serial.write(response,5);
       break;
 
   default:
-      response[0] = NACK;
+      response[0] = CMD_RESP_WRONG_COMMAND;
       Serial.write(response, 1);
   }
 
@@ -215,5 +235,3 @@ void checkCAT(){
   processCATCommand(cat);
   insideCat = 0;
 }
-
-

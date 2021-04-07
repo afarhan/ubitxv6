@@ -31,15 +31,5 @@
 #define LSB 1
 #define USB 2
 
-// the radio commands..
-#define CMD_GET_FREQ 1
-#define CMD_SET_FREQ 2
-
-#define CMD_GET_MASTERCAL 3
-#define CMD_SET_MASTERCAL 4
-
-#define CMD_GET_BFO 5
-#define CMD_SET_BFO 6
-
 
 #endif // HAVE_UBITXCONTROLLER_H__

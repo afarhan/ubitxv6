@@ -25,23 +25,4 @@
 // to cope with wrong sized commands / errors
 #define CAT_RECEIVE_TIMEOUT 500
 
-#define ACK 0 // 1 byte response
-#define LONG_ACK 1 // 5 bytes response
-#define NACK 1
-
-#define CMD_PTT_ON 0x08
-#define CMD_PTT_OFF 0x88
-#define CMD_SET_SSB_MODE 0x07
-#define CMD_GET_SSB_MODE 0xf0
-#define CMD_GET_TXRX_STATUS 0xf1
-#define CMD_GET_PROTECTION_STATUS 0xf2
-// ...
-
-#define CMD_RESP_PTT_ON_ACK  0x01
-#define CMD_RESP_PTT_ON_NACK 0x02
-
-#define CMD_RESP_GET_SSB_MODE_USB 0x03
-#define CMD_RESP_GET_SSB_MODE_LSB 0x04
-// ... 
-
 void checkCAT();

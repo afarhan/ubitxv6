@@ -94,7 +94,7 @@ struct baudrate *set_serial_baudrate(struct baudrate *br, int target_fd)
 {
     struct termios2 target_termios;
 
-    target_termios.c_iflag = IGNBRK;
+    target_termios.c_iflag = IGNBRK; // | IGNPAR ??
     target_termios.c_oflag = 0;
     target_termios.c_cflag = br->termios_code | CLOCAL|HUPCL|CREAD|CS8;
     target_termios.c_lflag = 0;

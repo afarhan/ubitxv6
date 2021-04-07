@@ -145,8 +145,7 @@ extern boolean is_swr_protect_enabled;
 extern uint16_t reflected;
 extern uint16_t forward;
 
-extern boolean enableSWR;
-extern boolean enablePTT;
+extern uint8_t led_status;
 
 /* these are functions implemented in the main file named as ubitx_xxx.ino */
 
@@ -165,6 +164,8 @@ void switchVFO(int vfoSelect);
 void checkSWRProtection();
 void checkFWD();
 void checkREF();
+void setLed(boolean enabled);
+void setPAbypass(boolean enabled);
 
 /* these are functiosn implemented in ubitx_si5351.cpp */
 void si5351bx_setfreq(uint8_t clknum, uint32_t fout);

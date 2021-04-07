@@ -113,6 +113,7 @@ boolean is_swr_protect_enabled = false;
 uint16_t reflected;
 uint16_t forward;
 
+uint8_t led_status;
 
 
 /**
@@ -306,6 +307,10 @@ void initSettings(){
         isUSB = 0;
     }
 
+    // we start with the led off
+    led_status = 0;
+
+    is_swr_protect_enabled = false;
 }
 
 void initPorts(){
@@ -323,7 +328,7 @@ void initPorts(){
   digitalWrite(BY_PASS, by_pass ? HIGH : LOW);
 
   pinMode(LED_CONTROL, OUTPUT);
-  digitalWrite(LED_CONTROL, LOW);
+  digitalWrite(LED_CONTROL, led_status ? HIGH : LOW);
 
   pinMode(CW_TONE, OUTPUT);
   digitalWrite(CW_TONE, 0);
@@ -387,11 +392,35 @@ void checkSWRProtection()
         is_swr_protect_enabled = false;
 }
 
+void setLed(boolean enabled)
+{
+    led_status = enabled;
+    digitalWrite(LED_CONTROL, led_status ? HIGH : LOW);
+}
+void setPAbypass(boolean enabled)
+{
+    by_pass = enabled;
+    digitalWrite(BY_PASS, by_pass ? HIGH : LOW);
+    EEPROM.put(BYPASS_STATE, by_pass);
+}
+
+
 /**
  * The loop checks for keydown, ptt, function button and tuning.
  */
 
+uint16_t pace;
 
 void loop(){
+
     checkCAT();
+
+    if ((pace++ % 2000) == 500)
+        checkREF();
+    if ((pace % 2000) == 1500)
+        checkFWD();
+
+    if ((pace % 2000) == 1000)
+        checkSWRProtection();
+
 }
