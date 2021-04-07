@@ -98,6 +98,7 @@ int main(int argc, char *argv[])
     char serial_path[MAX_MODEM_PATH];
     int cw_mode = UNDEFINED;
     int serial_fd = -1;
+    bool tester_mode = false;
 
     if (argc < 3)
     {
@@ -111,17 +112,21 @@ int main(int argc, char *argv[])
         fprintf(stderr, " -l                         Sets LSB mode\n");
         fprintf(stderr, " -u                         Sets USB mode\n");
         fprintf(stderr, " -r [icom,ubitx]            Sets radio type (supported: icom or ubitx)\n");
+        fprintf(stderr, " -t                         Runs the command tester!\n");
         fprintf(stderr, " -h                         Prints this help.\n");
         exit(EXIT_FAILURE);
     }
 
     int opt;
-    while ((opt = getopt(argc, argv, "hs:c:f:lur:")) != -1)
+    while ((opt = getopt(argc, argv, "hs:c:f:lur:t")) != -1)
     {
         switch (opt)
         {
         case 'h':
             goto manual;
+            break;
+        case 't':
+            tester_mode = true;
             break;
         case 's':
             strcpy(serial_path, optarg);
@@ -174,6 +179,13 @@ int main(int argc, char *argv[])
 
     thrd_t rx_thread;
     thrd_create(&rx_thread, cat_rcv, &serial_fd );
+
+    if (tester_mode)
+    {
+        // first test the serial... what goes through, what goes not...
+
+        // then test all the commands....
+    }
 
     running = true;
     //while (running)

@@ -178,19 +178,19 @@ void processCATCommand(byte* cmd)
           response[0] = CMD_RESP_GET_BYPASS_STATUS_ON;
         else
             response[0] = CMD_RESP_GET_BYPASS_STATUS_OFF;
-      Serial.write(response,1);
+        Serial.write(response,1);
       break;
 
-  case CMD_SET_BYPASS_STATUS: // SET BYPASS STATUS
-      setPAbypass(cmd[0]);
-      response[0] = CMD_RESP_SET_BYPASS_STATUS_ACK;
-      Serial.write(response,1);
-      break;
+    case CMD_SET_BYPASS_STATUS: // SET BYPASS STATUS
+        setPAbypass(cmd[0]);
+        response[0] = CMD_RESP_SET_BYPASS_STATUS_ACK;
+        Serial.write(response,1);
+        break;
 
-  default:
-      response[0] = CMD_RESP_WRONG_COMMAND;
-      Serial.write(response, 1);
-  }
+    default:
+        response[0] = CMD_RESP_WRONG_COMMAND;
+        Serial.write(response, 1);
+    }
 
 }
 
