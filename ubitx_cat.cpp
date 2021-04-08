@@ -175,7 +175,7 @@ void processCATCommand(byte* cmd)
 
     case CMD_GET_BYPASS_STATUS: // GET BYPASS STATUS
         if (by_pass)
-          response[0] = CMD_RESP_GET_BYPASS_STATUS_ON;
+            response[0] = CMD_RESP_GET_BYPASS_STATUS_ON;
         else
             response[0] = CMD_RESP_GET_BYPASS_STATUS_OFF;
         Serial.write(response,1);

@@ -75,9 +75,7 @@ int cat_tester(void *arg)
                 exit(1);
             }
             buf[cc] = 0;
-            fprintf(stderr, "read %d bytes. they are: ", cc);
-            for (int j = 0; j < cc; j++)
-                fprintf(stderr, "0x%hhx ", buf[j]);
+            fprintf(stderr, "read byte 0x%hhx\n", buf[0]);
         }
 
     }
@@ -140,9 +138,9 @@ int main(int argc, char *argv[])
     int radio_type = RADIO_TYPE_ICOM;
     int frequency = 0;
     char serial_path[MAX_MODEM_PATH];
-    int cw_mode = UNDEFINED;
     int serial_fd = -1;
     bool tester_mode = false;
+    bool cat_tester_mode = false;
 
     if (argc < 3)
     {
@@ -152,7 +150,7 @@ int main(int argc, char *argv[])
         fprintf(stderr, "\nOptions:\n");
         fprintf(stderr, " -s serial_device           Set the serial device file path\n");
         fprintf(stderr, " -f frequency               Sets the dial frequency (in Hz)\n");
-        fprintf(stderr, " -c [on,off]                Set CW mode on or off\n");
+        fprintf(stderr, " -c                         Run a serial test\n");
         fprintf(stderr, " -l                         Sets LSB mode\n");
         fprintf(stderr, " -u                         Sets USB mode\n");
         fprintf(stderr, " -r [icom,ubitx]            Sets radio type (supported: icom or ubitx)\n");
@@ -162,7 +160,7 @@ int main(int argc, char *argv[])
     }
 
     int opt;
-    while ((opt = getopt(argc, argv, "hs:c:f:lur:t")) != -1)
+    while ((opt = getopt(argc, argv, "hs:cf:lur:t")) != -1)
     {
         switch (opt)
         {
@@ -190,10 +188,7 @@ int main(int argc, char *argv[])
             frequency = atoi(optarg);
             break;
         case 'c':
-            if (!strcmp(optarg,"on"))
-                cw_mode = CW_ON;
-            if (!strcmp(optarg,"off"))
-                cw_mode = CW_OFF;
+            cat_tester_mode = true;
             break;
         default:
             goto manual;
@@ -223,23 +218,36 @@ int main(int argc, char *argv[])
 
     running = true;
 
-    if (tester_mode)
+    if (cat_tester_mode)
     {
         thrd_t rx_thread;
         thrd_create(&rx_thread, cat_tester, &serial_fd );
 
-        for (uint8_t i = 0; i <= 255; i++)
+        uint8_t i = 0;
+        while(i != 255)
         {
             write(serial_fd, &i, 1);
+            i++;
         }
+        write(serial_fd, &i, 1);
+
         // first test the serial... what goes through, what goes not...
 
+        fprintf(stderr, "Finished writing.\n");
         // then test all the commands....
+        sleep(10);
         return EXIT_SUCCESS;
     }
 
     thrd_t rx_thread;
     thrd_create(&rx_thread, cat_rcv, &serial_fd );
+
+
+    if (tester_mode)
+    {
+
+        // test all the commands here...
+    }
 
 
     //while (running)
