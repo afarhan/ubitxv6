@@ -40,6 +40,50 @@
 
 static bool running;
 
+int cat_tester(void *arg)
+{
+    int *target_fd_ptr = (int *)arg;
+    int target_fd = *target_fd_ptr;
+    char buf[MAX_BUF_SIZE];
+
+    if (thrd_detach(thrd_current()) != thrd_success) {
+        /* Handle error */
+    }
+
+    fd_set fds, fds1;
+    int i, cc, max;
+
+    FD_ZERO(&fds);
+    FD_SET(target_fd, &fds);
+    max = target_fd + 1;
+
+    while (running) {
+        memcpy(&fds1, &fds, sizeof(fd_set));
+        i = select(max, &fds1, NULL, NULL, NULL);
+        if (i < 0) {
+            if (errno == EINTR)
+                continue;
+            fprintf(stderr, "select() error\n");
+            exit(1);
+        }
+
+        if (FD_ISSET(target_fd, &fds1)) {
+
+            cc = read(target_fd, buf, 1);
+            if (cc <= 0) {
+                fprintf(stderr, "EOF/error on target tty\n");
+                exit(1);
+            }
+            buf[cc] = 0;
+            fprintf(stderr, "read %d bytes. they are: ", cc);
+            for (int j = 0; j < cc; j++)
+                fprintf(stderr, "0x%hhx ", buf[j]);
+        }
+
+    }
+
+}
+
 int cat_rcv(void *arg)
 {
     int *target_fd_ptr = (int *)arg;
@@ -177,15 +221,15 @@ int main(int argc, char *argv[])
     // mamma mia!!!!
     sleep(2);
 
-    thrd_t rx_thread;
-    thrd_create(&rx_thread, cat_rcv, &serial_fd );
+    running = true;
 
     if (tester_mode)
     {
+        thrd_t rx_thread;
+        thrd_create(&rx_thread, cat_tester, &serial_fd );
 
         for (uint8_t i = 0; i <= 255; i++)
         {
-            
             write(serial_fd, &i, 1);
         }
         // first test the serial... what goes through, what goes not...
@@ -194,7 +238,10 @@ int main(int argc, char *argv[])
         return EXIT_SUCCESS;
     }
 
-    running = true;
+    thrd_t rx_thread;
+    thrd_create(&rx_thread, cat_rcv, &serial_fd );
+
+
     //while (running)
     {
         // if (has_some_command...)
