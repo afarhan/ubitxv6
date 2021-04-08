@@ -423,4 +423,10 @@ void loop(){
     if ((pace % 2000) == 1000)
         checkSWRProtection();
 
+    // TODO 2: Block tx if swr_protection is on!
+
+    // TODO: implement some IMALIVE feature, using the timeout from pc (if
+    // no command of IMALIVE comes during a perior, so that the arduino
+    // knows when the pc is dead and turns off the led
+
 }

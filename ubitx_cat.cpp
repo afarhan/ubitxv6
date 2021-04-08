@@ -47,6 +47,8 @@ void processCATCommand(byte* cmd)
     uint8_t response[5];
 
     switch(cmd[4]){
+
+        // TODO: Do not activate PTT if protection is ON!
     case CMD_PTT_ON: // PTT On
         if (!inTx) {
             response[0] = CMD_RESP_PTT_ON_ACK;

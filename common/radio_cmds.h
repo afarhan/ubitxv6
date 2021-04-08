@@ -57,7 +57,7 @@
 
 
 // radio responses
-// 5 bytes responses
+// 5 bytes responses <= 0x30
 #define CMD_RESP_GET_FREQ_ACK 0x01
 #define CMD_RESP_GET_MASTERCAL_ACK 0x02
 #define CMD_RESP_GET_BFO_ACK 0x03
@@ -65,8 +65,10 @@
 #define CMD_RESP_GET_FWD_ACK 0x04
 #define CMD_RESP_GET_REF_ACK 0x05
 
+#define CMD_LAST_5BYTES 0x30
 
-// 1 byte responses
+
+// 1 byte responses, >= 0xd0
 #define CMD_RESP_PTT_ON_ACK 0xf1
 #define CMD_RESP_PTT_ON_NACK 0xf2
 
@@ -101,3 +103,6 @@
 #define CMD_RESP_SET_BYPASS_STATUS_ACK 0xe5
 
 #define CMD_RESP_WRONG_COMMAND 0xe6
+
+// autonomous commands from the radio
+#define CMD_ALERT_PROTECTION_ON 0xe7

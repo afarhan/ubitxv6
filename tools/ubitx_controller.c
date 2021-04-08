@@ -37,6 +37,7 @@
 
 #include "serial.h"
 #include "ubitx_controller.h"
+#include "../common/radio_cmds.h"
 
 static bool running;
 
@@ -86,7 +87,9 @@ int cat_rcv(void *arg)
 {
     int *target_fd_ptr = (int *)arg;
     int target_fd = *target_fd_ptr;
-    char buf[MAX_BUF_SIZE];
+    uint8_t buf[MAX_BUF_SIZE];
+
+    int frequency;
 
     if (thrd_detach(thrd_current()) != thrd_success) {
         /* Handle error */
@@ -98,7 +101,6 @@ int cat_rcv(void *arg)
     FD_ZERO(&fds);
     FD_SET(target_fd, &fds);
     max = target_fd + 1;
-    fprintf(stderr, "aqui 1\n");
 
     while (running) {
         memcpy(&fds1, &fds, sizeof(fd_set));
@@ -110,22 +112,113 @@ int cat_rcv(void *arg)
             exit(1);
         }
 
-        fprintf(stderr, "aqui 2\n");
-
         if (FD_ISSET(target_fd, &fds1)) {
-            fprintf(stderr, "aqui 3\n");
-            cc = read(target_fd, buf, sizeof buf);
+
+            cc = read(target_fd, buf, 1);
             if (cc <= 0) {
                 fprintf(stderr, "EOF/error on target tty\n");
                 exit(1);
             }
-            buf[cc] = 0;
-            fprintf(stderr, "read %d bytes. they are: ", cc);
-            for (int j = 0; j < cc; j++)
-                fprintf(stderr, "0x%hhx ", buf[j]);
-            int tmp;
-            memcpy(&tmp, buf+1, 4);
-            fprintf(stderr, "\n%d\n", tmp);
+            fprintf(stderr, "RESP BYTE: 0x%hhx\n", buf[0]);
+            if (buf[0] <= CMD_LAST_5BYTES)
+            {
+                fprintf(stderr, "Is long answer.\n");
+                cc = read(target_fd, buf+1, 4);
+                if (cc != 4) {
+                    fprintf(stderr, "BAD!\n");
+                    // exit(1);
+                }
+            }
+
+
+            switch(buf[0])
+            {
+                // 1 byte responses
+            case CMD_RESP_PTT_ON_ACK:
+                // log write ptt on ack
+                break;
+            case CMD_RESP_PTT_ON_NACK:
+                // not good
+                break;
+
+            case CMD_RESP_PTT_OFF_ACK:
+                // log write ptt on ack
+                break;
+            case CMD_RESP_PTT_OFF_NACK:
+                // not good
+                break;
+
+            case CMD_RESP_SET_FREQ_ACK:
+                // log
+                break;
+
+            case CMD_RESP_SET_MODE_ACK:
+                // log
+                break;
+
+            case CMD_RESP_GET_MODE_USB:
+                // log
+                break;
+
+            case CMD_RESP_GET_MODE_LSB:
+                // log
+                break;
+
+            case CMD_RESP_GET_TXRX_INTX:
+                // log
+                break;
+
+            case CMD_RESP_GET_TXRX_INRX:
+                // log
+                break;
+
+            case CMD_RESP_GET_PROTECTION_ON:
+                // log
+                break;
+            case CMD_RESP_GET_PROTECTION_OFF:
+                break;
+            case CMD_RESP_SET_MASTERCAL_ACK:
+                break;
+            case CMD_RESP_SET_BFO_ACK:
+                break;
+            case CMD_RESP_GET_LED_STATUS_ON:
+                break;
+            case CMD_RESP_GET_LED_STATUS_OFF:
+                break;
+            case CMD_RESP_SET_LED_STATUS_ACK:
+                break;
+            case CMD_RESP_GET_BYPASS_STATUS_ON:
+                break;
+            case CMD_RESP_GET_BYPASS_STATUS_OFF:
+                break;
+            case CMD_RESP_SET_BYPASS_STATUS_ACK:
+                break;
+            case CMD_RESP_WRONG_COMMAND:
+                break;
+            case CMD_ALERT_PROTECTION_ON:
+                break;
+
+                // 5 bytes commands
+            case CMD_RESP_GET_FREQ_ACK:
+                // memcpy (frequency, buf+1, 4);
+                memcpy(&frequency, buf+1, 4);
+                fprintf(stderr, "frequency: %d\n", frequency);
+
+                break;
+            case CMD_RESP_GET_MASTERCAL_ACK:
+                break;
+            case CMD_RESP_GET_BFO_ACK:
+                break;
+            case CMD_RESP_GET_FWD_ACK:
+                break;
+            case CMD_RESP_GET_REF_ACK:
+                break;
+
+            default:
+                fprintf(stderr, "this is not supposed to happen\n");
+
+            }
+
         }
 
     }
@@ -227,6 +320,7 @@ int main(int argc, char *argv[])
         while(i != 255)
         {
             write(serial_fd, &i, 1);
+            sleep(1);
             i++;
         }
         write(serial_fd, &i, 1);
