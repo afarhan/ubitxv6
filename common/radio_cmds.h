@@ -21,10 +21,10 @@
 
 #pragma once
 
-// dont't use 0xff and 0xfe in the serial port!
-// 0x00 can be trouble too
-// test this!
-// we are transporting int's for god sake!!!
+// we need a 8bit clean serial connection
+// PTT commands need priority
+// We don't care about endianess (little endian assumed)
+// IT WILL NOT WORK ON BIG ENDIAN MACHINES RIGHT NOW!
 
 // the radio commands
 #define CMD_PTT_ON 0x08
