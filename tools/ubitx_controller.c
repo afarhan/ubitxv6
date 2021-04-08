@@ -182,9 +182,16 @@ int main(int argc, char *argv[])
 
     if (tester_mode)
     {
+
+        for (uint8_t i = 0; i <= 255; i++)
+        {
+            
+            write(serial_fd, &i, 1);
+        }
         // first test the serial... what goes through, what goes not...
 
         // then test all the commands....
+        return EXIT_SUCCESS;
     }
 
     running = true;
