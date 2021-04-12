@@ -15,6 +15,8 @@ New features include:
 * When adjusting settings, the existing/current setting is shown as reference
 * Cancel touch recalibration
 
+User Manual: https://docs.google.com/document/d/1jlllZbvFMCzO1MJLzlJDGb10HXSehlFNMDPsxGJZtvY/edit?usp=drivesdk
+
 # Installing on Your Radio
 
 There are plenty of tutorials on how to upload sketches to Arduino Nanos. Just search for them. Addtionally,
