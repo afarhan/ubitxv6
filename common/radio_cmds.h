@@ -55,6 +55,10 @@
 #define CMD_GET_BYPASS_STATUS 0xf8
 #define CMD_SET_BYPASS_STATUS 0xf9
 
+// radio responses type
+#define CMD_RESP_NOTHING 0
+#define CMD_RESP_SHORT 1
+#define CMD_RESP_LONG 2
 
 // radio responses
 // 5 bytes responses <= 0x30

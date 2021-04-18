@@ -191,6 +191,8 @@ void set_ssb_mode(int serial_fd, int radio_type, int ssb_mode)
     int write_size = 0;
     uint8_t buffer[8];
 
+#if 0
+
     if (radio_type == RADIO_TYPE_UBITX)
     {
         if (ssb_mode == LSB)
@@ -216,7 +218,7 @@ void set_ssb_mode(int serial_fd, int radio_type, int ssb_mode)
             write(serial_fd, buffer, write_size);
        }
     }
-
+#endif
 
 }
 

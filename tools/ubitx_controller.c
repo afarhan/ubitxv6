@@ -30,14 +30,18 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
+
 #include <dirent.h>
 #include <ctype.h>
 #include <errno.h>
 #include <threads.h>
+#include <pthread.h>
 
 #include "serial.h"
 #include "ubitx_controller.h"
 #include "../common/radio_cmds.h"
+
+#include "shm.h"
 
 static bool running;
 
@@ -83,17 +87,29 @@ int cat_tester(void *arg)
 
 }
 
-int cat_rcv(void *arg)
+int cat_tx(void *arg)
 {
-    int *target_fd_ptr = (int *)arg;
-    int target_fd = *target_fd_ptr;
+    controller_conn *conn = arg;
+    int target_fd = conn->radio_fd;;
     uint8_t buf[MAX_BUF_SIZE];
 
-    int frequency;
+    pthread_mutex_lock(&conn->ptt_mutex);
 
-    if (thrd_detach(thrd_current()) != thrd_success) {
-        /* Handle error */
+    while(running)
+    {
+        pthread_cond_wait(&conn->ptt_condition, &conn->ptt_mutex);
+        write(conn->radio_fd, conn->service_command, 5);
+        // fprintf(stderr,"Sent to the radio:  0x%hhx\n", conn->service_command[0]);
     }
+
+    pthread_mutex_unlock(&conn->ptt_mutex);
+}
+
+int cat_rcv(void *arg)
+{
+    controller_conn *conn = arg;
+    int target_fd = conn->radio_fd;;
+    uint8_t buf[MAX_BUF_SIZE];
 
     fd_set fds, fds1;
     int i, cc, max;
@@ -120,119 +136,142 @@ int cat_rcv(void *arg)
                 exit(1);
             }
             fprintf(stderr, "RESP BYTE: 0x%hhx\n", buf[0]);
-            if (buf[0] <= CMD_LAST_5BYTES)
-            {
-                fprintf(stderr, "Is long answer.\n");
-                cc = read(target_fd, buf+1, 4);
-                if (cc != 4) {
-                    fprintf(stderr, "BAD!\n");
-                    // exit(1);
-                }
-            }
 
 
             switch(buf[0])
             {
-                // 1 byte responses
+                // ptt responses...
             case CMD_RESP_PTT_ON_ACK:
-                // log write ptt on ack
-                break;
             case CMD_RESP_PTT_ON_NACK:
-                // not good
-                break;
-
             case CMD_RESP_PTT_OFF_ACK:
-                // log write ptt on ack
-                break;
             case CMD_RESP_PTT_OFF_NACK:
-                // not good
+                conn->ptt_last_response = buf[0];
+                continue;
                 break;
 
-            case CMD_RESP_SET_FREQ_ACK:
-                // log
-                break;
-
-            case CMD_RESP_SET_MODE_ACK:
-                // log
-                break;
-
-            case CMD_RESP_GET_MODE_USB:
-                // log
-                break;
-
-            case CMD_RESP_GET_MODE_LSB:
-                // log
-                break;
-
-            case CMD_RESP_GET_TXRX_INTX:
-                // log
-                break;
-
-            case CMD_RESP_GET_TXRX_INRX:
-                // log
-                break;
-
-            case CMD_RESP_GET_PROTECTION_ON:
-                // log
-                break;
-            case CMD_RESP_GET_PROTECTION_OFF:
-                break;
-            case CMD_RESP_SET_MASTERCAL_ACK:
-                break;
-            case CMD_RESP_SET_BFO_ACK:
-                break;
-            case CMD_RESP_GET_LED_STATUS_ON:
-                break;
-            case CMD_RESP_GET_LED_STATUS_OFF:
-                break;
-            case CMD_RESP_SET_LED_STATUS_ACK:
-                break;
-            case CMD_RESP_GET_BYPASS_STATUS_ON:
-                break;
-            case CMD_RESP_GET_BYPASS_STATUS_OFF:
-                break;
-            case CMD_RESP_SET_BYPASS_STATUS_ACK:
-                break;
-            case CMD_RESP_WRONG_COMMAND:
-                break;
             case CMD_ALERT_PROTECTION_ON:
+                conn->protection_alert = buf[0];
+                continue;
+                break;
+
+            case CMD_RESP_WRONG_COMMAND:
+                continue;
+                break;
+
+                // 1 byte responses
+            case CMD_RESP_SET_FREQ_ACK:
+            case CMD_RESP_SET_MODE_ACK:
+            case CMD_RESP_GET_MODE_USB:
+            case CMD_RESP_GET_MODE_LSB:
+            case CMD_RESP_GET_TXRX_INTX:
+            case CMD_RESP_GET_TXRX_INRX:
+            case CMD_RESP_GET_PROTECTION_ON:
+            case CMD_RESP_GET_PROTECTION_OFF:
+            case CMD_RESP_SET_MASTERCAL_ACK:
+            case CMD_RESP_SET_BFO_ACK:
+            case CMD_RESP_GET_LED_STATUS_ON:
+            case CMD_RESP_GET_LED_STATUS_OFF:
+            case CMD_RESP_SET_LED_STATUS_ACK:
+            case CMD_RESP_GET_BYPASS_STATUS_ON:
+            case CMD_RESP_GET_BYPASS_STATUS_OFF:
+            case CMD_RESP_SET_BYPASS_STATUS_ACK:
+                conn->response_service_type = CMD_RESP_SHORT;
+                conn->response_service[0] = buf[0];
                 break;
 
                 // 5 bytes commands
             case CMD_RESP_GET_FREQ_ACK:
+#if 0
+                int frequency;
                 // memcpy (frequency, buf+1, 4);
                 memcpy(&frequency, buf+1, 4);
                 fprintf(stderr, "frequency: %d\n", frequency);
-
-                break;
+#endif
             case CMD_RESP_GET_MASTERCAL_ACK:
-                break;
             case CMD_RESP_GET_BFO_ACK:
-                break;
             case CMD_RESP_GET_FWD_ACK:
-                break;
             case CMD_RESP_GET_REF_ACK:
+                conn->response_service_type = CMD_RESP_LONG;
+                fprintf(stderr, "Is long answer.\n");
+                cc = read(target_fd, buf+1, 4);
+                if (cc != 4) {
+                    // fix this - store the data read in a buffer!
+                    fprintf(stderr, "BAD!\n");
+                    continue;
+                }
+                memcpy(conn->response_service, buf, 5);
                 break;
 
             default:
                 fprintf(stderr, "this is not supposed to happen\n");
+                continue;
 
             }
-
+            conn->response_available = 1;
         }
-
     }
 }
 
+bool initialize_message(controller_conn *connector)
+{
+    pthread_mutex_t *mutex_ptr = (pthread_mutex_t *) & connector->ptt_mutex;
+    pthread_mutexattr_t attr;
+    if (pthread_mutexattr_init(&attr)) {
+        perror("pthread_mutexattr_init");
+        return false;
+    }
+    if (pthread_mutexattr_setpshared(&attr, PTHREAD_PROCESS_SHARED)) {
+        perror("pthread_mutexattr_setpshared");
+        return false;
+    }
+
+    if (pthread_mutexattr_setrobust(&attr, PTHREAD_MUTEX_ROBUST)){
+        perror("pthread_mutexattr_setrobust");
+        return false;
+    }
+
+    if (pthread_mutex_init(mutex_ptr, &attr)) {
+        perror("pthread_mutex_init");
+        return false;
+    }
+
+    if (pthread_mutexattr_destroy(&attr)) {
+        perror("pthread_mutexattr_destroy");
+        return false;
+    }
+
+    // init the cond and mutex
+    pthread_cond_t *cond_ptr = (pthread_cond_t *) & connector->ptt_condition;
+    pthread_condattr_t cond_attr;
+    if (pthread_condattr_init(&cond_attr)) {
+        perror("pthread_condattr_init");
+        return false;
+    }
+    if (pthread_condattr_setpshared(&cond_attr, PTHREAD_PROCESS_SHARED)) {
+        perror("pthread_condattr_setpshared");
+        return false;
+    }
+
+    if (pthread_cond_init(cond_ptr, &cond_attr)) {
+        perror("pthread_cond_init");
+        return false;
+    }
+
+    if (pthread_condattr_destroy(&cond_attr)) {
+        perror("pthread_condattr_destroy");
+        return false;
+    }
+
+    connector->radio_fd = -1;
+    connector->response_available = 0;
+    connector->protection_alert = 0;
+    connector->ptt_last_response = 0;
+}
 
 int main(int argc, char *argv[])
 {
-    int ssb_mode = UNDEFINED;
     int radio_type = RADIO_TYPE_ICOM;
-    int frequency = 0;
     char serial_path[MAX_MODEM_PATH];
-    int serial_fd = -1;
-    bool tester_mode = false;
     bool cat_tester_mode = false;
 
     if (argc < 3)
@@ -242,45 +281,43 @@ int main(int argc, char *argv[])
         fprintf(stderr, "%s -h\n", argv[0]);
         fprintf(stderr, "\nOptions:\n");
         fprintf(stderr, " -s serial_device           Set the serial device file path\n");
-        fprintf(stderr, " -f frequency               Sets the dial frequency (in Hz)\n");
-        fprintf(stderr, " -c                         Run a serial test\n");
-        fprintf(stderr, " -l                         Sets LSB mode\n");
-        fprintf(stderr, " -u                         Sets USB mode\n");
+        fprintf(stderr, " -t                         Run a serial test\n");
         fprintf(stderr, " -r [icom,ubitx]            Sets radio type (supported: icom or ubitx)\n");
-        fprintf(stderr, " -t                         Runs the command tester!\n");
         fprintf(stderr, " -h                         Prints this help.\n");
         exit(EXIT_FAILURE);
     }
 
+    controller_conn *connector;
+
+    if (shm_is_created(SYSV_SHM_KEY_STR, sizeof(controller_conn)))
+    {
+        fprintf(stderr, "Connector SHM is already created!\nDestroying it and creating again.\n");
+        shm_destroy(SYSV_SHM_KEY_STR, sizeof(controller_conn));
+    }
+    shm_create(SYSV_SHM_KEY_STR, sizeof(controller_conn));
+
+    connector = shm_attach(SYSV_SHM_KEY_STR, sizeof(controller_conn));
+    // tmp_conn = connector;
+
+    initialize_message(connector);
+
     int opt;
-    while ((opt = getopt(argc, argv, "hs:cf:lur:t")) != -1)
+    while ((opt = getopt(argc, argv, "hs:tr:")) != -1)
     {
         switch (opt)
         {
         case 'h':
             goto manual;
             break;
-        case 't':
-            tester_mode = true;
-            break;
         case 's':
             strcpy(serial_path, optarg);
-            break;
-        case 'l':
-            ssb_mode = LSB;
-            break;
-        case 'u':
-            ssb_mode = USB;
             break;
         case 'r':
             // icom is the default...
             if (!strcmp(optarg,"ubitx"))
                 radio_type = RADIO_TYPE_UBITX;
             break;
-        case 'f':
-            frequency = atoi(optarg);
-            break;
-        case 'c':
+        case 't':
             cat_tester_mode = true;
             break;
         default:
@@ -288,9 +325,9 @@ int main(int argc, char *argv[])
         }
     }
 
-    serial_fd = open_serial_port(serial_path);
+    connector->radio_fd = open_serial_port(serial_path);
 
-    if (serial_fd == -1)
+    if (connector->radio_fd == -1)
     {
         fprintf(stderr, "Could not open serial device.\n");
         return EXIT_FAILURE;
@@ -298,12 +335,12 @@ int main(int argc, char *argv[])
 
     if (radio_type == RADIO_TYPE_ICOM){
         fprintf(stderr, "icom\n");
-        set_fixed_baudrate("19200", serial_fd);
+        set_fixed_baudrate("19200", connector->radio_fd);
     }
 
     if (radio_type == RADIO_TYPE_UBITX){
         fprintf(stderr, "ubitx\n");
-        set_fixed_baudrate("38400", serial_fd);
+        set_fixed_baudrate("38400", connector->radio_fd);
     }
 
     // mamma mia!!!!
@@ -314,16 +351,16 @@ int main(int argc, char *argv[])
     if (cat_tester_mode)
     {
         thrd_t rx_thread;
-        thrd_create(&rx_thread, cat_tester, &serial_fd );
+        thrd_create(&rx_thread, cat_tester, &connector->radio_fd );
 
         uint8_t i = 0;
         while(i != 255)
         {
-            write(serial_fd, &i, 1);
+            write(connector->radio_fd, &i, 1);
             sleep(1);
             i++;
         }
-        write(serial_fd, &i, 1);
+        write(connector->radio_fd, &i, 1);
 
         // first test the serial... what goes through, what goes not...
 
@@ -334,43 +371,10 @@ int main(int argc, char *argv[])
     }
 
     thrd_t rx_thread;
-    thrd_create(&rx_thread, cat_rcv, &serial_fd );
+    thrd_create(&rx_thread, cat_rcv, connector);
 
+    cat_tx((void *) connector);
 
-    if (tester_mode)
-    {
-
-        // test all the commands here...
-    }
-
-
-    //while (running)
-    {
-        // if (has_some_command...)
-
-        get_frequency(serial_fd, radio_type, &frequency);
-
-        sleep(1);
-
-        set_frequency(serial_fd, radio_type, frequency);
-
-        sleep(1);
-
-        get_frequency(serial_fd, radio_type, &frequency);
-
-//        get_mastercal(serial_fd, radio_type, &frequency);
-
-//        get_bfo(serial_fd, radio_type, &frequency);
-
-
-        if (ssb_mode != UNDEFINED)
-        {
-            set_ssb_mode(serial_fd, radio_type, ssb_mode);
-            ssb_mode = UNDEFINED;
-        }
-
-        sleep(10);
-
-    }
+    // tx_thread... cat tx
 
 }

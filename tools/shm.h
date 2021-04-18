@@ -1,5 +1,5 @@
-/* ubitx_controller
- * Copyright (C) 2021 Rhizomatica
+/* Rhizo-uuardop: Tools to integrate Ardop to UUCP
+ * Copyright (C) 2019 Rhizomatica
  * Author: Rafael Diniz <rafael@riseup.net>
  *
  * This is free software; you can redistribute it and/or modify
@@ -19,39 +19,25 @@
  *
  */
 
-#ifndef HAVE_UBITXCONTROLLER_H__
-#define HAVE_UBITXCONTROLLER_H__
 
-#include <stdatomic.h>
+#ifndef HAVE_SHM_H__
+#define HAVE_SHM_H__
 
-#define SYSV_SHM_KEY_STR 66650 // key for the controller_conn struct
+#include <stdio.h>
+#include <inttypes.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <stdbool.h>
 
+bool shm_is_created(key_t key, size_t size);
 
-typedef struct{
+// only creates if already not created!
+bool shm_create(key_t key, size_t size);
 
-    char service_command[5];
-    pthread_mutex_t ptt_mutex;
-    pthread_cond_t ptt_condition;
+bool shm_destroy(key_t key, size_t size);
 
+void *shm_attach(key_t key, size_t size);
 
-    char response_service[5];
-    atomic_bool response_service_type;
-    atomic_bool response_available;
+bool shm_dettach(key_t key, size_t size, void *ptr);
 
-    // special response for ptt
-    atomic_char ptt_last_response;
-
-    // special response for ptt
-    atomic_bool protection_alert;
-
-
-    int radio_fd;
-
-    // no guard
-    // atomic_bool connected_service;
-    // atomic_bool connected_ptt;
-
-} controller_conn;
-
-
-#endif // HAVE_UBITXCONTROLLER_H__
+#endif // HAVE_SHM_H__
