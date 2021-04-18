@@ -85,13 +85,13 @@ int cat_tester(void *arg)
 
     }
 
+    return EXIT_SUCCESS;
+
 }
 
 int cat_tx(void *arg)
 {
     controller_conn *conn = arg;
-    int target_fd = conn->radio_fd;;
-    uint8_t buf[MAX_BUF_SIZE];
 
     pthread_mutex_lock(&conn->ptt_mutex);
 
@@ -103,6 +103,8 @@ int cat_tx(void *arg)
     }
 
     pthread_mutex_unlock(&conn->ptt_mutex);
+
+    return EXIT_SUCCESS;
 }
 
 int cat_rcv(void *arg)
@@ -210,6 +212,8 @@ int cat_rcv(void *arg)
             conn->response_available = 1;
         }
     }
+
+    return EXIT_SUCCESS;
 }
 
 bool initialize_message(controller_conn *connector)
@@ -266,6 +270,8 @@ bool initialize_message(controller_conn *connector)
     connector->response_available = 0;
     connector->protection_alert = 0;
     connector->ptt_last_response = 0;
+
+    return EXIT_SUCCESS;
 }
 
 int main(int argc, char *argv[])

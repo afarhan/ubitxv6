@@ -22,6 +22,7 @@
 #ifndef HAVE_UBITXCONTROLLER_H__
 #define HAVE_UBITXCONTROLLER_H__
 
+#include <stdint.h>
 #include <stdatomic.h>
 
 #define SYSV_SHM_KEY_STR 66650 // key for the controller_conn struct
@@ -29,21 +30,20 @@
 
 typedef struct{
 
-    char service_command[5];
+    uint8_t service_command[5];
     pthread_mutex_t ptt_mutex;
     pthread_cond_t ptt_condition;
 
 
-    char response_service[5];
+    uint8_t response_service[5];
     atomic_bool response_service_type;
     atomic_bool response_available;
 
     // special response for ptt
-    atomic_char ptt_last_response;
+    atomic_uchar ptt_last_response;
 
     // special response for ptt
     atomic_bool protection_alert;
-
 
     int radio_fd;
 
