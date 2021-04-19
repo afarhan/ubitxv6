@@ -121,6 +121,9 @@ void set_fixed_baudrate(char *baudname, int target_fd)
     set_serial_baudrate(br, target_fd);
 }
 
+// old icom cruft...
+#if 0
+
 void key_on(int serial_fd, int radio_type)
 {
 
@@ -191,8 +194,6 @@ void set_ssb_mode(int serial_fd, int radio_type, int ssb_mode)
     int write_size = 0;
     uint8_t buffer[8];
 
-#if 0
-
     if (radio_type == RADIO_TYPE_UBITX)
     {
         if (ssb_mode == LSB)
@@ -218,8 +219,6 @@ void set_ssb_mode(int serial_fd, int radio_type, int ssb_mode)
             write(serial_fd, buffer, write_size);
        }
     }
-#endif
-
 }
 
 void get_ssb_mode(int serial_fd, int radio_type, int *ssb_mode)
@@ -288,3 +287,5 @@ void get_bfo(int serial_fd, int radio_type, int *frequency)
 
     write(serial_fd, buffer, write_size);
 }
+
+#endif

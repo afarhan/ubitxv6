@@ -30,6 +30,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
+#include <unistd.h>
 
 #include <dirent.h>
 #include <ctype.h>
@@ -52,7 +53,7 @@ int main(int argc, char *argv[])
     if (argc < 3)
     {
     manual:
-        fprintf(stderr, "Usage modes: \n%s -c command\n", argv[0]);
+        fprintf(stderr, "Usage modes: \n%s -c command [-a command_argument]\n", argv[0]);
         fprintf(stderr, "%s -h\n", argv[0]);
         fprintf(stderr, "\nOptions:\n");
         fprintf(stderr, " -c command                 Runs the specified command\n");
@@ -87,14 +88,206 @@ int main(int argc, char *argv[])
         }
     }
 
-    if (!strcmp(command, "set_frequency"))
+    pthread_mutex_lock(&connector->ptt_mutex);
+
+    // we clear any previous response not properly read...
+    if (connector->response_available == 1)
     {
-        
+        fprintf(stderr, "Previous queue response not read!\n");
+        connector->response_available = 0;
+    }
+
+    if (!strcmp(command, "ptt_on"))
+    {
+        connector->service_command[0] = connector->service_command[1] = connector->service_command[2] = connector->service_command[3] = 0x00;
+        connector->service_command[4] = CMD_PTT_ON;
+    }
+    else if (!strcmp(command, "ptt_off"))
+    {
+        connector->service_command[0] = connector->service_command[1] = connector->service_command[2] = connector->service_command[3] = 0x00;
+        connector->service_command[4] = CMD_PTT_OFF;
     }
     else if (!strcmp(command, "get_frequency"))
     {
-        
+        connector->service_command[0] = connector->service_command[1] = connector->service_command[2] = connector->service_command[3] = 0x00;
+        connector->service_command[4] = CMD_GET_FREQ;
+    }
+    else if (!strcmp(command, "set_frequency"))
+    {
+        uint32_t freq = (uint32_t) atoi(command_argument);
+        memcpy(connector->service_command, &freq, 4);
+        connector->service_command[4] = CMD_SET_FREQ;
+    }
+    else if (!strcmp(command, "get_mode"))
+    {
+        connector->service_command[0] = connector->service_command[1] = connector->service_command[2] = connector->service_command[3] = 0x00;
+        connector->service_command[4] = CMD_GET_MODE;
+    }
+    else if (!strcmp(command, "set_mode"))
+    {
+        if (!strcmp(command_argument, "lsb") || !strcmp(command_argument, "LSB"))
+            connector->service_command[0] = 0x00;
+
+        if (!strcmp(command_argument, "usb") || !strcmp(command_argument, "USB"))
+            connector->service_command[0] = 0x01;
+
+        connector->service_command[1] = connector->service_command[2] = connector->service_command[3] = 0x00;
+        connector->service_command[4] = CMD_SET_MODE;
+    }
+    else if (!strcmp(command, "get_txrx_status"))
+    {
+        connector->service_command[0] = connector->service_command[1] = connector->service_command[2] = connector->service_command[3] = 0x00;
+        connector->service_command[4] = CMD_GET_TXRX_STATUS;
+    }
+    else if (!strcmp(command, "get_protection_status"))
+    {
+        connector->service_command[0] = connector->service_command[1] = connector->service_command[2] = connector->service_command[3] = 0x00;
+        connector->service_command[4] = CMD_GET_PROTECTION_STATUS;
+    }
+    else if (!strcmp(command, "get_mastercal"))
+    {
+        connector->service_command[0] = connector->service_command[1] = connector->service_command[2] = connector->service_command[3] = 0x00;
+        connector->service_command[4] = CMD_GET_MASTERCAL;
+    }
+    else if (!strcmp(command, "set_mastercal"))
+    {
+        uint32_t freq = (uint32_t) atoi(command_argument);
+        memcpy(connector->service_command, &freq, 4);
+        connector->service_command[4] = CMD_SET_MASTERCAL;
+    }
+    else if (!strcmp(command, "get_bfo"))
+    {
+        connector->service_command[0] = connector->service_command[1] = connector->service_command[2] = connector->service_command[3] = 0x00;
+        connector->service_command[4] = CMD_GET_BFO;
+    }
+    else if (!strcmp(command, "set_bfo"))
+    {
+        uint32_t freq = (uint32_t) atoi(command_argument);
+        memcpy(connector->service_command, &freq, 4);
+        connector->service_command[4] = CMD_SET_BFO;
+    }
+    else if (!strcmp(command, "get_fwd"))
+    {
+        connector->service_command[0] = connector->service_command[1] = connector->service_command[2] = connector->service_command[3] = 0x00;
+        connector->service_command[4] = CMD_GET_FWD;
+    }
+    else if (!strcmp(command, "get_ref"))
+    {
+        connector->service_command[0] = connector->service_command[1] = connector->service_command[2] = connector->service_command[3] = 0x00;
+        connector->service_command[4] = CMD_GET_REF;
+    }
+    else if (!strcmp(command, "get_led_status"))
+    {
+        connector->service_command[0] = connector->service_command[1] = connector->service_command[2] = connector->service_command[3] = 0x00;
+        connector->service_command[4] = CMD_GET_LED_STATUS;
+    }
+    else if (!strcmp(command, "set_led_status"))
+    {
+        if (!strcmp(command_argument, "1") || !strcmp(command_argument, "true") || !strcmp(command_argument, "on"))
+            connector->service_command[0] = 0x01;
+
+        if (!strcmp(command_argument, "0") || !strcmp(command_argument, "false") || !strcmp(command_argument, "off"))
+            connector->service_command[0] = 0x00;
+
+        connector->service_command[1] = connector->service_command[2] = connector->service_command[3] = 0x00;
+        connector->service_command[4] = CMD_SET_LED_STATUS;
+    }
+    else if (!strcmp(command, "get_bypass_status"))
+    {
+        connector->service_command[0] = connector->service_command[1] = connector->service_command[2] = connector->service_command[3] = 0x00;
+        connector->service_command[4] = CMD_GET_BYPASS_STATUS;
+    }
+    else if (!strcmp(command, "set_bypass_status"))
+    {
+        if (!strcmp(command_argument, "1") || !strcmp(command_argument, "true") || !strcmp(command_argument, "on"))
+            connector->service_command[0] = 0x01;
+
+        if (!strcmp(command_argument, "0") || !strcmp(command_argument, "false") || !strcmp(command_argument, "off"))
+            connector->service_command[0] = 0x00;
+
+        connector->service_command[1] = connector->service_command[2] = connector->service_command[3] = 0x00;
+        connector->service_command[4] = CMD_SET_BYPASS_STATUS;
     }
 
+    pthread_cond_signal(&connector->ptt_condition);
+    pthread_mutex_unlock(&connector->ptt_mutex);
+
+    // if command == ptt... just exit... and print an OK
+    int tries = 0;
+    while (connector->response_available == 0 && tries < 20)
+    {
+        usleep(50000); // 50 ms
+        tries++;
+    }
+
+    if (connector->response_available == 0)
+        printf("ERROR\n");
+    else
+    {
+        uint32_t freq;
+
+        switch(connector->response_service[0])
+        {
+        case CMD_RESP_SET_FREQ_ACK:
+        case CMD_RESP_SET_MODE_ACK:
+        case CMD_RESP_SET_MASTERCAL_ACK:
+        case CMD_RESP_SET_BFO_ACK:
+        case CMD_RESP_SET_LED_STATUS_ACK:
+        case CMD_RESP_SET_BYPASS_STATUS_ACK:
+            printf("OK\n");
+            break;
+            // continue here...
+        case CMD_RESP_GET_MODE_USB:
+            printf("USB\n");
+            break;
+        case CMD_RESP_GET_MODE_LSB:
+            printf("LSB\n");
+            break;
+        case CMD_RESP_GET_TXRX_INTX:
+            printf("INTX\n");
+            break;
+        case CMD_RESP_GET_TXRX_INRX:
+            printf("INRX\n");
+            break;
+        case CMD_RESP_GET_PROTECTION_ON:
+            printf("PROTECTION_ON\n");
+            break;
+        case CMD_RESP_GET_PROTECTION_OFF:
+            printf("PROTECTION_OFF\n");
+            break;
+        case CMD_RESP_GET_BYPASS_STATUS_ON:
+            printf("BYPASS_ON\n");
+            break;
+        case CMD_RESP_GET_BYPASS_STATUS_OFF:
+            printf("BYPASS_OFF\n");
+            break;
+        case CMD_RESP_GET_FREQ_ACK:
+            memcpy (&freq, connector->response_service+1, 4);
+            printf("%u\n", freq);
+            break;
+        case CMD_RESP_GET_MASTERCAL_ACK:
+            memcpy (&freq, connector->response_service+1, 4);
+            printf("%u\n", freq);
+            break;
+        case CMD_RESP_GET_BFO_ACK:
+            memcpy (&freq, connector->response_service+1, 4);
+            printf("%u\n", freq);
+            break;
+        case CMD_RESP_GET_FWD_ACK:
+            memcpy (&freq, connector->response_service+1, 4);
+            printf("%u\n", freq);
+            break;
+        case CMD_RESP_GET_REF_ACK:
+            memcpy (&freq, connector->response_service+1, 4);
+            printf("%u\n", freq);
+            break;
+        case CMD_RESP_WRONG_COMMAND:
+        default:
+            printf("ERROR\n");
+        }
+
+        connector->response_available = 0;
+
+    }
 
 }

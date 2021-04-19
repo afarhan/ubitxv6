@@ -276,14 +276,14 @@ bool initialize_message(controller_conn *connector)
 
 int main(int argc, char *argv[])
 {
-    int radio_type = RADIO_TYPE_ICOM;
+    int radio_type = RADIO_TYPE_UBITX;
     char serial_path[MAX_MODEM_PATH];
     bool cat_tester_mode = false;
 
     if (argc < 3)
     {
     manual:
-        fprintf(stderr, "Usage modes: \n%s -s serial_device -r [icom,ubitx] -f frequency [-u -l] -c [on,off]\n", argv[0]);
+        fprintf(stderr, "Usage modes: \n%s -s serial_device -r [icom,ubitx]\n", argv[0]);
         fprintf(stderr, "%s -h\n", argv[0]);
         fprintf(stderr, "\nOptions:\n");
         fprintf(stderr, " -s serial_device           Set the serial device file path\n");
@@ -319,9 +319,9 @@ int main(int argc, char *argv[])
             strcpy(serial_path, optarg);
             break;
         case 'r':
-            // icom is the default...
-            if (!strcmp(optarg,"ubitx"))
-                radio_type = RADIO_TYPE_UBITX;
+            // ubitx is the default...
+            if (!strcmp(optarg,"icom"))
+                radio_type = RADIO_TYPE_ICOM;
             break;
         case 't':
             cat_tester_mode = true;

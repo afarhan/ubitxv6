@@ -30,11 +30,13 @@
 #define RADIO_TYPE_ICOM 0
 #define RADIO_TYPE_UBITX 1
 
-void key_on(int serial_fd, int radio_type);
-void key_off(int serial_fd, int radio_type);
-
 int open_serial_port(char *ttyport);
 void set_fixed_baudrate(char *baudname, int target_fd);
+
+// old cruft, please remove-me
+#if 0
+void key_on(int serial_fd, int radio_type);
+void key_off(int serial_fd, int radio_type);
 
 void set_ssb_mode(int serial_fd, int radio_type, int ssb_mode);
 void get_ssb_mode(int serial_fd, int radio_type, int *ssb_mode);
@@ -45,5 +47,6 @@ void get_frequency(int serial_fd, int radio_type, int *frequency);
 void get_mastercal(int serial_fd, int radio_type, int *frequency);
 
 void get_bfo(int serial_fd, int radio_type, int *frequency);
+#endif
 
 #endif // HAVE_SERIAL_H__

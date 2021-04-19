@@ -33,8 +33,8 @@
 #define CMD_GET_FREQ 0xfb
 #define CMD_SET_FREQ 0xfc
 
-#define CMD_SET_MODE 0x07
 #define CMD_GET_MODE 0xf0
+#define CMD_SET_MODE 0x07
 
 #define CMD_GET_TXRX_STATUS 0xf1
 
