@@ -49,6 +49,7 @@ int main(int argc, char *argv[])
     controller_conn *connector = NULL;
     char command[64];
     char command_argument[64];
+    bool is_ptt = false;
 
     if (argc < 3)
     {
@@ -101,11 +102,13 @@ int main(int argc, char *argv[])
     {
         connector->service_command[0] = connector->service_command[1] = connector->service_command[2] = connector->service_command[3] = 0x00;
         connector->service_command[4] = CMD_PTT_ON;
+        is_ptt = true;
     }
     else if (!strcmp(command, "ptt_off"))
     {
         connector->service_command[0] = connector->service_command[1] = connector->service_command[2] = connector->service_command[3] = 0x00;
         connector->service_command[4] = CMD_PTT_OFF;
+        is_ptt = true;
     }
     else if (!strcmp(command, "get_frequency"))
     {
@@ -212,7 +215,25 @@ int main(int argc, char *argv[])
     pthread_cond_signal(&connector->ptt_condition);
     pthread_mutex_unlock(&connector->ptt_mutex);
 
-    // if command == ptt... just exit... and print an OK
+    if (is_ptt)
+    {
+        switch (connector->ptt_last_response)
+        {
+        case CMD_RESP_PTT_ON_ACK:
+        case CMD_RESP_PTT_OFF_ACK:
+            printf("OK\n");
+            break;
+        case CMD_RESP_PTT_ON_NACK:
+        case CMD_RESP_PTT_OFF_NACK:
+            printf("NOK\n");
+            break;
+        default:
+            printf("ERROR");
+        }
+        return EXIT_SUCCESS;
+    }
+
+
     int tries = 0;
     while (connector->response_available == 0 && tries < 20)
     {

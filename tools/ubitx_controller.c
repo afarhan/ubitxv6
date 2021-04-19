@@ -157,8 +157,8 @@ int cat_rcv(void *arg)
                 break;
 
             case CMD_RESP_WRONG_COMMAND:
-                continue;
-                break;
+                // continue;
+                // break;
 
                 // 1 byte responses
             case CMD_RESP_SET_FREQ_ACK:
