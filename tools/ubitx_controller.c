@@ -269,7 +269,7 @@ bool initialize_message(controller_conn *connector)
     connector->radio_fd = -1;
     connector->response_available = 0;
     connector->protection_alert = 0;
-    connector->ptt_last_response = 0;
+    connector->ptt_last_response = CMD_RESP_PTT_OFF_ACK;
 
     return EXIT_SUCCESS;
 }

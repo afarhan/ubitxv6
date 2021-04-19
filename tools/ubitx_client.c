@@ -186,10 +186,10 @@ int main(int argc, char *argv[])
     }
     else if (!strcmp(command, "set_led_status"))
     {
-        if (!strcmp(command_argument, "1") || !strcmp(command_argument, "true") || !strcmp(command_argument, "on"))
+        if (!strcmp(command_argument, "1") || !strcmp(command_argument, "true") || !strcmp(command_argument, "on") || !strcmp(command_argument, "ON"))
             connector->service_command[0] = 0x01;
 
-        if (!strcmp(command_argument, "0") || !strcmp(command_argument, "false") || !strcmp(command_argument, "off"))
+        if (!strcmp(command_argument, "0") || !strcmp(command_argument, "false") || !strcmp(command_argument, "off") || !strcmp(command_argument, "OFF"))
             connector->service_command[0] = 0x00;
 
         connector->service_command[1] = connector->service_command[2] = connector->service_command[3] = 0x00;
@@ -202,10 +202,10 @@ int main(int argc, char *argv[])
     }
     else if (!strcmp(command, "set_bypass_status"))
     {
-        if (!strcmp(command_argument, "1") || !strcmp(command_argument, "true") || !strcmp(command_argument, "on"))
+        if (!strcmp(command_argument, "1") || !strcmp(command_argument, "true") || !strcmp(command_argument, "on") || !strcmp(command_argument, "ON"))
             connector->service_command[0] = 0x01;
 
-        if (!strcmp(command_argument, "0") || !strcmp(command_argument, "false") || !strcmp(command_argument, "off"))
+        if (!strcmp(command_argument, "0") || !strcmp(command_argument, "false") || !strcmp(command_argument, "off") || !strcmp(command_argument, "OFF"))
             connector->service_command[0] = 0x00;
 
         connector->service_command[1] = connector->service_command[2] = connector->service_command[3] = 0x00;
@@ -228,7 +228,7 @@ int main(int argc, char *argv[])
             printf("NOK\n");
             break;
         default:
-            printf("ERROR");
+            printf("ERROR\n");
         }
         return EXIT_SUCCESS;
     }
@@ -269,6 +269,12 @@ int main(int argc, char *argv[])
             break;
         case CMD_RESP_GET_TXRX_INRX:
             printf("INRX\n");
+            break;
+        case CMD_RESP_GET_LED_STATUS_OFF:
+            printf("LED_OFF\n");
+            break;
+        case CMD_RESP_GET_LED_STATUS_ON:
+            printf("LED_ON\n");
             break;
         case CMD_RESP_GET_PROTECTION_ON:
             printf("PROTECTION_ON\n");
