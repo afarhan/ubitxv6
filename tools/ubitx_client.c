@@ -246,6 +246,7 @@ int main(int argc, char *argv[])
     else
     {
         uint32_t freq;
+        uint16_t measure;
 
         switch(connector->response_service[0])
         {
@@ -301,12 +302,12 @@ int main(int argc, char *argv[])
             printf("%u\n", freq);
             break;
         case CMD_RESP_GET_FWD_ACK:
-            memcpy (&freq, connector->response_service+1, 4);
-            printf("%u\n", freq);
+            memcpy (&measure, connector->response_service+1, 2);
+            printf("%hu\n", measure);
             break;
         case CMD_RESP_GET_REF_ACK:
-            memcpy (&freq, connector->response_service+1, 4);
-            printf("%u\n", freq);
+            memcpy (&measure, connector->response_service+1, 2);
+            printf("%hu\n", measure);
             break;
         case CMD_RESP_WRONG_COMMAND:
         default:
