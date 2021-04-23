@@ -210,6 +210,10 @@ int main(int argc, char *argv[])
 
         connector->service_command[1] = connector->service_command[2] = connector->service_command[3] = 0x00;
         connector->service_command[4] = CMD_SET_BYPASS_STATUS;
+    } else
+    {
+        printf("ERROR\n");
+        return EXIT_SUCCESS;
     }
 
     pthread_cond_signal(&connector->ptt_condition);
