@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
 
     if (shm_is_created(SYSV_SHM_KEY_STR, sizeof(controller_conn)) == false)
     {
-        fprintf(stderr, "Connector SHM not created. Is uuardopd running?\n");
+        fprintf(stderr, "Connector SHM not created. Is ubitx_controller running?\n");
         return EXIT_FAILURE;
     }
     connector = shm_attach(SYSV_SHM_KEY_STR, sizeof(controller_conn));
