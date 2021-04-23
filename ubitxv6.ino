@@ -370,7 +370,7 @@ void checkSWRProtection()
     // and Mini’s A6 and A7 pins, which can only be used as analog inputs.
 
     // adjust this...
-    if (reading > 100)
+    if (reading > 1000)
         is_swr_protect_enabled = true;
     else
         is_swr_protect_enabled = false;
