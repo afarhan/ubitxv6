@@ -152,6 +152,7 @@ void saveVFOs();
 
 void switchVFO(int vfoSelect);
 
+void checkTimers();
 void checkSWRProtection();
 void checkFWD();
 void checkREF();

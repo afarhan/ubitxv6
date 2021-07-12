@@ -152,7 +152,8 @@ int cat_rcv(void *arg)
                 break;
 
             case CMD_ALERT_PROTECTION_ON:
-                conn->protection_alert = buf[0];
+                conn->ptt_last_response = buf[0];
+                conn->protection_alert = 1;
                 continue;
                 break;
 

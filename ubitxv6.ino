@@ -418,8 +418,11 @@ void setSerial(unsigned long serial_nr)
 
 void triggerProtectionReset()
 {
-    digitalWrite(PROT_RESET, 1);
-    protection_reset_ongoing = 1;
+    if (protection_reset_ongoing == 0)
+    {
+        digitalWrite(PROT_RESET, 1);
+        protection_reset_ongoing = 1;
+    }
 }
 
 void checkTimers()

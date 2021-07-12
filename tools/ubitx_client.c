@@ -236,6 +236,9 @@ int main(int argc, char *argv[])
         case CMD_RESP_PTT_OFF_NACK:
             printf("NOK\n");
             break;
+        case CMD_ALERT_PROTECTION_ON:
+            printf("SWR\n");
+            break;
         default:
             printf("ERROR\n");
         }

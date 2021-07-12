@@ -42,14 +42,10 @@ typedef struct{
     // special response for ptt
     atomic_uchar ptt_last_response;
 
-    // special response for ptt
+    // Protection alert ON!
     atomic_bool protection_alert;
 
     int radio_fd;
-
-    // no guard
-    // atomic_bool connected_service;
-    // atomic_bool connected_ptt;
 
 } controller_conn;
 

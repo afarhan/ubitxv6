@@ -121,6 +121,5 @@
 
 #define CMD_RESP_WRONG_COMMAND 0xc0
 
-//
-// autonomous commands from the radio
+// used for PTT responses
 #define CMD_ALERT_PROTECTION_ON 0xe7

@@ -48,23 +48,34 @@ void processCATCommand(byte* cmd)
 
     switch(cmd[4]){
 
-        // TODO: Do not activate PTT if protection is ON!
     case CMD_PTT_ON: // PTT On
-        if (!inTx) {
+        if (is_swr_protect_enabled)
+        {
+            response[0] = CMD_ALERT_PROTECTION_ON;
+        }
+        else if (!inTx)
+        {
             response[0] = CMD_RESP_PTT_ON_ACK;
             startTx();
-        } else {
+        } else
+        {
             response[0] = CMD_RESP_PTT_ON_NACK;
         }
         Serial.write(response,1);
         break;
 
     case CMD_PTT_OFF: // PTT OFF
-        if (inTx) {
+        if (is_swr_protect_enabled)
+        {
+            response[0] = CMD_ALERT_PROTECTION_ON;
+        }
+        else if (inTx)
+        {
             response[0] = CMD_RESP_PTT_OFF_ACK;
             stopTx();
         }
-        else {
+        else
+        {
             response[0] = CMD_RESP_PTT_OFF_NACK;
         }
         Serial.write(response,1);
