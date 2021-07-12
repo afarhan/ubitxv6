@@ -219,6 +219,11 @@ void setFrequency(unsigned long f){
  */
 
 void startTx(){
+
+    // we do not start the tx if protection is on!
+    if (is_swr_protect_enabled == true)
+        return;
+
     digitalWrite(TX_RX, 1);
     inTx = 1;
 
@@ -383,7 +388,11 @@ void checkSWRProtection()
 
     // adjust this...
     if (reading > 1000)
+    {
         is_swr_protect_enabled = true;
+        if (inTx)
+            stopTx();
+    }
     else
         is_swr_protect_enabled = false;
 }
