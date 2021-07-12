@@ -20,9 +20,9 @@ argument type and possible responses.
   * No Argument
   * Resp: OK | NOK | SWR | ERROR
 
- * ptt_off
+* ptt_off
   * No Argument
-  * Resp: OK | NOK | ERROR
+  * Resp: OK | NOK | SWR | ERROR
 
 * get_frequency
   * No Argument
