@@ -20,7 +20,7 @@ argument type and possible responses.
   * No Argument
   * Resp: OK | NOK | SWR | ERROR
 
- * ptt_off No argument
+ * ptt_off
   * No Argument
   * Resp: OK | NOK | ERROR
 
@@ -65,23 +65,40 @@ argument type and possible responses.
   * Resp: OK | ERROR
 
 * get_fwd
+  * No Argument
+  * Resp: Power | ERROR
 
 * get_ref
+  * No Argument
+  * Resp: Power | ERROR
 
 * get_led_status
+  * No Argument
+  * Resp: LED_ON | LED_OFF | ERROR
 
 * set_led_status
+  * 0 | 1
+  * Resp: OK | ERROR
 
 * get_bypass_status
+  * No Argument
+  * Resp: BYPASS_ON | BYPASS_OFF | ERROR
 
 * set_bypass_status
+  * 0 | 1
+  * Resp: OK | ERROR
 
 * get_serial
+  * No Argument
+  * Resp: Serial | ERROR
 
 * set_serial
+  * Serial
+  * Resp: OK | ERROR
 
-*reset_protection
-
+* reset_protection
+  * No Argument
+  * Resp: OK | ERROR
 
 ## Author
 
