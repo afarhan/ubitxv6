@@ -70,6 +70,12 @@ void processCATCommand(byte* cmd)
         Serial.write(response,1);
         break;
 
+    case CMD_RESET_PROTECTION: // RESET PROTECTION
+        response[0] = CMD_RESP_RESET_PROTECTION_ACK;
+        triggerProtectionReset();
+        Serial.write(response,1);
+        break;
+
     case CMD_GET_FREQ: // GET FREQUENCY
         response[0] = CMD_RESP_GET_FREQ_ACK;
         memcpy(response+1, &frequency, 4);
@@ -84,7 +90,6 @@ void processCATCommand(byte* cmd)
         Serial.write(response,1);
         break;
 
-
     case CMD_SET_MODE: // set mode
         if (cmd[0] == 0x00 || cmd[0] == 0x03)
             isUSB = 0;
@@ -97,7 +102,6 @@ void processCATCommand(byte* cmd)
         response[0] = CMD_RESP_SET_MODE_ACK;
         Serial.write(response, 1);
         break;
-
 
     case CMD_GET_MODE: // GET SSB MODE
         if (isUSB)
@@ -186,6 +190,19 @@ void processCATCommand(byte* cmd)
     case CMD_SET_BYPASS_STATUS: // SET BYPASS STATUS
         setPAbypass(cmd[0]);
         response[0] = CMD_RESP_SET_BYPASS_STATUS_ACK;
+        Serial.write(response,1);
+        break;
+
+    case CMD_GET_SERIAL: // GET SERIAL NUMBER
+        response[0] = CMD_RESP_GET_SERIAL_ACK;
+        memcpy(response+1, &serial, 4);
+        Serial.write(response,5);
+      break;
+
+    case CMD_SET_SERIAL: // SET SERIAL NUMBER
+        memcpy(&serial, cmd, 4);
+        setSerial(serial);
+        response[0] = CMD_RESP_SET_SERIAL_ACK;
         Serial.write(response,1);
         break;
 

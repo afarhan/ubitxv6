@@ -98,21 +98,22 @@ int main(int argc, char *argv[])
         connector->response_available = 0;
     }
 
+    connector->service_command[0] = connector->service_command[1] =
+        connector->service_command[2] = connector->service_command[3] =
+        connector->service_command[4] = 0x00;
+
     if (!strcmp(command, "ptt_on"))
     {
-        connector->service_command[0] = connector->service_command[1] = connector->service_command[2] = connector->service_command[3] = 0x00;
         connector->service_command[4] = CMD_PTT_ON;
         is_ptt = true;
     }
     else if (!strcmp(command, "ptt_off"))
     {
-        connector->service_command[0] = connector->service_command[1] = connector->service_command[2] = connector->service_command[3] = 0x00;
         connector->service_command[4] = CMD_PTT_OFF;
         is_ptt = true;
     }
     else if (!strcmp(command, "get_frequency"))
     {
-        connector->service_command[0] = connector->service_command[1] = connector->service_command[2] = connector->service_command[3] = 0x00;
         connector->service_command[4] = CMD_GET_FREQ;
     }
     else if (!strcmp(command, "set_frequency"))
@@ -123,7 +124,6 @@ int main(int argc, char *argv[])
     }
     else if (!strcmp(command, "get_mode"))
     {
-        connector->service_command[0] = connector->service_command[1] = connector->service_command[2] = connector->service_command[3] = 0x00;
         connector->service_command[4] = CMD_GET_MODE;
     }
     else if (!strcmp(command, "set_mode"))
@@ -134,22 +134,18 @@ int main(int argc, char *argv[])
         if (!strcmp(command_argument, "usb") || !strcmp(command_argument, "USB"))
             connector->service_command[0] = 0x01;
 
-        connector->service_command[1] = connector->service_command[2] = connector->service_command[3] = 0x00;
         connector->service_command[4] = CMD_SET_MODE;
     }
     else if (!strcmp(command, "get_txrx_status"))
     {
-        connector->service_command[0] = connector->service_command[1] = connector->service_command[2] = connector->service_command[3] = 0x00;
         connector->service_command[4] = CMD_GET_TXRX_STATUS;
     }
     else if (!strcmp(command, "get_protection_status"))
     {
-        connector->service_command[0] = connector->service_command[1] = connector->service_command[2] = connector->service_command[3] = 0x00;
         connector->service_command[4] = CMD_GET_PROTECTION_STATUS;
     }
     else if (!strcmp(command, "get_mastercal"))
     {
-        connector->service_command[0] = connector->service_command[1] = connector->service_command[2] = connector->service_command[3] = 0x00;
         connector->service_command[4] = CMD_GET_MASTERCAL;
     }
     else if (!strcmp(command, "set_mastercal"))
@@ -160,7 +156,6 @@ int main(int argc, char *argv[])
     }
     else if (!strcmp(command, "get_bfo"))
     {
-        connector->service_command[0] = connector->service_command[1] = connector->service_command[2] = connector->service_command[3] = 0x00;
         connector->service_command[4] = CMD_GET_BFO;
     }
     else if (!strcmp(command, "set_bfo"))
@@ -171,17 +166,14 @@ int main(int argc, char *argv[])
     }
     else if (!strcmp(command, "get_fwd"))
     {
-        connector->service_command[0] = connector->service_command[1] = connector->service_command[2] = connector->service_command[3] = 0x00;
         connector->service_command[4] = CMD_GET_FWD;
     }
     else if (!strcmp(command, "get_ref"))
     {
-        connector->service_command[0] = connector->service_command[1] = connector->service_command[2] = connector->service_command[3] = 0x00;
         connector->service_command[4] = CMD_GET_REF;
     }
     else if (!strcmp(command, "get_led_status"))
     {
-        connector->service_command[0] = connector->service_command[1] = connector->service_command[2] = connector->service_command[3] = 0x00;
         connector->service_command[4] = CMD_GET_LED_STATUS;
     }
     else if (!strcmp(command, "set_led_status"))
@@ -192,12 +184,10 @@ int main(int argc, char *argv[])
         if (!strcmp(command_argument, "0") || !strcmp(command_argument, "false") || !strcmp(command_argument, "off") || !strcmp(command_argument, "OFF"))
             connector->service_command[0] = 0x00;
 
-        connector->service_command[1] = connector->service_command[2] = connector->service_command[3] = 0x00;
         connector->service_command[4] = CMD_SET_LED_STATUS;
     }
     else if (!strcmp(command, "get_bypass_status"))
     {
-        connector->service_command[0] = connector->service_command[1] = connector->service_command[2] = connector->service_command[3] = 0x00;
         connector->service_command[4] = CMD_GET_BYPASS_STATUS;
     }
     else if (!strcmp(command, "set_bypass_status"))
@@ -208,9 +198,24 @@ int main(int argc, char *argv[])
         if (!strcmp(command_argument, "0") || !strcmp(command_argument, "false") || !strcmp(command_argument, "off") || !strcmp(command_argument, "OFF"))
             connector->service_command[0] = 0x00;
 
-        connector->service_command[1] = connector->service_command[2] = connector->service_command[3] = 0x00;
         connector->service_command[4] = CMD_SET_BYPASS_STATUS;
-    } else
+    }
+    else if (!strcmp(command, "get_serial"))
+    {
+        connector->service_command[4] = CMD_GET_SERIAL;
+    }
+    else if (!strcmp(command, "set_serial"))
+    {
+        uint32_t serial = (uint32_t) atoi(command_argument);
+        memcpy(connector->service_command, &serial, 4);
+        connector->service_command[4] = CMD_SET_SERIAL;
+    }
+    else if (!strcmp(command, "reset_protection"))
+    {
+        connector->service_command[4] = CMD_RESET_PROTECTION;
+    }
+
+ else
     {
         printf("ERROR\n");
         return EXIT_SUCCESS;
@@ -250,6 +255,7 @@ int main(int argc, char *argv[])
     else
     {
         uint32_t freq;
+        uint32_t serial;
         uint16_t measure;
 
         switch(connector->response_service[0])
@@ -260,6 +266,8 @@ int main(int argc, char *argv[])
         case CMD_RESP_SET_BFO_ACK:
         case CMD_RESP_SET_LED_STATUS_ACK:
         case CMD_RESP_SET_BYPASS_STATUS_ACK:
+        case CMD_RESP_SET_SERIAL_ACK:
+        case CMD_RESP_RESET_PROTECTION_ACK:
             printf("OK\n");
             break;
             // continue here...
@@ -300,6 +308,10 @@ int main(int argc, char *argv[])
         case CMD_RESP_GET_MASTERCAL_ACK:
             memcpy (&freq, connector->response_service+1, 4);
             printf("%u\n", freq);
+            break;
+        case CMD_RESP_GET_SERIAL_ACK:
+            memcpy (&serial, connector->response_service+1, 4);
+            printf("%u\n", serial);
             break;
         case CMD_RESP_GET_BFO_ACK:
             memcpy (&freq, connector->response_service+1, 4);

@@ -9,7 +9,7 @@
  *
  */
 
-#define NOT_USED    (A0)        // -
+#define PROT_RESET  (A0)        // Command to reset the protection
 #define SWR_PROT    (A1)        // SWR Protection enabled!
 #define BY_PASS     (A2)        // PA by-pass
 #define LED_CONTROL (A3)        // LED control light
@@ -54,19 +54,6 @@
 1   VCC       VCC
 **/
 
-/**
- * The Arduino, unlike C/C++ on a regular computer with gigabytes of RAM, has very little memory.
- * We have to be very careful with variables that are declared inside the functions as they are 
- * created in a memory region called the stack. The stack has just a few bytes of space on the Arduino
- * if you declare large strings inside functions, they can easily exceed the capacity of the stack
- * and mess up your programs. 
- * We circumvent this by declaring a few global buffers as  kitchen counters where we can 
- * slice and dice our strings. These strings are mostly used to control the display or handle
- * the input and output from the USB port. We must keep a count of the bytes used while reading
- * the serial port as we can easily run out of buffer space. This is done in the serial_in_count variable.
- */
-extern char c[30], b[30];
-
 /** 
  *  The second set of 16 pins on the Raduino's bottom connector are have the three clock outputs and the digital lines to control the rig.
  *  This assignment is as follows :
@@ -87,14 +74,10 @@ extern char c[30], b[30];
 #define VFO 12
 #define VFO_MODE  16 // 2: LSB, 3: USB
 #define BYPASS_STATE 20 // 1- bypass
-
-//These are defines for the new features back-ported from KD8CEC's software
-//these start from beyond 256 as Ian, KD8CEC has kept the first 256 bytes free for the base version
+#define SERIAL_NR 24 // serial number
 
 
-
-
-//values that are stroed for the VFO modes
+// values stored for VFO modes
 #define VFO_MODE_LSB 2
 #define VFO_MODE_USB 3
 
@@ -124,6 +107,10 @@ extern char c[30], b[30];
 // used to signal no reading made...
 #define NO_MEASURE 65535
 
+#define SENSORS_READ_FREQ 200 // ms
+
+# define PROTECTION_RESET_DUR 3000 // ms
+
 extern uint32_t usbCarrier;
 extern uint32_t frequency;  //frequency is the current frequency on the dial
 extern uint32_t firstIF;
@@ -147,12 +134,16 @@ extern uint16_t forward;
 
 extern uint8_t led_status;
 
+extern boolean protection_reset_ongoing;
+
+extern uint32_t serial;
+extern uint32_t milisec_count;
+
 /* these are functions implemented in the main file named as ubitx_xxx.ino */
 
 void setFrequency(unsigned long f);
 void startTx();
 void stopTx();
-
 
 // eeprom stuff
 void setMasterCal(int32_t calibration_offset);
@@ -166,6 +157,8 @@ void checkFWD();
 void checkREF();
 void setLed(boolean enabled);
 void setPAbypass(boolean enabled);
+void triggerProtectionReset();
+void setSerial(unsigned long serial_nr);
 
 /* these are functiosn implemented in ubitx_si5351.cpp */
 void si5351bx_setfreq(uint8_t clknum, uint32_t fout);

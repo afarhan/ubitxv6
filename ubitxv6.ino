@@ -62,11 +62,11 @@
  *      Pin 4 (Yellow), Gnd
  *      Pin 5 (Orange), A3, LED Control output
  *      Pin 6 (Red),    A2, BY-PASS CONTROL output
- *      Pin 7 (Brown),  A1, SWR protection input
- *      Pin 8 (Black),  A0, UNUSED
+ *      Pin 7 (Brown),  A1, PROTECTION STATUS input
+ *      Pin 8 (Black),  A0, PROTECTION RESET output
 
- *Note: A5, A4 are wired to the Si5351 as I2C interface 
- *       *     
+ *Note: A5, A4 are wired to the Si5351 as I2C interface
+ *       *
  */
 
 #include <Wire.h>
@@ -74,14 +74,11 @@
 #include "ubitx.h"
 #include "ubitx_cat.h"
 
-char c[30], b[30];
-
 uint32_t usbCarrier; // bfo
 uint32_t frequency = 7150000UL; //frequency is the current frequency on the dial
 uint32_t firstIF   = 45005000UL;
 
 extern int32_t calibration; // main calibration offset
-
 
 /**
  * Raduino needs to keep track of current state of the transceiver. These are a few variables that do it
@@ -99,6 +96,10 @@ uint16_t forward;
 
 uint8_t led_status;
 
+boolean protection_reset_ongoing;
+
+uint32_t serial;
+uint32_t milisec_count;
 
 /**
  * Below are the basic functions that control the uBitx. Understanding the functions before 
@@ -145,7 +146,7 @@ void saveVFOs(){
  * - When KT1 is ON, it routes the PA output to KT2. Which is why you will see that
  *   the KT1 is on for the three other cases.
  * - When the KT1 is ON and KT2 is off, the off position of KT2 routes the PA output
- *   to 18 MHz LPF (That also works for 14 Mhz) 
+ *   to 18 MHz LPF (That also works for 14 Mhz)
  * - When KT1 is On, KT2 is On, it routes the PA output to KT3
  * - KT3, when switched on selects the 7-10 Mhz filter
  * - KT3 when switched off selects the 3.5-5 Mhz filter
@@ -291,28 +292,38 @@ void initSettings(){
         isUSB = 0;
     }
 
+    EEPROM.get(SERIAL_NR, serial);
+
     // we start with the led off
     led_status = 0;
-
     is_swr_protect_enabled = false;
+    protection_reset_ongoing = 0;
 }
 
-void initPorts(){
+void initTimers()
+{
+    milisec_count = millis();
+}
+
+
+void initPorts()
+{
 
   analogReference(DEFAULT);
-
-//  pinMode(PTT, INPUT_PULLUP);
 
   pinMode(SWR_PROT, INPUT);
 
   pinMode(ANALOG_FWD, INPUT);
   pinMode(ANALOG_REF, INPUT);
 
+  pinMode(PROT_RESET, OUTPUT) ;
+  digitalWrite(BY_PASS, 0);
+
   pinMode(BY_PASS, OUTPUT);
-  digitalWrite(BY_PASS, by_pass ? HIGH : LOW);
+  digitalWrite(BY_PASS, by_pass ? 1 : 0);
 
   pinMode(LED_CONTROL, OUTPUT);
-  digitalWrite(LED_CONTROL, led_status ? HIGH : LOW);
+  digitalWrite(LED_CONTROL, led_status ? 1 : 0);
 
   pinMode(CW_TONE, OUTPUT);
   digitalWrite(CW_TONE, 0);
@@ -341,6 +352,7 @@ void setup()
   initPorts();
   initOscillators();
   setFrequency(frequency);
+  initTimers();
 }
 
 
@@ -381,6 +393,7 @@ void setLed(boolean enabled)
     led_status = enabled;
     digitalWrite(LED_CONTROL, led_status ? HIGH : LOW);
 }
+
 void setPAbypass(boolean enabled)
 {
     by_pass = enabled;
@@ -388,29 +401,86 @@ void setPAbypass(boolean enabled)
     EEPROM.put(BYPASS_STATE, by_pass);
 }
 
+void setSerial(unsigned long serial_nr)
+{
+    serial = serial_nr;
+    EEPROM.put(SERIAL_NR, serial);
+}
+
+void triggerProtectionReset()
+{
+    digitalWrite(PROT_RESET, 1);
+    protection_reset_ongoing = 1;
+}
+
+void checkTimers()
+{
+    static uint32_t elapsed_time;
+
+    // some offsets to spread the I/O in time...
+    static int32_t fwd_timer = SENSORS_READ_FREQ; // 200 ms
+    static int32_t ref_timer = SENSORS_READ_FREQ - 100; // 200 ms
+    static int32_t protection_timer = SENSORS_READ_FREQ - 200; // 200 ms
+
+    static int32_t protection_reset_timer = PROTECTION_RESET_DUR; // 3000 ms
+
+    elapsed_time = millis() - milisec_count;
+
+    fwd_timer -= (int32_t) elapsed_time;
+    ref_timer -= (int32_t) elapsed_time;
+    protection_timer -= (int32_t) elapsed_time;
+
+    if (fwd_timer < 0)
+    {
+        checkFWD();
+        fwd_timer = SENSORS_READ_FREQ;
+    }
+
+    if (ref_timer < 0)
+    {
+        checkREF();
+        ref_timer = SENSORS_READ_FREQ;
+    }
+
+    if(protection_timer < 0)
+    {
+        checkSWRProtection();
+        protection_timer = SENSORS_READ_FREQ;
+    }
+
+    if (protection_reset_ongoing)
+    {
+        protection_reset_timer -= (int32_t) elapsed_time;
+
+        if(protection_reset_timer < 0)
+        {
+            protection_reset_ongoing = 0;
+            protection_reset_timer = PROTECTION_RESET_DUR;
+            digitalWrite(PROT_RESET, 0);
+        }
+    }
+
+
+}
 
 /**
- * The loop checks for keydown, ptt, function button and tuning.
+ * The main loop
  */
 
-uint16_t pace;
+uint32_t pace;
 
 void loop(){
 
     checkCAT();
 
-    if ((pace++ % 2000) == 500)
-        checkREF();
-    if ((pace % 2000) == 1500)
-        checkFWD();
-
-    if ((pace % 2000) == 1000)
-        checkSWRProtection();
+    if ((pace++ % 1000) == 0)
+        checkTimers();
 
     // TODO 2: Block tx if swr_protection is on!
 
     // TODO: implement some IMALIVE feature, using the timeout from pc (if
     // no command of IMALIVE comes during a perior, so that the arduino
-    // knows when the pc is dead and turns off the led
+    // knows when the pc is dead and turns off the led,... or not (just wait for
+    // the first CAT connection and assume 
 
 }

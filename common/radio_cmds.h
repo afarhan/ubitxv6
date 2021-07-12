@@ -26,87 +26,101 @@
 // We don't care about endianess (little endian assumed)
 // IT WILL NOT WORK ON BIG ENDIAN MACHINES RIGHT NOW!
 
+
+//
+// radio responses type
+#define CMD_RESP_SHORT 1
+#define CMD_RESP_LONG 2
+
+
+//
 // the radio commands
 #define CMD_PTT_ON 0x08
 #define CMD_PTT_OFF 0x88
 
-#define CMD_GET_FREQ 0xfb
-#define CMD_SET_FREQ 0xfc
+#define CMD_RESET_PROTECTION 0x90
 
-#define CMD_GET_MODE 0xf0
-#define CMD_SET_MODE 0x07
+#define CMD_GET_FREQ 0x91
+#define CMD_SET_FREQ 0x92
 
-#define CMD_GET_TXRX_STATUS 0xf1
+#define CMD_GET_MODE 0x93
+#define CMD_SET_MODE 0x94
 
-#define CMD_GET_PROTECTION_STATUS 0xf2
+#define CMD_GET_TXRX_STATUS 0x95
 
-#define CMD_GET_MASTERCAL 0xee
-#define CMD_SET_MASTERCAL 0xfd
+#define CMD_GET_PROTECTION_STATUS 0x96
 
-#define CMD_GET_BFO 0xef
-#define CMD_SET_BFO 0xec
+#define CMD_GET_MASTERCAL 0x97
+#define CMD_SET_MASTERCAL 0x98
 
-#define CMD_GET_FWD 0xf3
-#define CMD_GET_REF 0xf4
+#define CMD_GET_BFO 0x99
+#define CMD_SET_BFO 0x9a
 
-#define CMD_GET_LED_STATUS 0xf6
-#define CMD_SET_LED_STATUS 0xf5
+#define CMD_GET_FWD 0x9b
+#define CMD_GET_REF 0x9c
 
-#define CMD_GET_BYPASS_STATUS 0xf8
-#define CMD_SET_BYPASS_STATUS 0xf9
+#define CMD_GET_LED_STATUS 0x9d
+#define CMD_SET_LED_STATUS 0x9e
 
-// radio responses type
-#define CMD_RESP_NOTHING 0
-#define CMD_RESP_SHORT 1
-#define CMD_RESP_LONG 2
+#define CMD_GET_BYPASS_STATUS 0x9f
+#define CMD_SET_BYPASS_STATUS 0xa0
+
+#define CMD_SET_SERIAL 0xa1
+#define CMD_GET_SERIAL 0xa2
+
 
 // radio responses
-// 5 bytes responses <= 0x30
-#define CMD_RESP_GET_FREQ_ACK 0x01
-#define CMD_RESP_GET_MASTERCAL_ACK 0x02
-#define CMD_RESP_GET_BFO_ACK 0x03
+// 5 bytes responses
+#define CMD_RESP_GET_FREQ_ACK 0xa3
+#define CMD_RESP_GET_MASTERCAL_ACK 0xa4
+#define CMD_RESP_GET_BFO_ACK 0xa5
 
-#define CMD_RESP_GET_FWD_ACK 0x04
-#define CMD_RESP_GET_REF_ACK 0x05
+#define CMD_RESP_GET_FWD_ACK 0xa6
+#define CMD_RESP_GET_REF_ACK 0xa7
 
-#define CMD_LAST_5BYTES 0x30
+#define CMD_RESP_GET_SERIAL_ACK 0xa8
 
 
-// 1 byte responses, >= 0xd0
-#define CMD_RESP_PTT_ON_ACK 0xf1
-#define CMD_RESP_PTT_ON_NACK 0xf2
+// 1 byte responses
+#define CMD_RESP_PTT_ON_ACK 0xa9
+#define CMD_RESP_PTT_ON_NACK 0xaa
 
-#define CMD_RESP_PTT_OFF_ACK 0xf3
-#define CMD_RESP_PTT_OFF_NACK 0xf4
+#define CMD_RESP_PTT_OFF_ACK 0xab
+#define CMD_RESP_PTT_OFF_NACK 0xac
 
-#define CMD_RESP_SET_FREQ_ACK 0xf0
+#define CMD_RESP_SET_FREQ_ACK 0xad
 
-#define CMD_RESP_SET_MODE_ACK 0xf5
+#define CMD_RESP_SET_MODE_ACK 0xaf
 
-#define CMD_RESP_GET_MODE_USB 0xf6
-#define CMD_RESP_GET_MODE_LSB 0xf7
+#define CMD_RESP_GET_MODE_USB 0xb0
+#define CMD_RESP_GET_MODE_LSB 0xb1
 
-#define CMD_RESP_GET_TXRX_INTX 0xf8
-#define CMD_RESP_GET_TXRX_INRX 0xf9
+#define CMD_RESP_GET_TXRX_INTX 0xb2
+#define CMD_RESP_GET_TXRX_INRX 0xb3
 
-#define CMD_RESP_GET_PROTECTION_ON 0xfa
-#define CMD_RESP_GET_PROTECTION_OFF 0xfb
+#define CMD_RESP_GET_PROTECTION_ON 0xb4
+#define CMD_RESP_GET_PROTECTION_OFF 0xb5
 
-#define CMD_RESP_SET_MASTERCAL_ACK 0xfc
+#define CMD_RESP_SET_MASTERCAL_ACK 0xb6
 
-#define CMD_RESP_SET_BFO_ACK 0xfd
+#define CMD_RESP_SET_BFO_ACK 0xb7
 
-#define CMD_RESP_GET_LED_STATUS_ON 0xe0
-#define CMD_RESP_GET_LED_STATUS_OFF 0xe1
+#define CMD_RESP_GET_LED_STATUS_ON 0xb8
+#define CMD_RESP_GET_LED_STATUS_OFF 0xb9
 
-#define CMD_RESP_SET_LED_STATUS_ACK 0xe2
+#define CMD_RESP_SET_LED_STATUS_ACK 0xba
 
-#define CMD_RESP_GET_BYPASS_STATUS_ON 0xe3
-#define CMD_RESP_GET_BYPASS_STATUS_OFF 0xe4
+#define CMD_RESP_GET_BYPASS_STATUS_ON 0xbb
+#define CMD_RESP_GET_BYPASS_STATUS_OFF 0xbc
 
-#define CMD_RESP_SET_BYPASS_STATUS_ACK 0xe5
+#define CMD_RESP_SET_BYPASS_STATUS_ACK 0xbd
 
-#define CMD_RESP_WRONG_COMMAND 0xe6
+#define CMD_RESP_RESET_PROTECTION_ACK 0xbe
 
+#define CMD_RESP_SET_SERIAL_ACK 0xbf
+
+#define CMD_RESP_WRONG_COMMAND 0xc0
+
+//
 // autonomous commands from the radio
 #define CMD_ALERT_PROTECTION_ON 0xe7

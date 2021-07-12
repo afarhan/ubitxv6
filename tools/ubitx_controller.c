@@ -110,7 +110,7 @@ int cat_tx(void *arg)
 int cat_rcv(void *arg)
 {
     controller_conn *conn = arg;
-    int target_fd = conn->radio_fd;;
+    int target_fd = conn->radio_fd;
     uint8_t buf[MAX_BUF_SIZE];
 
     fd_set fds, fds1;
@@ -177,22 +177,19 @@ int cat_rcv(void *arg)
             case CMD_RESP_GET_BYPASS_STATUS_ON:
             case CMD_RESP_GET_BYPASS_STATUS_OFF:
             case CMD_RESP_SET_BYPASS_STATUS_ACK:
+            case CMD_RESP_SET_SERIAL_ACK:
+            case CMD_RESP_RESET_PROTECTION_ACK:
                 conn->response_service_type = CMD_RESP_SHORT;
                 conn->response_service[0] = buf[0];
                 break;
 
                 // 5 bytes commands
             case CMD_RESP_GET_FREQ_ACK:
-#if 0
-                int frequency;
-                // memcpy (frequency, buf+1, 4);
-                memcpy(&frequency, buf+1, 4);
-                fprintf(stderr, "frequency: %d\n", frequency);
-#endif
             case CMD_RESP_GET_MASTERCAL_ACK:
             case CMD_RESP_GET_BFO_ACK:
             case CMD_RESP_GET_FWD_ACK:
             case CMD_RESP_GET_REF_ACK:
+            case CMD_RESP_GET_SERIAL_ACK:
                 conn->response_service_type = CMD_RESP_LONG;
                 fprintf(stderr, "Is long answer.\n");
                 cc = read(target_fd, buf+1, 4);
@@ -205,7 +202,7 @@ int cat_rcv(void *arg)
                 break;
 
             default:
-                fprintf(stderr, "this is not supposed to happen\n");
+                fprintf(stderr, "Response not recognized: this is not supposed to happen!\n");
                 continue;
 
             }
