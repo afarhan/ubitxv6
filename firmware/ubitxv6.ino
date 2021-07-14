@@ -479,20 +479,18 @@ void checkTimers()
  * The main loop
  */
 
-uint32_t pace;
+uint16_t pace;
 
 void loop(){
 
     checkCAT();
 
-    if ((pace++ % 1000) == 0)
+    if ((pace++ % 500) == 0)
         checkTimers();
-
-    // TODO 2: Block tx if swr_protection is on!
 
     // TODO: implement some IMALIVE feature, using the timeout from pc (if
     // no command of IMALIVE comes during a perior, so that the arduino
     // knows when the pc is dead and turns off the led,... or not (just wait for
-    // the first CAT connection and assume 
+    // the first CAT connection and assume
 
 }
