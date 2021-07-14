@@ -24,7 +24,7 @@
 #include <Arduino.h>
 #include "ubitx.h"
 #include "ubitx_cat.h"
-#include "common/radio_cmds.h"
+#include "../common/radio_cmds.h"
 
 /**
  * The CAT protocol is ad-hoc, make for Rhizomatica's Kurupira 1 radio,
