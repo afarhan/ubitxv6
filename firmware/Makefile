@@ -4,7 +4,7 @@
 # Set this to a recent Arduino release
 ARDUINO_DIR = /usr/share/arduino/
 #ARDUINO_DIR = /home/rafael2k/files/rhizomatica/hermes/arduino-1.8.13
-
+AVR_TOOLS_DIR = /
 BOARD_TAG = nano
 BOARD_SUB = atmega328
 
