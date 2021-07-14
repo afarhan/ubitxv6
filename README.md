@@ -11,7 +11,12 @@ This repository is organized in directories, as follows:
 * firmware: Contains the Arduino Nano radio firmware code
 * tools: Contains the userland daemon and (ubitx_controller) and command line tool for radio control (ubitx_client).
 
-## Firmware details
+## Compile And Install
+
+To compile the projects, run "make". To install the firmware, run "make
+ispload", and to install the tools, run "make install".
+
+## Firmware Details
 
 ### Ubitx v6 connector pin assignments
 
@@ -25,7 +30,7 @@ This repository is organized in directories, as follows:
 *      Pin 8 (Black),  A0, SWR PROTECTION RESET output
 
 
-## Userland details
+## Userland Details
 
 ## ubitx_client commands
 

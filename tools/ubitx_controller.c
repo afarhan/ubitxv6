@@ -45,6 +45,21 @@
 
 static bool running;
 
+
+int radio_fd_tmp;
+void finish(int s){
+    fprintf(stderr, "\nExiting...\n");
+
+    running = false;
+
+    sleep(2);
+
+    close(radio_fd_tmp);
+
+    exit(EXIT_SUCCESS);
+}
+
+
 int cat_tester(void *arg)
 {
     int *target_fd_ptr = (int *)arg;
@@ -330,6 +345,11 @@ int main(int argc, char *argv[])
     }
 
     connector->radio_fd = open_serial_port(serial_path);
+    radio_fd_tmp = connector->radio_fd;
+
+    signal (SIGINT, finish);
+    signal (SIGQUIT, finish);
+    signal (SIGTERM, finish);
 
     if (connector->radio_fd == -1)
     {
