@@ -17,3 +17,4 @@ clean:
 install: ubitx_controller ubitx_client
 	install ubitx_client $(PREFIX)/bin
 	install ubitx_controller $(PREFIX)/bin
+	install ../initscript/ubitx.service /etc/systemd/system
