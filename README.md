@@ -1,20 +1,44 @@
-# uBitx v6 Arduino firmware for HERMES project
+# Firmware And Userland For HERMES Radio
 
-## Ubitx pin assignments
+This repository contains the firmware and userland tools for the uBitx v6
+based Rhizomatica's HF radio trasceiver.
 
- *      Pin 1 (Violet), A7, REF MEASURE input
- *      Pin 2 (Blue),   A6, FWD MEASURE input
- *      Pin 3 (Green), +5v
- *      Pin 4 (Yellow), GND
- *      Pin 5 (Orange), A3, LED CONTROL output
- *      Pin 6 (Red),    A2, BY-PASS CONTROL output
- *      Pin 7 (Brown),  A1, SWR PROTECTION STATUS input
- *      Pin 8 (Black),  A0, SWR PROTECTION RESET output
 
-## Ubitx commands
+## Organization
 
-Following is a list of all commands provided by the ubitx_client. The commands are followed by the 
-argument type and possible responses.
+This repository is organized in directories, as follows:
+
+* firmware: Contains the Arduino Nano radio firmware code
+* tools: Contains the userland daemon and (ubitx_controller) and command line tool for radio control (ubitx_client).
+
+## Firmware details
+
+### Ubitx v6 connector pin assignments
+
+*      Pin 1 (Violet), A7, REF MEASURE input
+*      Pin 2 (Blue),   A6, FWD MEASURE input
+*      Pin 3 (Green), +5v
+*      Pin 4 (Yellow), GND
+*      Pin 5 (Orange), A3, LED CONTROL output
+*      Pin 6 (Red),    A2, BY-PASS CONTROL output
+*      Pin 7 (Brown),  A1, SWR PROTECTION STATUS input
+*      Pin 8 (Black),  A0, SWR PROTECTION RESET output
+
+
+## Userland details
+
+## ubitx_client commands
+
+Syntax:
+    ubitx_client -c command [-a argument]
+
+Examples:
+    ubitx_client -c set_frequency -a 7100000
+    ubitx_client -c get_frequency
+
+Some commands need the argument parameters, while some don't. Following is a
+list of all commands provided by the ubitx_client. The commands are followed
+by the argument type and possible responses.
 
 * ptt_on
   * No Argument
