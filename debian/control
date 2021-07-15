@@ -1,0 +1,13 @@
+Source: ubitxv6
+Section: network
+Priority: optional
+Maintainer: Rafael Diniz <rafael@rhizomatica.org>
+Build-Depends: debhelper-compat (= 12)
+Standards-Version: 4.5.0
+Homepage: www.rhizomatica.org/hermes
+
+Package: ubitxv6
+Architecture: any
+Multi-Arch: foreign
+Depends: libc6 (>= 2.14)
+Description: Userland For HERMES Radio.
