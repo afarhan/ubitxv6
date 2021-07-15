@@ -18,23 +18,12 @@
 # Boston, MA 02110-1301, USA.
 #
 
-CC=gcc
-prefix=/usr
-CFLAGS=-g -Wall -pedantic -std=gnu11 -pthread -fstack-protector
-
-all: ubitx_controller ubitx_client
-
-ubitx_controller: ubitx_controller.c serial.c shm.c ubitx_controller.h serial.h shm.h ../common/radio_cmds.h
-	$(CC) $(CFLAGS) ubitx_controller.c serial.c shm.c -o ubitx_controller
-
-ubitx_client: ubitx_client.c shm.c ubitx_controller.h shm.h ../common/radio_cmds.h
-	$(CC) $(CFLAGS) ubitx_client.c shm.c -o ubitx_client
+all:
+	$(MAKE) -C tools
 
 .PHONY: clean install
-clean:
-	rm -f *.o ubitx_client ubitx_controller
+install:
+	$(MAKE) -C tools install
 
-install: ubitx_controller ubitx_client
-	install -D ubitx_client $(DESTDIR)$(prefix)/bin/ubitx_client
-	install -D ubitx_controller $(DESTDIR)$(prefix)/bin/ubitx_controller
-	install -m 644 -D ../initscript/ubitx.service $(DESTDIR)/etc/systemd/system/ubitx.service
+clean:
+	$(MAKE) -C tools clean
