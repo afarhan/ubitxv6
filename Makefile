@@ -18,12 +18,22 @@
 # Boston, MA 02110-1301, USA.
 #
 
-all:
+.PHONY: clean install firmware tools
+
+all: tools firmware
+
+tools:
 	$(MAKE) -C tools
 
-.PHONY: clean install
+firmware:
+	$(MAKE) -C firmware
+
 install:
 	$(MAKE) -C tools install
 
+ispload:
+	$(MAKE) -C firmware ispload
+
 clean:
 	$(MAKE) -C tools clean
+	$(MAKE) -C firmware clean
