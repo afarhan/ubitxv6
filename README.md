@@ -13,7 +13,8 @@ This repository is organized in directories, as follows:
 
 ## Compile And Install
 
-To compile the projects, run "make". To install the firmware, run "make
+To compile the projects, run "make" for compiling the userland, and "make
+firmware" for compiling the firmware. To install the firmware, run "make
 ispload", and to install the tools, run "make install".
 
 ## Firmware Details

@@ -20,7 +20,7 @@
 
 .PHONY: clean install firmware tools
 
-all: tools firmware
+all: tools
 
 tools:
 	$(MAKE) -C tools
@@ -28,10 +28,10 @@ tools:
 firmware:
 	$(MAKE) -C firmware
 
-install:
+install: tools
 	$(MAKE) -C tools install
 
-ispload:
+ispload: firmware
 	$(MAKE) -C firmware ispload
 
 clean:
