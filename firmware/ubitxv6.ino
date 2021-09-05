@@ -327,7 +327,7 @@ void initPorts()
   pinMode(ANALOG_REF, INPUT);
 
   pinMode(PROT_RESET, OUTPUT) ;
-  digitalWrite(BY_PASS, 0);
+  digitalWrite(PROT_RESET, 0);
 
   pinMode(BY_PASS, OUTPUT);
   digitalWrite(BY_PASS, by_pass ? 1 : 0);
@@ -508,6 +508,7 @@ void checkTimers()
             protection_reset_ongoing = 0;
             protection_reset_timer = PROTECTION_RESET_DUR;
             digitalWrite(PROT_RESET, 0);
+            is_swr_protect_enabled = false;
         }
     }
 
