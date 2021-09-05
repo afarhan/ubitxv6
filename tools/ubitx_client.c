@@ -215,7 +215,7 @@ int main(int argc, char *argv[])
         connector->service_command[4] = CMD_RESET_PROTECTION;
     }
 
- else
+    else
     {
         printf("ERROR\n");
         return EXIT_SUCCESS;
@@ -337,4 +337,5 @@ int main(int argc, char *argv[])
 
     }
 
+    return EXIT_SUCCESS;
 }
