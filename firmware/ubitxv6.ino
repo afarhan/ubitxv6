@@ -95,6 +95,7 @@ uint16_t reflected;
 uint16_t forward;
 
 uint8_t led_status;
+uint8_t led_blink_status;
 
 boolean protection_reset_ongoing;
 
@@ -301,6 +302,10 @@ void initSettings(){
 
     // we start with the led off
     led_status = 0;
+
+    // led off means blinking....
+    led_blink_status = 0;
+
     is_swr_protect_enabled = false;
     protection_reset_ongoing = 0;
 }
@@ -379,7 +384,9 @@ void checkFWD()
 
 void checkSWRProtection()
 {
+#if 0
     uint16_t reading;
+
     reading = analogRead(SWR_PROT);
     // digitalRead(inPin); ?
     // The analog input pins can be used as digital pins, referred
@@ -395,12 +402,16 @@ void checkSWRProtection()
     }
     else
         is_swr_protect_enabled = false;
+#endif
+
 }
 
 void setLed(boolean enabled)
 {
     led_status = enabled;
-    digitalWrite(LED_CONTROL, led_status ? HIGH : LOW);
+
+    if (led_status == 1)
+        digitalWrite(LED_CONTROL, HIGH);
 }
 
 void setPAbypass(boolean enabled)
@@ -433,6 +444,7 @@ void checkTimers()
     static int32_t fwd_timer = SENSORS_READ_FREQ; // 200 ms
     static int32_t ref_timer = SENSORS_READ_FREQ - 100; // 200 ms
     static int32_t protection_timer = SENSORS_READ_FREQ - 200; // 200 ms
+    static int32_t led_timer = LED_BLINK_DUR;
 
     static int32_t protection_reset_timer = PROTECTION_RESET_DUR; // 3000 ms
 
@@ -441,6 +453,30 @@ void checkTimers()
     fwd_timer -= (int32_t) elapsed_time;
     ref_timer -= (int32_t) elapsed_time;
     protection_timer -= (int32_t) elapsed_time;
+
+    if (led_status == 1)
+    {
+        led_timer = LED_BLINK_DUR;
+    }
+    else
+    {
+        led_timer -= (int32_t) elapsed_time;
+
+        if (led_timer < 0)
+        {
+            if (led_blink_status == 0)
+            {
+                digitalWrite(LED_CONTROL, HIGH);
+                led_blink_status = 1;
+            }
+            else
+            {
+                digitalWrite(LED_CONTROL, LOW);
+                led_blink_status = 0;
+            }
+            led_timer = LED_BLINK_DUR;
+        }
+    }
 
     if (fwd_timer < 0)
     {
