@@ -384,7 +384,7 @@ void checkFWD()
 
 void checkSWRProtection()
 {
-#if 0
+#if 1
     uint16_t reading;
 
     reading = analogRead(SWR_PROT);
@@ -393,15 +393,18 @@ void checkSWRProtection()
     // to as A0, A1, etc. The exception is the Arduino Nano, Pro Mini,
     // and Mini’s A6 and A7 pins, which can only be used as analog inputs.
 
+    // 512 is 2.5V
+    // 256 is 1.25V
+    // our led drive is 1.8V typical
     // adjust this...
-    if (reading > 1000)
+    if (reading > 260)
     {
         is_swr_protect_enabled = true;
         if (inTx)
             stopTx();
     }
-    else
-        is_swr_protect_enabled = false;
+//    else
+//        is_swr_protect_enabled = false;
 #endif
 
 }
