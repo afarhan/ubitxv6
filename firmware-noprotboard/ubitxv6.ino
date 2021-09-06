@@ -376,7 +376,7 @@ void checkREF()
     if (inTx)
     {
         reflected = analogRead(ANALOG_REF);
-        if (reflected > 400)
+        if (reflected > 500)
         {
             is_swr_protect_enabled = true;
             stopTx();
