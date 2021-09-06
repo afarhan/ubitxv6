@@ -400,6 +400,8 @@ void setLed(boolean enabled)
 
     if (led_status == 1)
         digitalWrite(LED_CONTROL, HIGH);
+    else
+        digitalWrite(LED_CONTROL, LOW);
 }
 
 void setPAbypass(boolean enabled)
@@ -427,14 +429,18 @@ void triggerProtectionReset()
 
 void checkTimers()
 {
-    static uint32_t elapsed_time;
+    static uint32_t elapsed_time = 0;
+    static uint32_t previous_time = milisec_count;
 
     // some offsets to spread the I/O in time...
     static int32_t fwd_timer = SENSORS_READ_FREQ; // 200 ms
     static int32_t ref_timer = SENSORS_READ_FREQ - 25; // 200 ms
     static int32_t led_timer = LED_BLINK_DUR;
 
-    elapsed_time = millis() - milisec_count;
+
+    milisec_count = millis();
+    elapsed_time = milisec_count - previous_time;
+    previous_time = milisec_count;
 
     fwd_timer -= (int32_t) elapsed_time;
     ref_timer -= (int32_t) elapsed_time;
@@ -459,8 +465,8 @@ void checkTimers()
                 digitalWrite(LED_CONTROL, LOW);
                 led_blink_status = 0;
             }
-            led_timer = LED_BLINK_DUR;
         }
+        led_timer = LED_BLINK_DUR;
     }
 
     if (fwd_timer < 0)
