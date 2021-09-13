@@ -441,7 +441,8 @@ void triggerProtectionReset()
 
 void checkTimers()
 {
-    static uint32_t elapsed_time;
+    static uint32_t elapsed_time = 0;
+    static uint32_t previous_time = milisec_count;
 
     // some offsets to spread the I/O in time...
     static int32_t fwd_timer = SENSORS_READ_FREQ; // 200 ms
@@ -451,7 +452,9 @@ void checkTimers()
 
     static int32_t protection_reset_timer = PROTECTION_RESET_DUR; // 3000 ms
 
-    elapsed_time = millis() - milisec_count;
+    milisec_count = millis();
+    elapsed_time = milisec_count - previous_time;
+    previous_time = milisec_count;
 
     fwd_timer -= (int32_t) elapsed_time;
     ref_timer -= (int32_t) elapsed_time;
