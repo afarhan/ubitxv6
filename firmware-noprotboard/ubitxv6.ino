@@ -465,8 +465,8 @@ void checkTimers()
                 digitalWrite(LED_CONTROL, LOW);
                 led_blink_status = 0;
             }
+            led_timer = LED_BLINK_DUR;
         }
-        led_timer = LED_BLINK_DUR;
     }
 
     if (fwd_timer < 0)
