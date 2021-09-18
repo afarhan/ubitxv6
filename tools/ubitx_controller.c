@@ -195,6 +195,7 @@ int cat_rcv(void *arg)
             case CMD_RESP_SET_BYPASS_STATUS_ACK:
             case CMD_RESP_SET_SERIAL_ACK:
             case CMD_RESP_RESET_PROTECTION_ACK:
+            case CMD_RESP_SET_REF_THRESHOLD_ACK:
                 conn->response_service_type = CMD_RESP_SHORT;
                 conn->response_service[0] = buf[0];
                 break;
@@ -206,6 +207,7 @@ int cat_rcv(void *arg)
             case CMD_RESP_GET_FWD_ACK:
             case CMD_RESP_GET_REF_ACK:
             case CMD_RESP_GET_SERIAL_ACK:
+            case CMD_RESP_GET_REF_THRESHOLD_ACK:
                 conn->response_service_type = CMD_RESP_LONG;
                 fprintf(stderr, "Is long answer.\n");
                 cc = read(target_fd, buf+1, 4);

@@ -214,7 +214,16 @@ int main(int argc, char *argv[])
     {
         connector->service_command[4] = CMD_RESET_PROTECTION;
     }
-
+    else if (!strcmp(command, "set_ref_threshold"))
+    {
+        uint16_t ref_threshold = (uint16_t) atoi(command_argument);
+        memcpy(connector->service_command, &ref_threshold, 2);
+        connector->service_command[4] = CMD_SET_REF_THRESHOLD;
+    }
+    else if (!strcmp(command, "get_ref_threshold"))
+    {
+        connector->service_command[4] = CMD_GET_REF_THRESHOLD;
+    }
     else
     {
         printf("ERROR\n");
@@ -271,6 +280,7 @@ int main(int argc, char *argv[])
         case CMD_RESP_SET_BYPASS_STATUS_ACK:
         case CMD_RESP_SET_SERIAL_ACK:
         case CMD_RESP_RESET_PROTECTION_ACK:
+        case CMD_RESP_SET_REF_THRESHOLD_ACK:
             printf("OK\n");
             break;
             // continue here...
@@ -328,6 +338,11 @@ int main(int argc, char *argv[])
             memcpy (&measure, connector->response_service+1, 2);
             printf("%hu\n", measure);
             break;
+        case CMD_RESP_GET_REF_THRESHOLD_ACK:
+            memcpy (&measure, connector->response_service+1, 2);
+            printf("%hu\n", measure);
+            break;
+
         case CMD_RESP_WRONG_COMMAND:
         default:
             printf("ERROR\n");
