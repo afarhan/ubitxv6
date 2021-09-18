@@ -7,13 +7,14 @@ based Rhizomatica's HF radio transceiver.
 
 This repository is organized in directories, as follows:
 
-* firmware: Contains the Arduino Nano radio firmware code
+* firmware: Contains the Arduino Nano radio firmware code.
 * tools: Contains the userland daemon and (ubitx_controller) and command line tool for radio control (ubitx_client).
+* common: Contains shared code between firmware and userland.
 
-The older hardware revision using a discrete protection board logic is
+The firmware for the older hardware revision using a discrete protection board logic is
 present in:
 
-* firmware-with_protection_board: Please read README inside directory
+* firmware-with_protection_board: Please read README inside directory.
 
 ## Compile And Install
 
