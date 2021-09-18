@@ -10,6 +10,11 @@ This repository is organized in directories, as follows:
 * firmware: Contains the Arduino Nano radio firmware code
 * tools: Contains the userland daemon and (ubitx_controller) and command line tool for radio control (ubitx_client).
 
+The older hardware revision using a discrete protection board logic is
+present in:
+
+* firmware-with_protection_board
+
 ## Compile And Install
 
 To compile the projects, run "make" for compiling the userland, and "make
@@ -24,7 +29,7 @@ ispload", and to install the tools, run "make install".
 *      Pin 2 (Blue),   A6, FWD MEASURE input
 *      Pin 3 (Green), +5v
 *      Pin 4 (Yellow), GND
-*      Pin 5 (Orange), A3, LED CONTROL output
+*      Pin 5 (Orange), A3, SYSTEM LED output
 *      Pin 6 (Red),    A2, BY-PASS CONTROL output
 *      Pin 7 (Brown),  A1, ANT HIGH SWR RED LED output
 *      Pin 8 (Black),  A0, ANT GOOD GREEN LED output
@@ -127,6 +132,14 @@ by the argument type and possible responses.
 * reset_protection
   * No Argument
   * Resp: OK | ERROR
+
+* set_ref_threshold
+  * Reflected Threshold Level For Protection Activation (0 - 1023)
+  * Resp: OK | ERROR
+
+* get_ref_threshold
+  * No Argument
+  * Resp: Reflected Threshold Level | ERROR
 
 ## Author
 

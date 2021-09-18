@@ -101,6 +101,9 @@ uint8_t led_antenna_red;
 uint8_t led_antenna_green;
 
 uint32_t serial;
+
+uint16_t reflected_threshold;
+
 uint32_t milisec_count;
 
 /**
@@ -138,6 +141,11 @@ void saveVFOs(){
     else
         EEPROM.put(VFO_MODE, VFO_MODE_LSB);
 }
+
+void save_reflected_threshold(){
+    EEPROM.put(REF_THRESHOLD, reflected_threshold);
+}
+
 
 /**
  * Select the properly tx harmonic filters
@@ -274,7 +282,6 @@ void initSettings(){
     }
 
 
-    // EEPROM.get(RESERVED, isHighSWR); // ??
     EEPROM.get(VFO, frequency);
 
 
@@ -300,6 +307,12 @@ void initSettings(){
     }
 
     EEPROM.get(SERIAL_NR, serial);
+
+    EEPROM.get(REF_THRESHOLD, reflected_threshold);
+
+    // this value should be really calibrated... but if not, we choose a midpoint value of the 10bit A/D
+    if (reflected_threshold > 1023)
+        reflected_threshold = 512;
 
     // we start with the led off
     led_status = 0;
@@ -376,7 +389,7 @@ void checkREF()
     if (inTx)
     {
         reflected = analogRead(ANALOG_REF);
-        if (reflected > 500)
+        if (reflected > reflected_threshold)
         {
             is_swr_protect_enabled = true;
             stopTx();
@@ -433,9 +446,9 @@ void checkTimers()
     static uint32_t previous_time = milisec_count;
 
     // some offsets to spread the I/O in time...
-    static int32_t fwd_timer = SENSORS_READ_FREQ; // 200 ms
-    static int32_t ref_timer = SENSORS_READ_FREQ - 25; // 200 ms
-    static int32_t led_timer = LED_BLINK_DUR;
+    static int32_t fwd_timer = SENSORS_READ_FREQ; // 50 ms
+    static int32_t ref_timer = SENSORS_READ_FREQ - 25;
+    static int32_t led_timer = LED_BLINK_DUR; // 1s
 
 
     milisec_count = millis();
@@ -500,6 +513,6 @@ void loop(){
     // TODO: implement some IMALIVE feature, using the timeout from pc (if
     // no command of IMALIVE comes during a perior, so that the arduino
     // knows when the pc is dead and turns off the led,... or not (just wait for
-    // the first CAT connection and assume
+    // the first CAT connection and assume it is connected from then on)
 
 }

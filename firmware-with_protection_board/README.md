@@ -24,7 +24,7 @@ ispload", and to install the tools, run "make install".
 *      Pin 2 (Blue),   A6, FWD MEASURE input
 *      Pin 3 (Green), +5v
 *      Pin 4 (Yellow), GND
-*      Pin 5 (Orange), A3, LED CONTROL output
+*      Pin 5 (Orange), A3, SYSTEM LED output
 *      Pin 6 (Red),    A2, BY-PASS CONTROL output
 *      Pin 7 (Brown),  A1, SWR PROTECTION STATUS input
 *      Pin 8 (Black),  A0, SWR PROTECTION RESET output

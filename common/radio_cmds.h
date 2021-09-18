@@ -27,14 +27,12 @@
 // IT WILL NOT WORK ON BIG ENDIAN MACHINES RIGHT NOW!
 
 
-//
 // radio responses type
 #define CMD_RESP_SHORT 1
 #define CMD_RESP_LONG 2
 
 
-//
-// the radio commands
+// the radio commands - don't change this for compatibility purposes!
 #define CMD_PTT_ON 0x08
 #define CMD_PTT_OFF 0x88
 
@@ -68,6 +66,8 @@
 #define CMD_SET_SERIAL 0xa1
 #define CMD_GET_SERIAL 0xa2
 
+#define CMD_SET_REF_THRESHOLD 0xe0
+#define CMD_GET_REF_THRESHOLD 0xe1
 
 // radio responses
 // 5 bytes responses
@@ -80,6 +80,7 @@
 
 #define CMD_RESP_GET_SERIAL_ACK 0xa8
 
+#define CMD_RESP_GET_REF_THRESHOLD_ACK 0xe2
 
 // 1 byte responses
 #define CMD_RESP_PTT_ON_ACK 0xa9
@@ -118,6 +119,8 @@
 #define CMD_RESP_RESET_PROTECTION_ACK 0xbe
 
 #define CMD_RESP_SET_SERIAL_ACK 0xbf
+
+#define CMD_RESP_SET_REF_THRESHOLD_ACK 0xe3
 
 #define CMD_RESP_WRONG_COMMAND 0xc0
 

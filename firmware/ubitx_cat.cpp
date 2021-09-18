@@ -1,4 +1,4 @@
-/* Rhizomatica Firmware for uBitx based Kurupira-1
+/* Rhizomatica Firmware for uBitx v6 based Rhizomatica HF transceiver
  *
  * Copyright (C) 2021 Rhizomatica
  * Author: Rafael Diniz <rafael@riseup.net>
@@ -27,8 +27,8 @@
 #include "../common/radio_cmds.h"
 
 /**
- * The CAT protocol is ad-hoc, make for Rhizomatica's Kurupira 1 radio,
- * which provide remote control to computers through the serial port.
+ * The CAT protocol is ad-hoc, made for Rhizomatica's HF transceiver,
+ * which provides remote control by computers through the serial port.
  *
  */
 
@@ -215,6 +215,19 @@ void processCATCommand(byte* cmd)
         setSerial(serial);
         response[0] = CMD_RESP_SET_SERIAL_ACK;
         Serial.write(response,1);
+        break;
+
+    case CMD_SET_REF_THRESHOLD: // SET REF THRESHOLD
+        memcpy(&reflected_threshold, cmd, 2);
+        save_reflected_threshold();
+        response[0] = CMD_RESP_SET_REF_THRESHOLD_ACK;
+        Serial.write(response,1);
+        break;
+
+    case CMD_GET_REF_THRESHOLD: // GET REF THRESHOLD
+        response[0] = CMD_RESP_GET_REF_THRESHOLD_ACK;
+        memcpy(response+1, &reflected_threshold, 2);
+        Serial.write(response,5);
         break;
 
     default:

@@ -75,6 +75,7 @@
 #define VFO_MODE  16 // 2: LSB, 3: USB
 #define BYPASS_STATE 20 // 1- bypass
 #define SERIAL_NR 24 // serial number
+#define REF_THRESHOLD 28 // reflected threshold for protection
 
 
 // values stored for VFO modes
@@ -138,6 +139,9 @@ extern uint8_t led_antenna_red;
 extern uint8_t led_antenna_green;
 
 extern uint32_t serial;
+
+extern uint16_t reflected_threshold;
+
 extern uint32_t milisec_count;
 
 /* these are functions implemented in the main file named as ubitx_xxx.ino */
@@ -150,8 +154,7 @@ void stopTx();
 void setMasterCal(int32_t calibration_offset);
 void setBFO(uint32_t usbcarrier_freq);
 void saveVFOs();
-
-void switchVFO(int vfoSelect);
+void save_reflected_threshold();
 
 void checkTimers();
 void checkSWRProtection();
