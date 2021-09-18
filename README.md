@@ -13,7 +13,7 @@ This repository is organized in directories, as follows:
 The older hardware revision using a discrete protection board logic is
 present in:
 
-* firmware-with_protection_board
+* firmware-with_protection_board: Please read README inside directory
 
 ## Compile And Install
 
@@ -123,10 +123,10 @@ by the argument type and possible responses.
 
 * get_serial
   * No Argument
-  * Resp: Serial | ERROR
+  * Resp: Serial Number | ERROR
 
 * set_serial
-  * Serial
+  * Serial Number
   * Resp: OK | ERROR
 
 * reset_protection

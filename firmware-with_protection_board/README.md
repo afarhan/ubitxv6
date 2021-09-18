@@ -119,10 +119,10 @@ by the argument type and possible responses.
 
 * get_serial
   * No Argument
-  * Resp: Serial | ERROR
+  * Resp: Serial Number | ERROR
 
 * set_serial
-  * Serial
+  * Serial Number
   * Resp: OK | ERROR
 
 * reset_protection
