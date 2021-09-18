@@ -26,8 +26,8 @@ ispload", and to install the tools, run "make install".
 *      Pin 4 (Yellow), GND
 *      Pin 5 (Orange), A3, LED CONTROL output
 *      Pin 6 (Red),    A2, BY-PASS CONTROL output
-*      Pin 7 (Brown),  A1, ANT HIGH SWR RED LED output
-*      Pin 8 (Black),  A0, ANT GOOD GREEN LED output
+*      Pin 7 (Brown),  A1, SWR PROTECTION STATUS input
+*      Pin 8 (Black),  A0, SWR PROTECTION RESET output
 
 
 ## Userland Details
