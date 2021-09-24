@@ -1,15 +1,14 @@
 [Unit]
 Description=uBitx controller daemon
+BindsTo=dev-ttyUSB0.device
+After=dev-ttyUSB0.device
 
 [Service]
 Type=exec
 ExecStart=/usr/bin/ubitx_controller -s /dev/ttyUSB0 -r ubitx
 KillSignal=SIGTERM
 IgnoreSIGPIPE=no
-StandardOutput=syslog
-StandardError=syslog
 Restart=always
-TimeoutSec=3
 
 [Install]
 WantedBy=multi-user.target
