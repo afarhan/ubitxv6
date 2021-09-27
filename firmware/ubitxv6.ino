@@ -151,7 +151,7 @@ void save_reflected_threshold(){
  * Select the properly tx harmonic filters
  * The four harmonic filters use only three relays
  * the four LPFs cover 30-21 Mhz, 18 - 14 Mhz, 7-10 MHz and 3.5 to 5 Mhz
- * Briefly, it works like this, 
+ * Briefly, it works like this,
  * - When KT1 is OFF, the 'off' position routes the PA output through the 30 MHz LPF
  * - When KT1 is ON, it routes the PA output to KT2. Which is why you will see that
  *   the KT1 is on for the three other cases.

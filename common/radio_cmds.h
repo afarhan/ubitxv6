@@ -69,6 +69,8 @@
 #define CMD_SET_REF_THRESHOLD 0xe0
 #define CMD_GET_REF_THRESHOLD 0xe1
 
+#define CMD_RADIO_RESET 0xef
+
 // radio responses
 // 5 bytes responses
 #define CMD_RESP_GET_FREQ_ACK 0xa3

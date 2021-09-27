@@ -52,7 +52,7 @@ void finish(int s){
 
     running = false;
 
-    sleep(2);
+    sleep(1);
 
     close(radio_fd_tmp);
 
@@ -114,7 +114,18 @@ int cat_tx(void *arg)
     {
         pthread_cond_wait(&conn->ptt_condition, &conn->ptt_mutex);
         write(conn->radio_fd, conn->service_command, 5);
-        // fprintf(stderr,"Sent to the radio:  0x%hhx\n", conn->service_command[0]);
+
+        fprintf(stderr,"Sent to the radio:  0x%hhx\n", conn->service_command[4]);
+
+        if (conn->service_command[4] == 0xef)
+        {
+            running = false;
+            close(radio_fd_tmp);
+            pthread_mutex_unlock(&conn->ptt_mutex);
+            fprintf(stderr,"\nReset command. Exiting\n");
+            exit(EXIT_SUCCESS);
+        }
+
     }
 
     pthread_mutex_unlock(&conn->ptt_mutex);
@@ -370,7 +381,7 @@ int main(int argc, char *argv[])
     }
 
     // mamma mia!!!!
-    sleep(2);
+    sleep(1);
 
     running = true;
 

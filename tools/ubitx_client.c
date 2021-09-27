@@ -49,7 +49,10 @@ int main(int argc, char *argv[])
     controller_conn *connector = NULL;
     char command[64];
     char command_argument[64];
+    uint8_t srv_cmd[5];
     bool is_ptt = false;
+    bool exit_early = false;
+    bool argument_set = false;
 
     if (argc < 3)
     {
@@ -62,13 +65,6 @@ int main(int argc, char *argv[])
         fprintf(stderr, " -h                         Prints this help.\n");
         exit(EXIT_FAILURE);
     }
-
-    if (shm_is_created(SYSV_SHM_KEY_STR, sizeof(controller_conn)) == false)
-    {
-        fprintf(stderr, "Connector SHM not created. Is ubitx_controller running?\n");
-        return EXIT_FAILURE;
-    }
-    connector = shm_attach(SYSV_SHM_KEY_STR, sizeof(controller_conn));
 
     int opt;
     while ((opt = getopt(argc, argv, "hc:a:")) != -1)
@@ -83,151 +79,189 @@ int main(int argc, char *argv[])
             break;
         case 'a':
             strcpy(command_argument, optarg);
+            argument_set = true;
             break;
         default:
             goto manual;
         }
     }
 
+    memset(srv_cmd, 0, 5);
+
+    if (!strcmp(command, "ptt_on"))
+    {
+        srv_cmd[4] = CMD_PTT_ON;
+        is_ptt = true;
+    }
+    else if (!strcmp(command, "ptt_off"))
+    {
+        srv_cmd[4] = CMD_PTT_OFF;
+        is_ptt = true;
+    }
+    else if (!strcmp(command, "get_frequency"))
+    {
+        srv_cmd[4] = CMD_GET_FREQ;
+    }
+    else if (!strcmp(command, "set_frequency"))
+    {
+        if (argument_set == false)
+            goto manual;
+
+        uint32_t freq = (uint32_t) atoi(command_argument);
+        memcpy(srv_cmd, &freq, 4);
+        srv_cmd[4] = CMD_SET_FREQ;
+    }
+    else if (!strcmp(command, "get_mode"))
+    {
+        srv_cmd[4] = CMD_GET_MODE;
+    }
+    else if (!strcmp(command, "set_mode"))
+    {
+        if (argument_set == false)
+            goto manual;
+
+        if (!strcmp(command_argument, "lsb") || !strcmp(command_argument, "LSB"))
+            srv_cmd[0] = 0x00;
+
+        if (!strcmp(command_argument, "usb") || !strcmp(command_argument, "USB"))
+            srv_cmd[0] = 0x01;
+
+        srv_cmd[4] = CMD_SET_MODE;
+    }
+    else if (!strcmp(command, "get_txrx_status"))
+    {
+        srv_cmd[4] = CMD_GET_TXRX_STATUS;
+    }
+    else if (!strcmp(command, "get_protection_status"))
+    {
+        srv_cmd[4] = CMD_GET_PROTECTION_STATUS;
+    }
+    else if (!strcmp(command, "get_mastercal"))
+    {
+        srv_cmd[4] = CMD_GET_MASTERCAL;
+    }
+    else if (!strcmp(command, "set_mastercal"))
+    {
+        if (argument_set == false)
+            goto manual;
+
+        uint32_t freq = (uint32_t) atoi(command_argument);
+        memcpy(srv_cmd, &freq, 4);
+        srv_cmd[4] = CMD_SET_MASTERCAL;
+    }
+    else if (!strcmp(command, "get_bfo"))
+    {
+        srv_cmd[4] = CMD_GET_BFO;
+    }
+    else if (!strcmp(command, "set_bfo"))
+    {
+        if (argument_set == false)
+            goto manual;
+
+        uint32_t freq = (uint32_t) atoi(command_argument);
+        memcpy(srv_cmd, &freq, 4);
+        srv_cmd[4] = CMD_SET_BFO;
+    }
+    else if (!strcmp(command, "get_fwd"))
+    {
+        srv_cmd[4] = CMD_GET_FWD;
+    }
+    else if (!strcmp(command, "get_ref"))
+    {
+        srv_cmd[4] = CMD_GET_REF;
+    }
+    else if (!strcmp(command, "get_led_status"))
+    {
+        srv_cmd[4] = CMD_GET_LED_STATUS;
+    }
+    else if (!strcmp(command, "set_led_status"))
+    {
+        if (argument_set == false)
+            goto manual;
+
+        if (!strcmp(command_argument, "1") || !strcmp(command_argument, "true") || !strcmp(command_argument, "on") || !strcmp(command_argument, "ON"))
+            srv_cmd[0] = 0x01;
+
+        if (!strcmp(command_argument, "0") || !strcmp(command_argument, "false") || !strcmp(command_argument, "off") || !strcmp(command_argument, "OFF"))
+            srv_cmd[0] = 0x00;
+
+        srv_cmd[4] = CMD_SET_LED_STATUS;
+    }
+    else if (!strcmp(command, "get_bypass_status"))
+    {
+        srv_cmd[4] = CMD_GET_BYPASS_STATUS;
+    }
+    else if (!strcmp(command, "set_bypass_status"))
+    {
+        if (argument_set == false)
+            goto manual;
+
+        if (!strcmp(command_argument, "1") || !strcmp(command_argument, "true") || !strcmp(command_argument, "on") || !strcmp(command_argument, "ON"))
+            srv_cmd[0] = 0x01;
+
+        if (!strcmp(command_argument, "0") || !strcmp(command_argument, "false") || !strcmp(command_argument, "off") || !strcmp(command_argument, "OFF"))
+            srv_cmd[0] = 0x00;
+
+        srv_cmd[4] = CMD_SET_BYPASS_STATUS;
+    }
+    else if (!strcmp(command, "get_serial"))
+    {
+        srv_cmd[4] = CMD_GET_SERIAL;
+    }
+    else if (!strcmp(command, "set_serial"))
+    {
+        if (argument_set == false)
+            goto manual;
+
+
+        uint32_t serial = (uint32_t) atoi(command_argument);
+        memcpy(srv_cmd, &serial, 4);
+        srv_cmd[4] = CMD_SET_SERIAL;
+    }
+    else if (!strcmp(command, "reset_protection"))
+    {
+        srv_cmd[4] = CMD_RESET_PROTECTION;
+    }
+    else if (!strcmp(command, "set_ref_threshold"))
+    {
+        if (argument_set == false)
+            goto manual;
+
+        uint16_t ref_threshold = (uint16_t) atoi(command_argument);
+        memcpy(srv_cmd, &ref_threshold, 2);
+        srv_cmd[4] = CMD_SET_REF_THRESHOLD;
+    }
+    else if (!strcmp(command, "get_ref_threshold"))
+    {
+        srv_cmd[4] = CMD_GET_REF_THRESHOLD;
+    }
+    else if (!strcmp(command, "radio_reset"))
+    {
+        srv_cmd[4] = CMD_RADIO_RESET;
+        exit_early = true;
+    }
+    else
+    {
+        printf("WRONG_COMMAND\n");
+        goto manual;
+    }
+
+    if (shm_is_created(SYSV_SHM_KEY_STR, sizeof(controller_conn)) == false)
+    {
+        fprintf(stderr, "Connector SHM not created. Is ubitx_controller running?\n");
+        return EXIT_FAILURE;
+    }
+    connector = shm_attach(SYSV_SHM_KEY_STR, sizeof(controller_conn));
+
     pthread_mutex_lock(&connector->ptt_mutex);
+
+    memcpy(connector->service_command, srv_cmd, 5);
 
     // we clear any previous response not properly read...
     if (connector->response_available == 1)
     {
         fprintf(stderr, "Previous queue response not read!\n");
         connector->response_available = 0;
-    }
-
-    connector->service_command[0] = connector->service_command[1] =
-        connector->service_command[2] = connector->service_command[3] =
-        connector->service_command[4] = 0x00;
-
-    if (!strcmp(command, "ptt_on"))
-    {
-        connector->service_command[4] = CMD_PTT_ON;
-        is_ptt = true;
-    }
-    else if (!strcmp(command, "ptt_off"))
-    {
-        connector->service_command[4] = CMD_PTT_OFF;
-        is_ptt = true;
-    }
-    else if (!strcmp(command, "get_frequency"))
-    {
-        connector->service_command[4] = CMD_GET_FREQ;
-    }
-    else if (!strcmp(command, "set_frequency"))
-    {
-        uint32_t freq = (uint32_t) atoi(command_argument);
-        memcpy(connector->service_command, &freq, 4);
-        connector->service_command[4] = CMD_SET_FREQ;
-    }
-    else if (!strcmp(command, "get_mode"))
-    {
-        connector->service_command[4] = CMD_GET_MODE;
-    }
-    else if (!strcmp(command, "set_mode"))
-    {
-        if (!strcmp(command_argument, "lsb") || !strcmp(command_argument, "LSB"))
-            connector->service_command[0] = 0x00;
-
-        if (!strcmp(command_argument, "usb") || !strcmp(command_argument, "USB"))
-            connector->service_command[0] = 0x01;
-
-        connector->service_command[4] = CMD_SET_MODE;
-    }
-    else if (!strcmp(command, "get_txrx_status"))
-    {
-        connector->service_command[4] = CMD_GET_TXRX_STATUS;
-    }
-    else if (!strcmp(command, "get_protection_status"))
-    {
-        connector->service_command[4] = CMD_GET_PROTECTION_STATUS;
-    }
-    else if (!strcmp(command, "get_mastercal"))
-    {
-        connector->service_command[4] = CMD_GET_MASTERCAL;
-    }
-    else if (!strcmp(command, "set_mastercal"))
-    {
-        uint32_t freq = (uint32_t) atoi(command_argument);
-        memcpy(connector->service_command, &freq, 4);
-        connector->service_command[4] = CMD_SET_MASTERCAL;
-    }
-    else if (!strcmp(command, "get_bfo"))
-    {
-        connector->service_command[4] = CMD_GET_BFO;
-    }
-    else if (!strcmp(command, "set_bfo"))
-    {
-        uint32_t freq = (uint32_t) atoi(command_argument);
-        memcpy(connector->service_command, &freq, 4);
-        connector->service_command[4] = CMD_SET_BFO;
-    }
-    else if (!strcmp(command, "get_fwd"))
-    {
-        connector->service_command[4] = CMD_GET_FWD;
-    }
-    else if (!strcmp(command, "get_ref"))
-    {
-        connector->service_command[4] = CMD_GET_REF;
-    }
-    else if (!strcmp(command, "get_led_status"))
-    {
-        connector->service_command[4] = CMD_GET_LED_STATUS;
-    }
-    else if (!strcmp(command, "set_led_status"))
-    {
-        if (!strcmp(command_argument, "1") || !strcmp(command_argument, "true") || !strcmp(command_argument, "on") || !strcmp(command_argument, "ON"))
-            connector->service_command[0] = 0x01;
-
-        if (!strcmp(command_argument, "0") || !strcmp(command_argument, "false") || !strcmp(command_argument, "off") || !strcmp(command_argument, "OFF"))
-            connector->service_command[0] = 0x00;
-
-        connector->service_command[4] = CMD_SET_LED_STATUS;
-    }
-    else if (!strcmp(command, "get_bypass_status"))
-    {
-        connector->service_command[4] = CMD_GET_BYPASS_STATUS;
-    }
-    else if (!strcmp(command, "set_bypass_status"))
-    {
-        if (!strcmp(command_argument, "1") || !strcmp(command_argument, "true") || !strcmp(command_argument, "on") || !strcmp(command_argument, "ON"))
-            connector->service_command[0] = 0x01;
-
-        if (!strcmp(command_argument, "0") || !strcmp(command_argument, "false") || !strcmp(command_argument, "off") || !strcmp(command_argument, "OFF"))
-            connector->service_command[0] = 0x00;
-
-        connector->service_command[4] = CMD_SET_BYPASS_STATUS;
-    }
-    else if (!strcmp(command, "get_serial"))
-    {
-        connector->service_command[4] = CMD_GET_SERIAL;
-    }
-    else if (!strcmp(command, "set_serial"))
-    {
-        uint32_t serial = (uint32_t) atoi(command_argument);
-        memcpy(connector->service_command, &serial, 4);
-        connector->service_command[4] = CMD_SET_SERIAL;
-    }
-    else if (!strcmp(command, "reset_protection"))
-    {
-        connector->service_command[4] = CMD_RESET_PROTECTION;
-    }
-    else if (!strcmp(command, "set_ref_threshold"))
-    {
-        uint16_t ref_threshold = (uint16_t) atoi(command_argument);
-        memcpy(connector->service_command, &ref_threshold, 2);
-        connector->service_command[4] = CMD_SET_REF_THRESHOLD;
-    }
-    else if (!strcmp(command, "get_ref_threshold"))
-    {
-        connector->service_command[4] = CMD_GET_REF_THRESHOLD;
-    }
-    else
-    {
-        printf("ERROR\n");
-        return EXIT_SUCCESS;
     }
 
     pthread_cond_signal(&connector->ptt_condition);
@@ -254,6 +288,11 @@ int main(int argc, char *argv[])
         return EXIT_SUCCESS;
     }
 
+    if (exit_early)
+    {
+        printf("OK\n");
+        return EXIT_SUCCESS;
+    }
 
     int tries = 0;
     while (connector->response_available == 0 && tries < 20)

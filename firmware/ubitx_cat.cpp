@@ -26,6 +26,10 @@
 #include "ubitx_cat.h"
 #include "../common/radio_cmds.h"
 
+/* reset function declaration */
+void(*resetFunc) (void) = 0;
+
+
 /**
  * The CAT protocol is ad-hoc, made for Rhizomatica's HF transceiver,
  * which provides remote control by computers through the serial port.
@@ -228,6 +232,10 @@ void processCATCommand(byte* cmd)
         response[0] = CMD_RESP_GET_REF_THRESHOLD_ACK;
         memcpy(response+1, &reflected_threshold, 2);
         Serial.write(response,5);
+        break;
+
+    case CMD_RADIO_RESET: // RADIO RESET
+        resetFunc();
         break;
 
     default:

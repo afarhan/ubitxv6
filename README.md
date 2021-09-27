@@ -142,6 +142,10 @@ by the argument type and possible responses.
   * No Argument
   * Resp: Reflected Threshold Level | ERROR
 
+* radio_reset
+  * No Argument
+  * No Response (the radio should reset)
+
 ## Author
 
 Rafael Diniz <rafael@riseup.net>
