@@ -144,7 +144,7 @@ by the argument type and possible responses.
 
 * radio_reset
   * No Argument
-  * No Response (the radio should reset)
+  * Resp: OK (and the ubitx_controller exits immediately)
 
 ## Author
 
