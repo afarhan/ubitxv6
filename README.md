@@ -40,13 +40,13 @@ ispload", and to install the tools, run "make install".
 ## ubitx_client commands
 
 Syntax:
-    ubitx_client -c command [-a argument]
+* ubitx_client -c command [-a argument]
 
 Examples:
-    ubitx_client -c set_frequency -a 7100000
-    ubitx_client -c get_frequency
+* ubitx_client -c set_frequency -a 7100000
+* ubitx_client -c get_frequency
 
-Some commands need the argument parameters, while some don't. Following is a
+Some commands need the argument parameter (-a), while some don't. Following is a
 list of all commands provided by the ubitx_client. The commands are followed
 by the argument type and possible responses.
 
