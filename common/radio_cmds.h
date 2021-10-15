@@ -22,9 +22,9 @@
 #pragma once
 
 // we need a 8bit clean serial connection
-// PTT commands need priority
+// PTT commands have priority
 // We don't care about endianess (little endian assumed)
-// IT WILL NOT WORK ON BIG ENDIAN MACHINES RIGHT NOW!
+// IT MIGHT NOT WORK ON BIG ENDIAN MACHINES RIGHT NOW!
 
 
 // radio responses type
@@ -68,6 +68,9 @@
 
 #define CMD_SET_REF_THRESHOLD 0xe0
 #define CMD_GET_REF_THRESHOLD 0xe1
+
+#define CMD_SET_RADIO_DEFAULTS 0xea
+#define CMD_RESTORE_RADIO_DEFAULTS 0xeb
 
 #define CMD_RADIO_RESET 0xef
 
@@ -123,6 +126,10 @@
 #define CMD_RESP_SET_SERIAL_ACK 0xbf
 
 #define CMD_RESP_SET_REF_THRESHOLD_ACK 0xe3
+
+#define CMD_RESP_SET_RADIO_DEFAULTS 0xec
+
+#define CMD_RESP_RESTORE_RADIO_DEFAULTS 0xed
 
 #define CMD_RESP_WRONG_COMMAND 0xc0
 
