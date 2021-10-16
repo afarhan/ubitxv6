@@ -143,12 +143,12 @@ by the argument type and possible responses.
   * Resp: Reflected Threshold Level | ERROR
 
 * set_radio_defaults
-  * Set default radio settings
-  * Resp: OK | ERROR
+  * No Argument
+  * Resp: OK (set default settings) | ERROR
 
 * restore_radio_defaults
-  * Restore default radio settings
-  * Resp: OK | ERROR
+  * No Argument
+  * Resp: OK (restore default settings) | ERROR
 
 * radio_reset
   * No Argument
