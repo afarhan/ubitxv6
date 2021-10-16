@@ -66,7 +66,7 @@ void i2cWriten(uint8_t reg, uint8_t *vals, uint8_t vcnt) {  // write array
 
 
 void si5351bx_init() {                  // Call once at power-up, start PLLA
-  uint8_t reg;  uint32_t msxp1;
+  uint32_t msxp1;
   Wire.begin();
   i2cWrite(149, 0);                     // SpreadSpectrum off
   i2cWrite(3, si5351bx_clken);          // Disable all CLK output drivers
@@ -75,7 +75,7 @@ void si5351bx_init() {                  // Call once at power-up, start PLLA
   uint8_t  vals[8] = {0, 1, BB2(msxp1), BB1(msxp1), BB0(msxp1), 0, 0, 0};
   i2cWriten(26, vals, 8);               // Write to 8 PLLA msynth regs
   i2cWrite(177, 0x20);                  // Reset PLLA  (0x80 resets PLLB)
-  // for (reg=16; reg<=23; reg++) i2cWrite(reg, 0x80);    // Powerdown CLK's
+  // for (uint8_t reg=16; reg<=23; reg++) i2cWrite(reg, 0x80);    // Powerdown CLK's
   // i2cWrite(187, 0);                  // No fannout of clkin, xtal, ms0, ms4
 
   //initializing the ppl2 as well

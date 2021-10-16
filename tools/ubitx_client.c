@@ -213,7 +213,6 @@ int main(int argc, char *argv[])
         if (argument_set == false)
             goto manual;
 
-
         uint32_t serial = (uint32_t) atoi(command_argument);
         memcpy(srv_cmd, &serial, 4);
         srv_cmd[4] = CMD_SET_SERIAL;
@@ -234,6 +233,14 @@ int main(int argc, char *argv[])
     else if (!strcmp(command, "get_ref_threshold"))
     {
         srv_cmd[4] = CMD_GET_REF_THRESHOLD;
+    }
+    else if (!strcmp(command, "set_radio_defaults"))
+    {
+        srv_cmd[4] = CMD_SET_RADIO_DEFAULTS;
+    }
+    else if (!strcmp(command, "restore_radio_defaults"))
+    {
+        srv_cmd[4] = CMD_RESTORE_RADIO_DEFAULTS;
     }
     else if (!strcmp(command, "radio_reset"))
     {
@@ -320,6 +327,8 @@ int main(int argc, char *argv[])
         case CMD_RESP_SET_SERIAL_ACK:
         case CMD_RESP_RESET_PROTECTION_ACK:
         case CMD_RESP_SET_REF_THRESHOLD_ACK:
+        case CMD_RESP_SET_RADIO_DEFAULTS_ACK:
+        case CMD_RESP_RESTORE_RADIO_DEFAULTS_ACK:
             printf("OK\n");
             break;
             // continue here...

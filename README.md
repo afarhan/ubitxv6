@@ -142,6 +142,14 @@ by the argument type and possible responses.
   * No Argument
   * Resp: Reflected Threshold Level | ERROR
 
+* set_radio_defaults
+  * Set default radio settings
+  * Resp: OK | ERROR
+
+* restore_radio_defaults
+  * Restore default radio settings
+  * Resp: OK | ERROR
+
 * radio_reset
   * No Argument
   * Resp: OK (and the ubitx_controller exits immediately)

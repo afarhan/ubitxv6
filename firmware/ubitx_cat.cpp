@@ -234,6 +234,18 @@ void processCATCommand(byte* cmd)
         Serial.write(response,5);
         break;
 
+    case CMD_SET_RADIO_DEFAULTS: // SET RADIO DEFAULTS
+        set_radio_defaults();
+        response[0] = CMD_RESP_SET_RADIO_DEFAULTS_ACK;
+        Serial.write(response,1);
+        break;
+
+    case CMD_RESTORE_RADIO_DEFAULTS: // RESTORE RADIO DEFAULTS
+        restore_radio_defaults();
+        response[0] = CMD_RESP_RESTORE_RADIO_DEFAULTS_ACK;
+        Serial.write(response,1);
+        break;
+
     case CMD_RADIO_RESET: // RADIO RESET
         resetFunc();
         break;

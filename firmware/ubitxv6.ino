@@ -6,32 +6,22 @@
  * Original file by Farhan's original ubitxv6 firmware
  *
  * This verision uses a built-in Si5351 library
- * Most source code are meant to be understood by the compilers and the computers. 
- * Code that has to be hackable needs to be well understood and properly documented. 
- * Donald Knuth coined the term Literate Programming to indicate code that is written be 
- * easily read and understood.
- * 
- * The Raduino is a small board that includes the Arduin Nano, a TFT display and
- * an Si5351a frequency synthesizer. This board is manufactured by HF Signals Electronics Pvt Ltd
- * 
- * To learn more about Arduino you may visit www.arduino.cc. 
- * 
- * The Arduino works by starts executing the code in a function called setup() and then it 
- * repeatedly keeps calling loop() forever. All the initialization code is kept in setup()
- * and code to continuously sense the tuning knob, the function button, transmit/receive,
- * etc is all in the loop() function. If you wish to study the code top down, then scroll
- * to the bottom of this file and read your way up.
- * 
- * Below are the libraries to be included for building the Raduino 
- * The EEPROM library is used to store settings like the frequency memory, caliberation data, etc.
  *
- *  The main chip which generates upto three oscillators of various frequencies in the
- *  Raduino is the Si5351a. To learn more about Si5351a you can download the datasheet 
- *  from www.silabs.com although, strictly speaking it is not a requirment to understand this code. 
- *  Instead, you can look up the Si5351 library written by xxx, yyy. You can download and 
- *  install it from www.url.com to complile this file.
- *  The Wire.h library is used to talk to the Si5351 and we also declare an instance of 
- *  Si5351 object to control the clocks.
+ * The Raduino is a small board that includes the Arduin Nano, a TFT display
+ * (REMOVED IN RHIZOMATICA'S RADIO) and an Si5351a frequency
+ * synthesizer. This board is manufactured by HF Signals Electronics Pvt Ltd
+ *
+ *
+ *
+ *  The main chip which generates upto three oscillators of various
+ *  frequencies in the Raduino is the Si5351a. To learn more about Si5351a
+ *  you can download the datasheet from www.silabs.com although, strictly
+ *  speaking it is not a requirment to understand this code.
+ *  Instead, you can look up the Si5351 library written by Jason Milldrum
+ *  NT7S. You can download and  install it from
+ *  https://github.com/etherkit/Si5351Arduino to complile this file.
+ *  The Wire.h library is used to talk to the Si5351 and we also declare an
+ *  instance of Si5351 object to control the clocks.
  */
 
 /**
@@ -41,8 +31,7 @@
 
     We no longer use the standard SI5351 library because of its huge overhead due to many unused
     features consuming a lot of program space. Instead of depending on an external library we now use
-    Jerry Gaffke's, KE7ER, lightweight standalone mimimalist "si5351bx" routines (see further down the
-    code). Here are some defines and declarations used by Jerry's routines:
+    Jerry Gaffke's, KE7ER, lightweight standalone mimimalist "si5351bx" routines.
 */
 
 // MODIFIED BY RHIZOMATICA
@@ -65,8 +54,8 @@
  *      Pin 7 (Brown),  A1, RED LED PROTECTION HIGH SWR
  *      Pin 8 (Black),  A0, GREEN LED ANTENNA GOOD
 
- *Note: A5, A4 are wired to the Si5351 as I2C interface
- *       *
+ *      Note: A5, A4 are wired to the Si5351 as I2C interface
+ *
  */
 
 #include <Wire.h>
@@ -107,8 +96,33 @@ uint16_t reflected_threshold;
 uint32_t milisec_count;
 
 /**
- * Below are the basic functions that control the uBitx. Understanding the functions before 
- * you start hacking around
+ * Functions to set and restore radio defaults
+ */
+
+void set_radio_defaults()
+{
+    byte x;
+
+    for (int addr = 0; addr < EEPROM_LAST; addr++)
+    {
+        EEPROM.get(addr, x);
+        EEPROM.update(addr+DEFAULTS_OFFSET, x);
+    }
+}
+
+void restore_radio_defaults()
+{
+    byte x;
+
+    for (int addr = 0; addr < EEPROM_LAST; addr++)
+    {
+        EEPROM.get(addr+DEFAULTS_OFFSET, x);
+        EEPROM.update(addr, x);
+    }
+}
+
+/**
+ * Basic functions that control the uBitx.
  */
 
 void setMasterCal(int32_t calibration_offset)
@@ -121,7 +135,6 @@ void setMasterCal(int32_t calibration_offset)
     EEPROM.put(MASTER_CAL, calibration);
 
 }
-
 
 void setBFO(uint32_t usbcarrier_freq)
 {
@@ -195,10 +208,10 @@ void setTXFilters(unsigned long freq){
 /**
  * This is the most frequently called function that configures the 
  * radio to a particular frequeny, sideband and sets up the transmit filters
- * 
+ *
  * The transmit filter relays are powered up only during the tx so they dont
- * draw any current during rx. 
- * 
+ * draw any current during rx.
+ *
  * The carrier oscillator of the detector/modulator is permanently fixed at
  * uppper sideband. The sideband selection is done by placing the second oscillator
  * either 12 Mhz below or above the 45 Mhz signal thereby inverting the sidebands 

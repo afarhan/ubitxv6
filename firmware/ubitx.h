@@ -77,6 +77,19 @@
 #define SERIAL_NR 24 // serial number
 #define REF_THRESHOLD 28 // reflected threshold for protection
 
+#define EEPROM_LAST 30 // EEPROM main settings size
+
+// following are the addresses for default values store in the EEPROM
+#define DEFAULT_MASTER_CAL 40
+#define DEFAULT_LSB_CAL 44
+#define DEFAULT_USB_CAL 48
+#define DEFAULT_VFO 52
+#define DEFAULT_VFO_MODE  56
+#define DEFAULT_BYPASS_STATE 60
+#define DEFAULT_SERIAL_NR 64
+#define DEFAULT_REF_THRESHOLD 68
+
+#define DEFAULTS_OFFSET 40
 
 // values stored for VFO modes
 #define VFO_MODE_LSB 2
@@ -151,6 +164,8 @@ void startTx();
 void stopTx();
 
 // eeprom stuff
+void set_radio_defaults();
+void restore_radio_defaults();
 void setMasterCal(int32_t calibration_offset);
 void setBFO(uint32_t usbcarrier_freq);
 void saveVFOs();

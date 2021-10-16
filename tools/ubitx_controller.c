@@ -207,6 +207,8 @@ int cat_rcv(void *arg)
             case CMD_RESP_SET_SERIAL_ACK:
             case CMD_RESP_RESET_PROTECTION_ACK:
             case CMD_RESP_SET_REF_THRESHOLD_ACK:
+            case CMD_RESP_SET_RADIO_DEFAULTS_ACK:
+            case CMD_RESP_RESTORE_RADIO_DEFAULTS_ACK:
                 conn->response_service_type = CMD_RESP_SHORT;
                 conn->response_service[0] = buf[0];
                 break;
@@ -220,7 +222,6 @@ int cat_rcv(void *arg)
             case CMD_RESP_GET_SERIAL_ACK:
             case CMD_RESP_GET_REF_THRESHOLD_ACK:
                 conn->response_service_type = CMD_RESP_LONG;
-                fprintf(stderr, "Is long answer.\n");
                 cc = read(target_fd, buf+1, 4);
                 if (cc != 4) {
                     // fix this - store the data read in a buffer!
@@ -412,6 +413,5 @@ int main(int argc, char *argv[])
 
     cat_tx((void *) connector);
 
-    // tx_thread... cat tx
-
+    // tx_thread... cat_tx
 }
