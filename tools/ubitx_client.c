@@ -264,10 +264,11 @@ int main(int argc, char *argv[])
 
     memcpy(connector->service_command, srv_cmd, 5);
 
-    // we clear any previous response not properly read...
+    // we clear any previous response not properly read. Some real-time use
+    // cases don't read the response (eg. uuardopd) so it is ok to ignore.
     if (connector->response_available == 1)
     {
-        fprintf(stderr, "Previous queue response not read!\n");
+        // fprintf(stderr, "Previous queue response not read!\n");
         connector->response_available = 0;
     }
 

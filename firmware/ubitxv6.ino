@@ -281,7 +281,11 @@ void initSettings(){
     if (usbCarrier > 11060000l || usbCarrier < 11048000l)
         usbCarrier = 11052000l;
 
+#ifndef NO_BYPASS
     EEPROM.get(BYPASS_STATE, x);
+#else
+    by_pass = 0;
+#endif
 
     switch(x){
     case 0:
@@ -434,7 +438,9 @@ void setPAbypass(boolean enabled)
 {
     by_pass = enabled;
     digitalWrite(BY_PASS, by_pass ? HIGH : LOW);
+#ifndef NO_BYPASS
     EEPROM.put(BYPASS_STATE, by_pass);
+#endif
 }
 
 void setSerial(unsigned long serial_nr)

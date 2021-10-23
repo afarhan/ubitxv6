@@ -154,6 +154,11 @@ by the argument type and possible responses.
   * No Argument
   * Resp: OK (and the ubitx_controller exits immediately)
 
+## C compiler defines
+
+   Set the firmware Makefile for different radio versions. Set NO_BYPASS for
+   the version of the radio without the by-pass board.
+
 ## Author
 
 Rafael Diniz <rafael@riseup.net>
