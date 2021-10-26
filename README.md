@@ -159,6 +159,11 @@ by the argument type and possible responses.
    Set the firmware Makefile for different radio versions. Set NO_BYPASS for
    the version of the radio without the by-pass board.
 
+## Raduino modifications
+
+   The resistor R2 needs to be removed. Also the pins 17 and 18 of the
+   connector between the Raduino and the main uBitx board need to be cut.
+
 ## Author
 
 Rafael Diniz <rafael@riseup.net>
