@@ -145,7 +145,7 @@ int main(int argc, char *argv[])
         if (argument_set == false)
             goto manual;
 
-        uint32_t freq = (uint32_t) atoi(command_argument);
+        int32_t freq = atoi(command_argument);
         memcpy(srv_cmd, &freq, 4);
         srv_cmd[4] = CMD_SET_MASTERCAL;
     }
@@ -369,7 +369,7 @@ int main(int argc, char *argv[])
             break;
         case CMD_RESP_GET_MASTERCAL_ACK:
             memcpy (&freq, connector->response_service+1, 4);
-            printf("%u\n", freq);
+            printf("%d\n", freq);
             break;
         case CMD_RESP_GET_SERIAL_ACK:
             memcpy (&serial, connector->response_service+1, 4);
