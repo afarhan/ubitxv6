@@ -1,5 +1,7 @@
 #!/bin/sh
 
+echo "Remember this: https://www.hfsignals.com/index.php/bfo-tuning-aid/"
+
 bfo=11048000
 
 max=11060000
