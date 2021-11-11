@@ -119,6 +119,9 @@ void restore_radio_defaults()
         EEPROM.get(addr+DEFAULTS_OFFSET, x);
         EEPROM.update(addr, x);
     }
+
+    read_settings_from_eeprom();
+
 }
 
 /**
@@ -263,12 +266,8 @@ void stopTx(){
 }
 
 
-/**
- * The settings are read from EEPROM. The first time around, the values may not be 
- * present or out of range, in this case, some intelligent defaults are copied into the 
- * variables.
- */
-void initSettings(){
+void read_settings_from_eeprom()
+{
     byte x;
 
     //read the settings from the eeprom and restore them
@@ -330,6 +329,17 @@ void initSettings(){
     // this value should be really calibrated... but if not, we choose a midpoint value of the 10bit A/D
     if (reflected_threshold > 1023)
         reflected_threshold = 512;
+
+}
+
+/**
+ * The settings are read from EEPROM. The first time around, the values may not be 
+ * present or out of range, in this case, some intelligent defaults are copied into the 
+ * variables.
+ */
+void initSettings(){
+
+    read_settings_from_eeprom();
 
     // we start with the led off
     led_status = 0;

@@ -170,6 +170,7 @@ void setMasterCal(int32_t calibration_offset);
 void setBFO(uint32_t usbcarrier_freq);
 void saveVFOs();
 void save_reflected_threshold();
+void read_settings_from_eeprom();
 
 void checkTimers();
 void checkSWRProtection();
