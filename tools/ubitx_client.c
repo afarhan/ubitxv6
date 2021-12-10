@@ -302,10 +302,11 @@ int main(int argc, char *argv[])
         return EXIT_SUCCESS;
     }
 
+    // ~25 ms max wait
     int tries = 0;
-    while (connector->response_available == 0 && tries < 20)
+    while (connector->response_available == 0 && tries < 25)
     {
-        usleep(50000); // 50 ms
+        usleep(1000); // 1 ms
         tries++;
     }
 
