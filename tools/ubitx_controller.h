@@ -31,9 +31,10 @@
 typedef struct{
 
     uint8_t service_command[5];
-    pthread_mutex_t ptt_mutex;
-    pthread_cond_t ptt_condition;
+    pthread_mutex_t cmd_mutex;
+    pthread_cond_t cmd_condition;
 
+    pthread_mutex_t response_mutex;
 
     uint8_t response_service[5];
     atomic_bool response_service_type;

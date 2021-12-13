@@ -108,11 +108,11 @@ int cat_tx(void *arg)
 {
     controller_conn *conn = arg;
 
-    pthread_mutex_lock(&conn->ptt_mutex);
+    pthread_mutex_lock(&conn->cmd_mutex);
 
     while(running)
     {
-        pthread_cond_wait(&conn->ptt_condition, &conn->ptt_mutex);
+        pthread_cond_wait(&conn->cmd_condition, &conn->cmd_mutex);
         write(conn->radio_fd, conn->service_command, 5);
 
         fprintf(stderr,"Sent to the radio:  0x%hhx\n", conn->service_command[4]);
@@ -121,14 +121,14 @@ int cat_tx(void *arg)
         {
             running = false;
             close(radio_fd_tmp);
-            pthread_mutex_unlock(&conn->ptt_mutex);
+            pthread_mutex_unlock(&conn->cmd_mutex);
             fprintf(stderr,"\nReset command. Exiting\n");
             exit(EXIT_SUCCESS);
         }
 
     }
 
-    pthread_mutex_unlock(&conn->ptt_mutex);
+    pthread_mutex_unlock(&conn->cmd_mutex);
 
     return EXIT_SUCCESS;
 }
@@ -245,7 +245,9 @@ int cat_rcv(void *arg)
 
 bool initialize_message(controller_conn *connector)
 {
-    pthread_mutex_t *mutex_ptr = (pthread_mutex_t *) & connector->ptt_mutex;
+    // init mutexes
+    pthread_mutex_t *mutex_ptr = (pthread_mutex_t *) & connector->cmd_mutex;
+
     pthread_mutexattr_t attr;
     if (pthread_mutexattr_init(&attr)) {
         perror("pthread_mutexattr_init");
@@ -266,13 +268,20 @@ bool initialize_message(controller_conn *connector)
         return false;
     }
 
+    mutex_ptr = (pthread_mutex_t *) & connector->response_mutex;
+
+    if (pthread_mutex_init(mutex_ptr, &attr)) {
+        perror("pthread_mutex_init");
+        return false;
+    }
+
     if (pthread_mutexattr_destroy(&attr)) {
         perror("pthread_mutexattr_destroy");
         return false;
     }
 
-    // init the cond and mutex
-    pthread_cond_t *cond_ptr = (pthread_cond_t *) & connector->ptt_condition;
+    // init the cond
+    pthread_cond_t *cond_ptr = (pthread_cond_t *) & connector->cmd_condition;
     pthread_condattr_t cond_attr;
     if (pthread_condattr_init(&cond_attr)) {
         perror("pthread_condattr_init");

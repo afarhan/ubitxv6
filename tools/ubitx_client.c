@@ -44,6 +44,21 @@
 
 #include "shm.h"
 
+controller_conn *tmp_connector = NULL;
+
+void finish(int s){
+    fprintf(stderr, "\nExiting...\n");
+
+    if (tmp_connector)
+    {
+        pthread_mutex_unlock(&tmp_connector->cmd_mutex);
+        pthread_mutex_unlock(&tmp_connector->response_mutex);
+    }
+
+    exit(EXIT_SUCCESS);
+}
+
+
 int main(int argc, char *argv[])
 {
     controller_conn *connector = NULL;
@@ -253,14 +268,26 @@ int main(int argc, char *argv[])
         goto manual;
     }
 
+    signal (SIGINT, finish);
+    signal (SIGQUIT, finish);
+    signal (SIGTERM, finish);
+
     if (shm_is_created(SYSV_SHM_KEY_STR, sizeof(controller_conn)) == false)
     {
         fprintf(stderr, "Connector SHM not created. Is ubitx_controller running?\n");
         return EXIT_FAILURE;
     }
+
+    // todo: add a response lock
     connector = shm_attach(SYSV_SHM_KEY_STR, sizeof(controller_conn));
 
-    pthread_mutex_lock(&connector->ptt_mutex);
+    tmp_connector = connector;
+
+    // lock response lock before main_command_lock (plz change name)
+
+    pthread_mutex_lock(&connector->response_mutex);
+
+    pthread_mutex_lock(&connector->cmd_mutex);
 
     memcpy(connector->service_command, srv_cmd, 5);
 
@@ -272,8 +299,8 @@ int main(int argc, char *argv[])
         connector->response_available = 0;
     }
 
-    pthread_cond_signal(&connector->ptt_condition);
-    pthread_mutex_unlock(&connector->ptt_mutex);
+    pthread_cond_signal(&connector->cmd_condition);
+    pthread_mutex_unlock(&connector->cmd_mutex);
 
     if (is_ptt)
     {
@@ -293,13 +320,14 @@ int main(int argc, char *argv[])
         default:
             printf("ERROR\n");
         }
-        return EXIT_SUCCESS;
+
+        goto get_out;
     }
 
     if (exit_early)
     {
         printf("OK\n");
-        return EXIT_SUCCESS;
+        goto get_out;
     }
 
     // ~25 ms max wait
@@ -402,5 +430,7 @@ int main(int argc, char *argv[])
 
     }
 
+get_out:
+    pthread_mutex_unlock(&connector->response_mutex);
     return EXIT_SUCCESS;
 }
