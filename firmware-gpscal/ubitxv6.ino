@@ -194,25 +194,25 @@ void save_reflected_threshold(){
 void setTXFilters(unsigned long freq){
 
   if (freq >= 21000000UL){  // the default filter is with 35 MHz cut-off
-    digitalWrite(TX_LPF_A, 0);
+//    digitalWrite(TX_LPF_A, 0);
     digitalWrite(TX_LPF_B, 0);
     digitalWrite(TX_LPF_C, 0);
     txFilter = 0;
   }
   else if (freq >= 14000000UL){ //thrown the KT1 relay on, the 30 MHz LPF is bypassed and the 14-18 MHz LPF is allowd to go through
-    digitalWrite(TX_LPF_A, 1);
+//    digitalWrite(TX_LPF_A, 1);
     digitalWrite(TX_LPF_B, 0);
     digitalWrite(TX_LPF_C, 0);
     txFilter = 'A';
   }
   else if (freq >= 4500000UL){
-    digitalWrite(TX_LPF_A, 0);
+//    digitalWrite(TX_LPF_A, 0);
     digitalWrite(TX_LPF_B, 1);
     digitalWrite(TX_LPF_C, 0);
     txFilter = 'B';
   }
   else {
-    digitalWrite(TX_LPF_A, 0);
+//    digitalWrite(TX_LPF_A, 0);
     digitalWrite(TX_LPF_B, 0);
     digitalWrite(TX_LPF_C, 1);
     txFilter = 'C';
@@ -398,11 +398,12 @@ void initPorts()
   pinMode(TX_RX,OUTPUT);
   digitalWrite(TX_RX, 0);
 
-  pinMode(TX_LPF_A, OUTPUT);
+//  pinMode(TX_LPF_A, OUTPUT);
+  pinMode(CAL_CLK, INPUT);
   pinMode(TX_LPF_B, OUTPUT);
   pinMode(TX_LPF_C, OUTPUT);
 
-  digitalWrite(TX_LPF_A, 0);
+//  digitalWrite(TX_LPF_A, 0);
   digitalWrite(TX_LPF_B, 0);
   digitalWrite(TX_LPF_C, 0);
 
