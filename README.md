@@ -15,6 +15,7 @@ The firmware for the older hardware revision using a discrete protection board l
 present in:
 
 * firmware-with_protection_board: Please read README inside directory.
+* firmware-gpscal: Please read README inside directory.
 
 ## Compile And Install
 

@@ -95,15 +95,36 @@ uint16_t reflected_threshold;
 
 uint32_t milisec_count;
 
-static bool s_GpsOneSecTick = false;
-unsigned int tcount=0;
+bool GpsOneSecTick = false;
+uint16_t tcount = 2;
+uint32_t mult=0;
+
+uint32_t XtalFreq=0;
 
 void PPSinterrupt()
 {
-  s_GpsOneSecTick = true;                        // New second by GPS.
+  GpsOneSecTick = true;                        // New second by GPS.
 
   tcount++;
+  if (tcount == 4)                               // Start counting the xxx MHz signal from Si5351A CLK0
+  {
+      TCCR1B = 7;                                  //Clock on rising edge of pin 5
+  }
+  else if (tcount == 44)                         //The 40 second gate time elapsed - stop counting
+  {
+      TCCR1B = 0;                                  //Turn off counter
+      XtalFreq = mult * 0x10000 + TCNT1;          //Calculate correction factor, eg. 5Mhz: multi * 65536 + ... =(deve ser)4= 5 MHz * 40 (s)
+      TCNT1 = 0;                                   //Reset count to zero
+      mult = 0;
+      tcount = 0;                                  //Reset the seconds counter
+  }
+}
 
+// Timer 1 overflow intrrupt vector.
+ISR(TIMER1_OVF_vect)
+{
+  mult++;                                          //Increment multiplier
+  TIFR1 = (1<<TOV1);                               //Clear overlow flag 
 }
 
 
@@ -369,49 +390,56 @@ void initSettings(){
 void initTimers()
 {
     milisec_count = millis();
+
+    //Set up Timer1 as a frequency counter - input at pin 5
+    TCCR1B = 0;                                    //Disable Timer5 during setup
+    TCCR1A = 0;                                    //Reset
+    TCNT1  = 0;                                    //Reset counter to zero
+    TIFR1  = 1;                                    //Reset overflow
+    TIMSK1 = 1;                                    //Turn on overflow flag
+
+    // Set 1PPS pin 2 for external interrupt input
+    attachInterrupt(digitalPinToInterrupt(PPS_IN), PPSinterrupt, RISING);
 }
 
 
 void initPorts()
 {
 
-  analogReference(DEFAULT);
+    analogReference(DEFAULT);
 
-  pinMode(ANT_GOOD, OUTPUT);
-  digitalWrite(ANT_GOOD, led_antenna_green ? 1 : 0);
+    pinMode(ANT_GOOD, OUTPUT);
+    digitalWrite(ANT_GOOD, led_antenna_green ? 1 : 0);
 
-  pinMode(ANT_HIGH_SWR, OUTPUT);
-  digitalWrite(ANT_HIGH_SWR, led_antenna_red ? 1 : 0);
+    pinMode(ANT_HIGH_SWR, OUTPUT);
+    digitalWrite(ANT_HIGH_SWR, led_antenna_red ? 1 : 0);
 
-  pinMode(ANALOG_FWD, INPUT);
-  pinMode(ANALOG_REF, INPUT);
+    pinMode(ANALOG_FWD, INPUT);
+    pinMode(ANALOG_REF, INPUT);
 
-  pinMode(BY_PASS, OUTPUT);
-  digitalWrite(BY_PASS, by_pass ? 1 : 0);
+    pinMode(BY_PASS, OUTPUT);
+    digitalWrite(BY_PASS, by_pass ? 1 : 0);
 
-  pinMode(LED_CONTROL, OUTPUT);
-  digitalWrite(LED_CONTROL, led_status ? 1 : 0);
+    pinMode(LED_CONTROL, OUTPUT);
+    digitalWrite(LED_CONTROL, led_status ? 1 : 0);
 
-  pinMode(CW_TONE, OUTPUT);
-  digitalWrite(CW_TONE, 0);
+    pinMode(CW_TONE, OUTPUT);
+    digitalWrite(CW_TONE, 0);
 
-  pinMode(TX_RX,OUTPUT);
-  digitalWrite(TX_RX, 0);
+    pinMode(TX_RX,OUTPUT);
+    digitalWrite(TX_RX, 0);
 
 //  pinMode(TX_LPF_A, OUTPUT);
-  pinMode(CAL_CLK, INPUT);
-  pinMode(TX_LPF_B, OUTPUT);
-  pinMode(TX_LPF_C, OUTPUT);
+    pinMode(CAL_CLK, INPUT);
+    pinMode(TX_LPF_B, OUTPUT);
+    pinMode(TX_LPF_C, OUTPUT);
 
 //  digitalWrite(TX_LPF_A, 0);
-  digitalWrite(TX_LPF_B, 0);
-  digitalWrite(TX_LPF_C, 0);
+    digitalWrite(TX_LPF_B, 0);
+    digitalWrite(TX_LPF_C, 0);
 
   // Inititalize GPS 1pps input
-  pinMode(PPS_IN, INPUT);
-
-  // Set 1PPS pin 2 for external interrupt input
-  attachInterrupt(digitalPinToInterrupt(PPS_IN), PPSinterrupt, RISING);
+    pinMode(PPS_IN, INPUT);
 
 }
 
@@ -551,6 +579,23 @@ void checkTimers()
 uint16_t pace;
 
 void loop(){
+
+    if (GpsOneSecTick)
+    {
+        GpsOneSecTick = false;
+
+        if (tcount == 1)
+        {
+            // Update the SI5351A after every GPS correction...
+            // We call for a 5mhz signal, but it measures to be 5.001mhz.
+           // So the actual vcoa frequency is 875mhz*5.001/5.000 = 875175000 Hz,
+            // To correct for this error:     si5351bx_vcoa=875175000;
+
+            // calibration = calibration + / - ... (diff (XtalFreq, desiredFreq)  ...
+            // setMasterCal(calibration);
+            // VCOA is at 25mhz*35 = 875mhz (+ cal)
+        }
+    }
 
     checkCAT();
 
