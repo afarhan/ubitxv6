@@ -210,7 +210,8 @@ void processCATCommand(byte* cmd)
 
     case CMD_GET_SERIAL: // GET SERIAL NUMBER
         response[0] = CMD_RESP_GET_SERIAL_ACK;
-        memcpy(response+1, &tcount, 4);
+//        memcpy(response+1, &serial, 4);
+        memcpy(response+1, &XtalFreq, 4);
         Serial.write(response,5);
       break;
 
@@ -230,7 +231,8 @@ void processCATCommand(byte* cmd)
 
     case CMD_GET_REF_THRESHOLD: // GET REF THRESHOLD
         response[0] = CMD_RESP_GET_REF_THRESHOLD_ACK;
-        memcpy(response+1, &reflected_threshold, 2);
+//        memcpy(response+1, &reflected_threshold, 2);
+        memcpy(response+1, &tcount, 2);
         Serial.write(response,5);
         break;
 

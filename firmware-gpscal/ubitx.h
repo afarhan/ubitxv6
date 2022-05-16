@@ -157,7 +157,10 @@ extern uint16_t reflected_threshold;
 
 extern uint32_t milisec_count;
 
-extern unsigned int tcount;
+extern uint16_t tcount ;
+extern uint32_t mult;
+extern uint32_t XtalFreq;
+
 
 
 /* these are functions implemented in the main file named as ubitx_xxx.ino */
