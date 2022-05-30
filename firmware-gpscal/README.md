@@ -1,20 +1,7 @@
 # Firmware And Userland For HERMES Radio with GPS-driven PLL
 
 This repository contains the firmware and userland tools for the uBitx v6
-based Rhizomatica's HF radio transceiver with GPS
-
-## Organization
-
-This repository is organized in directories, as follows:
-
-* firmware: Contains the Arduino Nano radio firmware code.
-* tools: Contains the userland daemon (ubitx_controller) and command line tool for radio control (ubitx_client).
-* common: Contains shared code between firmware and userland.
-
-The firmware for the older hardware revision using a discrete protection board logic is
-present in:
-
-* firmware-with_protection_board: Please read README inside directory.
+based Rhizomatica's HF radio transceiver with GPS.
 
 ## Compile And Install
 
@@ -40,10 +27,10 @@ ispload", and to install the tools, run "make install".
 D5 and D2 with changes for GPS calibration! LPF_A always off right now
 (could use any other D pin to re-enable it), and CW_KEY also off (could also
 use any other pin). TX_LPF_A and CW_KEY connections from Raduino to main
-radio board should be 
+radio board should be:
 
 *      D7, TX_RX,             Pin from the Nano to the radio to switch to TX (HIGH) and RX(LOW)
-*      D6, CW_TONE,     Generates a square wave sidetone while sending the CW. 
+*      D6, CW_TONE,     Generates a square wave sidetone while sending the CW (may be use this to LPF_A? could be D8, D9 or D10 too)
 *      D5, CAL_CLK,        CLK #0 connects here for calibration purposes (TX_LPF_A disconnected - cut the trace to main radio board)
 *      D4, TX_LPF_B,      ...Alternatively, either 3.5 MHz, 7 MHz or 14 Mhz LPFs are...
 *      D3, T6X_LPF_C,    ...switched inline depending upon the TX frequency
