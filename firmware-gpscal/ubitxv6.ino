@@ -79,7 +79,7 @@ uint8_t txFilter = 0;   //which of the four transmit filters are in use
 
 uint8_t by_pass = 0; // PA by-pass
 
-boolean is_swr_protect_enabled = false;
+bool is_swr_protect_enabled = false;
 
 uint16_t reflected;
 uint16_t forward;
@@ -367,8 +367,6 @@ void initTimers()
     TIFR1  = 1;                                    //Reset overflow
     TIMSK1 = 1;                                    //Turn on overflow flag
 
-    // Set 1PPS pin 2 for external interrupt input
-    attachInterrupt(digitalPinToInterrupt(PPS_IN), PPSinterrupt, RISING);
 }
 
 
@@ -423,6 +421,9 @@ void setup()
   initOscillators();
   setFrequency(frequency);
   initTimers();
+
+  // when the radio boots up, we do a initial callibration
+  enable_calibration();
 }
 
 
@@ -449,7 +450,7 @@ void checkFWD()
         forward = analogRead(ANALOG_FWD);
 }
 
-void setLed(boolean enabled)
+void setLed(bool enabled)
 {
     led_status = enabled;
 
@@ -459,7 +460,7 @@ void setLed(boolean enabled)
         digitalWrite(LED_CONTROL, LOW);
 }
 
-void setPAbypass(boolean enabled)
+void setPAbypass(bool enabled)
 {
     by_pass = enabled;
     digitalWrite(BY_PASS, by_pass ? HIGH : LOW);
@@ -553,16 +554,13 @@ void loop(){
     {
         GpsOneSecTick = false;
 
-        if (tcount == 1)
+        if (tcount == 10)
         {
-            // Update the SI5351A after every GPS correction...
-            // We call for a 5mhz signal, but it measures to be 5.001mhz.
-           // So the actual vcoa frequency is 875mhz*5.001/5.000 = 875175000 Hz,
-            // To correct for this error:     si5351bx_vcoa=875175000;
+            disable_calibration();
+            int32_t new_cal = PLL_FREQ / CAL_FREQ * (XtalFreq - CAL_FREQ);
 
-            // calibration = calibration + / - ... (diff (XtalFreq, desiredFreq)  ...
-            // setMasterCal(calibration);
-            // VCOA is at 25mhz*35 = 875mhz (+ cal)
+            calibration += new_cal;
+            setMasterCal(calibration);
         }
     }
 

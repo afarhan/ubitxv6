@@ -19,13 +19,45 @@
 
 */
 
+#include <stdint.h>
+#include <stdbool.h>
+
+#include <Arduino.h>
+
+#include <avr/io.h>
+#include <avr/interrupt.h>
+
+#include "ubitx.h"
 #include "ubitx_calibration.h"
 
 bool GpsOneSecTick = false;
+bool enable_callibration = false;
+
 uint16_t tcount = 2;
 uint32_t mult=0;
 
 uint32_t XtalFreq=0;
+
+void enable_calibration()
+{
+    enable_callibration = true;
+
+    si5351bx_setfreq(0, CAL_FREQ);
+
+    attachInterrupt(digitalPinToInterrupt(PPS_IN), PPSinterrupt, RISING);
+
+}
+
+void disable_calibration()
+{
+    enable_callibration = false;
+
+    si5351bx_setfreq(0, usbCarrier);
+
+    detachInterrupt(digitalPinToInterrupt(PPS_IN));
+}
+
+
 
 void PPSinterrupt()
 {
@@ -36,10 +68,10 @@ void PPSinterrupt()
     {
         TCCR1B = 7;                                  //Clock on rising edge of pin 5
     }
-    else if (tcount == 44)                         //The 40 second gate time elapsed - stop counting
+    else if (tcount == 10)                         // 6s of counting
     {
         TCCR1B = 0;                                  //Turn off counter
-        XtalFreq = mult * 0x10000 + TCNT1;          //Calculate correction factor, eg. 5Mhz: multi * 65536 + ... =(deve ser)4= 5 MHz * 40 (s)
+        XtalFreq = (mult << 16) + TCNT1;          //Calculate correction factor, eg. 5Mhz: multi * 65536 + ... =(deve ser)4= 5 MHz * 40 (s)
         TCNT1 = 0;                                   //Reset count to zero
         mult = 0;
         tcount = 0;                                  //Reset the seconds counter

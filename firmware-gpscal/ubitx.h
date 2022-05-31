@@ -141,7 +141,7 @@ extern unsigned char txFilter;   //which of the four transmit filters are in use
 
 extern uint8_t by_pass; // PA by-pass
 
-extern boolean is_swr_protect_enabled;
+extern bool is_swr_protect_enabled;
 
 extern uint16_t reflected;
 extern uint16_t forward;
@@ -182,8 +182,8 @@ void checkTimers();
 void checkSWRProtection();
 void checkFWD();
 void checkREF();
-void setLed(boolean enabled);
-void setPAbypass(boolean enabled);
+void setLed(bool enabled);
+void setPAbypass(bool enabled);
 void triggerProtectionReset();
 void setSerial(unsigned long serial_nr);
 

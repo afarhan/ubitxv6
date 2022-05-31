@@ -22,16 +22,16 @@
 #ifndef __UBITX_CALIBRATION
 #define __UBITX_CALIBRATION
 
-#include <avr/io.h>
-#include <avr/interrupt.h>
+#define CAL_FREQ 5000000
+#define PLL_FREQ 875000000
+
 
 extern bool GpsOneSecTick;
+extern bool enable_callibration;
 
+void enable_calibration();
+void disable_calibration();
 
 void PPSinterrupt();
-
-
-
-
 
 #endif // __UBITX_CALIBRATION
