@@ -554,10 +554,11 @@ void loop(){
     {
         GpsOneSecTick = false;
 
-        if (tcount == 10)
+        if (tcount == 0)
         {
             disable_calibration();
-            int32_t new_cal = PLL_FREQ / CAL_FREQ * (XtalFreq - CAL_FREQ);
+            int32_t new_cal = (PLL_FREQ / CAL_FREQ) * ((XtalFreq / 6) - CAL_FREQ);
+
 
             calibration += new_cal;
             setMasterCal(calibration);

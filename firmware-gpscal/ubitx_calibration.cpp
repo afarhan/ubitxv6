@@ -33,7 +33,7 @@
 bool GpsOneSecTick = false;
 bool enable_callibration = false;
 
-uint16_t tcount = 2;
+uint16_t tcount = 1;
 uint32_t mult=0;
 
 uint32_t XtalFreq=0;
@@ -52,7 +52,8 @@ void disable_calibration()
 {
     enable_callibration = false;
 
-    si5351bx_setfreq(0, usbCarrier);
+// no need as this is caller by void si5351_set_calibration() from setMasterCal
+//    si5351bx_setfreq(0, usbCarrier);
 
     detachInterrupt(digitalPinToInterrupt(PPS_IN));
 }
