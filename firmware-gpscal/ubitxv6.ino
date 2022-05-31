@@ -62,6 +62,7 @@
 #include <EEPROM.h>
 #include "ubitx.h"
 #include "ubitx_cat.h"
+#include "ubitx_calibration.h"
 
 uint32_t usbCarrier; // bfo
 uint32_t frequency = 7150000UL; //frequency is the current frequency on the dial
@@ -94,38 +95,6 @@ uint32_t serial;
 uint16_t reflected_threshold;
 
 uint32_t milisec_count;
-
-bool GpsOneSecTick = false;
-uint16_t tcount = 2;
-uint32_t mult=0;
-
-uint32_t XtalFreq=0;
-
-void PPSinterrupt()
-{
-  GpsOneSecTick = true;                        // New second by GPS.
-
-  tcount++;
-  if (tcount == 4)                               // Start counting the xxx MHz signal from Si5351A CLK0
-  {
-      TCCR1B = 7;                                  //Clock on rising edge of pin 5
-  }
-  else if (tcount == 44)                         //The 40 second gate time elapsed - stop counting
-  {
-      TCCR1B = 0;                                  //Turn off counter
-      XtalFreq = mult * 0x10000 + TCNT1;          //Calculate correction factor, eg. 5Mhz: multi * 65536 + ... =(deve ser)4= 5 MHz * 40 (s)
-      TCNT1 = 0;                                   //Reset count to zero
-      mult = 0;
-      tcount = 0;                                  //Reset the seconds counter
-  }
-}
-
-// Timer 1 overflow intrrupt vector.
-ISR(TIMER1_OVF_vect)
-{
-  mult++;                                          //Increment multiplier
-  TIFR1 = (1<<TOV1);                               //Clear overlow flag 
-}
 
 
 /**

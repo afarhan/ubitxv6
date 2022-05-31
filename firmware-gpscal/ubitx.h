@@ -5,7 +5,7 @@
  *
  * Original file by Farhan's original ubitxv6 firmware
  *
- * The ubitx is powered by an arduino nano. The pin assignment is as folows 
+ * The ubitx is powered by an arduino nano. The pin assignment is as folows
  *
  */
 
@@ -54,7 +54,7 @@
 1   VCC       VCC
 **/
 
-/** 
+/**
  *  The second set of 16 pins on the Raduino's bottom connector are have the three clock outputs and the digital lines to control the rig.
  *  This assignment is as follows :
  *    Pin   1   2    3    4    5    6    7    8    9    10   11   12   13   14   15   16
