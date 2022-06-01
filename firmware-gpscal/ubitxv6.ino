@@ -557,8 +557,11 @@ void loop(){
         if (tcount == 0)
         {
             disable_calibration();
-            int32_t new_cal = (PLL_FREQ / CAL_FREQ) * ((XtalFreq / 6) - CAL_FREQ);
+            // float uses a lot of memory and cpu... but gives us 0.5 Hz precision 
+            int32_t new_cal = round(PLL_FREQ_DIV_CAL_FREQ * ( (XtalFreq / 6.0) - CAL_FREQ) );
 
+            // using integer only uses much less memory and less cpu, while providing a 1 Hz precision
+            // int32_t new_cal = PLL_FREQ_DIV_CAL_FREQ * (XtalFreq / 6 - CAL_FREQ);
 
             calibration += new_cal;
             setMasterCal(calibration);

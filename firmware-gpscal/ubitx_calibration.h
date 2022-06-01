@@ -25,6 +25,7 @@
 #define CAL_FREQ 5000000
 #define PLL_FREQ 875000000
 
+#define PLL_FREQ_DIV_CAL_FREQ 175
 
 extern bool gps_pps_tick;
 extern bool calibration_enabled;
