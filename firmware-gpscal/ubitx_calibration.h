@@ -26,8 +26,8 @@
 #define PLL_FREQ 875000000
 
 
-extern bool GpsOneSecTick;
-extern bool enable_callibration;
+extern bool gps_pps_tick;
+extern bool calibration_enabled;
 
 void enable_calibration();
 void disable_calibration();

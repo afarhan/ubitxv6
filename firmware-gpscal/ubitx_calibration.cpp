@@ -30,17 +30,17 @@
 #include "ubitx.h"
 #include "ubitx_calibration.h"
 
-bool GpsOneSecTick = false;
-bool enable_callibration = false;
+bool gps_pps_tick = false;
+bool calibration_enabled = false;
 
-uint16_t tcount = 1;
+uint16_t tcount = 0;
 uint32_t mult=0;
 
 uint32_t XtalFreq=0;
 
 void enable_calibration()
 {
-    enable_callibration = true;
+    calibration_enabled = true;
 
     si5351bx_setfreq(0, CAL_FREQ);
 
@@ -50,26 +50,27 @@ void enable_calibration()
 
 void disable_calibration()
 {
-    enable_callibration = false;
-
 // no need as this is called by si5351_set_calibration() from setMasterCal
 //    si5351bx_setfreq(0, usbCarrier);
-
     detachInterrupt(digitalPinToInterrupt(PPS_IN));
+
+    calibration_enabled = false;
+
 }
 
 
 
 void PPSinterrupt()
 {
-    GpsOneSecTick = true;                        // New second by GPS.
-
     tcount++;
-    if (tcount == 4)                               // Start counting the xxx MHz signal from Si5351A CLK0
+
+    gps_pps_tick = true;                        // New second by GPS.
+
+    if (tcount == 3)                               // Start counting the xxx MHz signal from Si5351A CLK0
     {
         TCCR1B = 7;                                  //Clock on rising edge of pin 5
     }
-    else if (tcount == 10)                         // 6s of counting
+    else if (tcount == 9)                         // 6s of counting
     {
         TCCR1B = 0;                                  //Turn off counter
         XtalFreq = (mult << 16) + TCNT1;          //Calculate correction factor, eg. 5Mhz: multi * 65536 + ... =(deve ser)4= 5 MHz * 40 (s)

@@ -550,9 +550,9 @@ uint16_t pace;
 
 void loop(){
 
-    if (GpsOneSecTick)
+    if (gps_pps_tick)
     {
-        GpsOneSecTick = false;
+        gps_pps_tick = false;
 
         if (tcount == 0)
         {

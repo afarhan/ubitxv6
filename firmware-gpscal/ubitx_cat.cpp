@@ -24,6 +24,7 @@
 #include <Arduino.h>
 #include "ubitx.h"
 #include "ubitx_cat.h"
+#include "ubitx_calibration.h"
 #include "../common/radio_cmds.h"
 
 /* reset function declaration */
@@ -233,6 +234,14 @@ void processCATCommand(byte* cmd)
         memcpy(response+1, &reflected_threshold, 2);
         Serial.write(response,5);
         break;
+
+    case CMD_GPS_CALIBRATE: // CMD_GPS_CALIBRATE
+        if (calibration_enabled == false)
+            enable_calibration();
+        response[0] = CMD_RESP_GPS_CALIBRATE_ACK;
+        Serial.write(response,1);
+        break;
+
 
     case CMD_SET_RADIO_DEFAULTS: // SET RADIO DEFAULTS
         set_radio_defaults();

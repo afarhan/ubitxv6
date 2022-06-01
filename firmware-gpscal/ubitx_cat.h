@@ -1,6 +1,6 @@
-/* Rhizomatica Firmware for uBitx based Kurupira-1
+/* Rhizomatica Firmware HERMES transceiver
  *
- * Copyright (C) 2021 Rhizomatica
+ * Copyright (C) 2021-2022 Rhizomatica
  * Author: Rafael Diniz <rafael@riseup.net>
  *
  * This is free software; you can redistribute it and/or modify
