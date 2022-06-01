@@ -29,11 +29,11 @@
 
 #define TX_RX    (7)           // Pin from the Nano to the radio to switch to TX (HIGH) and RX(LOW)
 #define CW_TONE  (6)         // Generates a square wave sidetone while sending the CW. 
-// #define TX_LPF_A (5)        // The 30 MHz LPF is permanently connected in the output of the PA... 
+#define TX_LPF_A (12)        // The 30 MHz LPF is permanently connected in the output of the PA... 
 #define CAL_CLK (5)        // CLK #0
 #define TX_LPF_B (4)        //  ...Alternatively, either 3.5 MHz, 7 MHz or 14 Mhz LPFs are...
 #define TX_LPF_C (3)        //  ...switched inline depending upon the TX frequency
-// #define CW_KEY   (2)          //  Pin goes high during CW keydown to transmit the carrier. 
+#define CW_KEY   (11)          //  Pin goes high during CW keydown to transmit the carrier. 
 #define PPS_IN   (2)          //  GPS 1PPS input
 
 

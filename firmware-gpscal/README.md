@@ -29,9 +29,14 @@ D5 and D2 with changes for GPS calibration! LPF_A always off right now
 use any other pin). TX_LPF_A and CW_KEY connections from Raduino to main
 radio board should be:
 
+*      D12, TX_LPF_A,      LPF_A (re-routed!)
+*      D11, CW_KEY,          Pin goes high during CW keydown to transmit the carrier. (re-routed!)
 *      D7, TX_RX,             Pin from the Nano to the radio to switch to TX (HIGH) and RX(LOW)
-*      D6, CW_TONE,     Generates a square wave sidetone while sending the CW (may be use this to LPF_A? could be D8, D9 or D10 too)
-*      D5, CAL_CLK,        CLK #0 connects here for calibration purposes (TX_LPF_A disconnected - cut the trace to main radio board)
-*      D4, TX_LPF_B,      ...Alternatively, either 3.5 MHz, 7 MHz or 14 Mhz LPFs are...
-*      D3, T6X_LPF_C,    ...switched inline depending upon the TX frequency
-*      D2, PPS_IN,              GPS 1PPS input  (CW_KEY  disconnected - cut trace to main radio board)
+*      D6, CW_TONE,     Generates a square wave sidetone while sending the CW
+*      D5, CAL_CLK,        CLK #0 connects here for calibration purposes (original TX_LPF_A disconnected - cut the trace in board)
+*      D4, TX_LPF_B,      LPF_B
+*      D3, TX_LPF_C,       LPF_C
+*      D2, PPS_IN,              GPS 1PPS input  (original CW_KEY  disconnected - cut trace in board)
+
+Please refer to this picture for all the mods needed for the HERMES
+transceiver: https://github.com/DigitalHERMES/rhizo-transceiver/raw/main/ubitxv6_mods/hermes_raduino-mods.png
