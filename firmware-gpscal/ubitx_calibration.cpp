@@ -70,7 +70,7 @@ void PPSinterrupt()
     {
         TCCR1B = 7;                                  //Clock on rising edge of pin 5
     }
-    else if (tcount == 9)                         // 6s of counting
+    else if (tcount == 10)                         // 7s of counting
     {
         TCCR1B = 0;                                  //Turn off counter
         XtalFreq = (mult << 16) + TCNT1;          //Calculate correction factor, eg. 5Mhz: multi * 65536 + ... =(deve ser)4= 5 MHz * 40 (s)
