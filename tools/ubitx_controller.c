@@ -1,6 +1,6 @@
 /* ubitx_controller
- * Copyright (C) 2021 Rhizomatica
- * Author: Rafael Diniz <rafael@riseup.net>
+ * Copyright (C) 2021-2022 Rhizomatica
+ * Author: Rafael Diniz <rafael@rhizomatica.org>
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -117,7 +117,7 @@ int cat_tx(void *arg)
 
         fprintf(stderr,"Sent to the radio:  0x%hhx\n", conn->service_command[4]);
 
-        if (conn->service_command[4] == 0xef)
+        if (conn->service_command[4] == CMD_RADIO_RESET)
         {
             running = false;
             close(radio_fd_tmp);
@@ -209,6 +209,7 @@ int cat_rcv(void *arg)
             case CMD_RESP_SET_REF_THRESHOLD_ACK:
             case CMD_RESP_SET_RADIO_DEFAULTS_ACK:
             case CMD_RESP_RESTORE_RADIO_DEFAULTS_ACK:
+            case CMD_RESP_GPS_CALIBRATE_ACK:
                 conn->response_service_type = CMD_RESP_SHORT;
                 conn->response_service[0] = buf[0];
                 break;
@@ -390,7 +391,7 @@ int main(int argc, char *argv[])
         set_fixed_baudrate("38400", connector->radio_fd);
     }
 
-    // mamma mia!!!!
+    // wait for arduino...
     sleep(1);
 
     running = true;
@@ -420,6 +421,7 @@ int main(int argc, char *argv[])
     thrd_t rx_thread;
     thrd_create(&rx_thread, cat_rcv, connector);
 
+    // CAT control
     cat_tx((void *) connector);
 
     // tx_thread... cat_tx

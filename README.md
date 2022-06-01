@@ -147,6 +147,10 @@ by the argument type and possible responses.
   * No Argument
   * Resp: OK (set default settings) | ERROR
 
+* gps_calibrate
+  * No Argument
+  * Resp: OK (start 10s GPS-based calibration procedure) | ERROR
+
 * restore_radio_defaults
   * No Argument
   * Resp: OK (restore default settings) | ERROR

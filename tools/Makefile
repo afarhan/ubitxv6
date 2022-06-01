@@ -27,7 +27,7 @@ all: ubitx_controller ubitx_client
 ubitx_controller: ubitx_controller.c serial.c shm.c ubitx_controller.h serial.h shm.h ../common/radio_cmds.h
 	$(CC) $(CFLAGS) ubitx_controller.c serial.c shm.c -o ubitx_controller
 
-ubitx_client: ubitx_client.c shm.c ubitx_controller.h shm.h ../common/radio_cmds.h
+ubitx_client: ubitx_client.c shm.c ubitx_controller.h shm.h help.h ../common/radio_cmds.h
 	$(CC) $(CFLAGS) ubitx_client.c shm.c -o ubitx_client
 
 .PHONY: clean install

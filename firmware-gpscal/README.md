@@ -1,4 +1,4 @@
-# Firmware And Userland For HERMES Radio with GPS-driven PLL
+# Firmware And Userland For HERMES Radio with GPS-corrected PLL
 
 This repository contains the firmware and userland tools for the uBitx v6
 based Rhizomatica's HF radio transceiver with GPS.

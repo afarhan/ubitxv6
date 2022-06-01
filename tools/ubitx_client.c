@@ -43,6 +43,7 @@
 #include "../common/radio_cmds.h"
 
 #include "shm.h"
+#include "help.h"
 
 controller_conn *tmp_connector = NULL;
 
@@ -78,6 +79,8 @@ int main(int argc, char *argv[])
         fprintf(stderr, " -c command                 Runs the specified command\n");
         fprintf(stderr, " -a command_argument        Runs the specified command\n");
         fprintf(stderr, " -h                         Prints this help.\n");
+        fprintf(stderr, "\nList of commands, arguments and responses (respectivelly):\n\n");
+        fprintf(stderr, format_str);
         exit(EXIT_FAILURE);
     }
 
@@ -253,6 +256,10 @@ int main(int argc, char *argv[])
     {
         srv_cmd[4] = CMD_SET_RADIO_DEFAULTS;
     }
+    else if (!strcmp(command, "gps_calibrate"))
+    {
+        srv_cmd[4] = CMD_GPS_CALIBRATE;
+    }
     else if (!strcmp(command, "restore_radio_defaults"))
     {
         srv_cmd[4] = CMD_RESTORE_RADIO_DEFAULTS;
@@ -330,9 +337,9 @@ int main(int argc, char *argv[])
         goto get_out;
     }
 
-    // ~25 ms max wait
+    // ~30 ms max wait
     int tries = 0;
-    while (connector->response_available == 0 && tries < 25)
+    while (connector->response_available == 0 && tries < 30)
     {
         usleep(1000); // 1 ms
         tries++;
@@ -359,6 +366,7 @@ int main(int argc, char *argv[])
         case CMD_RESP_SET_REF_THRESHOLD_ACK:
         case CMD_RESP_SET_RADIO_DEFAULTS_ACK:
         case CMD_RESP_RESTORE_RADIO_DEFAULTS_ACK:
+        case CMD_RESP_GPS_CALIBRATE_ACK:
             printf("OK\n");
             break;
             // continue here...

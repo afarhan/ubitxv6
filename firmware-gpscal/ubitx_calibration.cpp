@@ -52,7 +52,7 @@ void disable_calibration()
 {
     enable_callibration = false;
 
-// no need as this is caller by void si5351_set_calibration() from setMasterCal
+// no need as this is called by si5351_set_calibration() from setMasterCal
 //    si5351bx_setfreq(0, usbCarrier);
 
     detachInterrupt(digitalPinToInterrupt(PPS_IN));

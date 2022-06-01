@@ -1,5 +1,5 @@
-/* Rhizomatica transceiver (Kurupira) serial commands
- * Copyright (C) 2021 Rhizomatica
+/* Rhizomatica HERMES transceiver serial commands
+ * Copyright (C) 2021-2022 Rhizomatica
  * Author: Rafael Diniz <rafael@riseup.net>
  *
  * This is free software; you can redistribute it and/or modify
@@ -74,6 +74,8 @@
 
 #define CMD_RADIO_RESET 0xef
 
+#define CMD_GPS_CALIBRATE 0xd0
+
 // radio responses
 // 5 bytes responses
 #define CMD_RESP_GET_FREQ_ACK 0xa3
@@ -130,6 +132,8 @@
 #define CMD_RESP_SET_RADIO_DEFAULTS_ACK 0xec
 
 #define CMD_RESP_RESTORE_RADIO_DEFAULTS_ACK 0xed
+
+#define CMD_RESP_GPS_CALIBRATE_ACK 0xd1
 
 #define CMD_RESP_WRONG_COMMAND 0xc0
 
