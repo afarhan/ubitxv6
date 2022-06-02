@@ -68,6 +68,8 @@ void PPSinterrupt()
 
     if (tcount == 3)                               // Start counting the xxx MHz signal from Si5351A CLK0
     {
+        TCNT1 = 0;                                   //Reset count to zero
+        mult = 0;
         TCCR1B = 7;                                  //Clock on rising edge of pin 5
     }
     else if (tcount == 10)                         // 7s of counting

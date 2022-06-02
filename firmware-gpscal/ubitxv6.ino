@@ -562,7 +562,7 @@ void loop(){
         {
             disable_calibration();
 
-            int32_t new_cal = PLL_FREQ_DIV_CAL_FREQ_DIV7 * (XtalFreq - CAL_FREQ_TIMES7);
+            int32_t new_cal = PLL_FREQ_DIV_CAL_FREQ_DIV7 * ((int32_t) XtalFreq - CAL_FREQ_TIMES7);
 
             calibration += new_cal;
             setMasterCal(calibration);
