@@ -24,10 +24,7 @@ ispload", and to install the tools, run "make install".
 
 ### Arduino pin assignments
 
-D5 and D2 with changes for GPS calibration! LPF_A always off right now
-(could use any other D pin to re-enable it), and CW_KEY also off (could also
-use any other pin). TX_LPF_A and CW_KEY connections from Raduino to main
-radio board should be:
+D5 and D2 changed assignments for GPS calibration! LPF_A and CW_KEY re-routed.
 
 *      D12, TX_LPF_A,      LPF_A (re-routed!)
 *      D11, CW_KEY,          Pin goes high during CW keydown to transmit the carrier. (re-routed!)
