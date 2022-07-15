@@ -7,15 +7,8 @@ based Rhizomatica's HF radio transceiver.
 
 This repository is organized in directories, as follows:
 
-* firmware: Contains the Arduino Nano radio firmware code.
-* tools: Contains the userland daemon (ubitx_controller) and command line tool for radio control (ubitx_client).
-* common: Contains shared code between firmware and userland.
-
-The firmware for the older hardware revision using a discrete protection board logic is
-present in:
-
-* firmware-with_protection_board: Please read README inside directory.
-* firmware-gpscal: Please read README inside directory.
+* firmware: Contains the Arduino Nano radio firmware code
+* tools: Contains the userland daemon and (ubitx_controller) and command line tool for radio control (ubitx_client).
 
 ## Compile And Install
 
@@ -33,21 +26,22 @@ ispload", and to install the tools, run "make install".
 *      Pin 4 (Yellow), GND
 *      Pin 5 (Orange), A3, SYSTEM LED output
 *      Pin 6 (Red),    A2, BY-PASS CONTROL output
-*      Pin 7 (Brown),  A1, ANT HIGH SWR RED LED output
-*      Pin 8 (Black),  A0, ANT GOOD GREEN LED output
+*      Pin 7 (Brown),  A1, SWR PROTECTION STATUS input
+*      Pin 8 (Black),  A0, SWR PROTECTION RESET output
+
 
 ## Userland Details
 
 ## ubitx_client commands
 
 Syntax:
-* ubitx_client -c command [-a argument]
+    ubitx_client -c command [-a argument]
 
 Examples:
-* ubitx_client -c set_frequency -a 7100000
-* ubitx_client -c get_frequency
+    ubitx_client -c set_frequency -a 7100000
+    ubitx_client -c get_frequency
 
-Some commands need the argument parameter (-a), while some don't. Following is a
+Some commands need the argument parameters, while some don't. Following is a
 list of all commands provided by the ubitx_client. The commands are followed
 by the argument type and possible responses.
 
@@ -134,40 +128,6 @@ by the argument type and possible responses.
 * reset_protection
   * No Argument
   * Resp: OK | ERROR
-
-* set_ref_threshold
-  * Reflected Threshold Level For Protection Activation (0 - 1023)
-  * Resp: OK | ERROR
-
-* get_ref_threshold
-  * No Argument
-  * Resp: Reflected Threshold Level | ERROR
-
-* set_radio_defaults
-  * No Argument
-  * Resp: OK (set default settings) | ERROR
-
-* gps_calibrate
-  * No Argument
-  * Resp: OK (start 10s GPS-based calibration procedure) | ERROR
-
-* restore_radio_defaults
-  * No Argument
-  * Resp: OK (restore default settings) | ERROR
-
-* radio_reset
-  * No Argument
-  * Resp: OK (and the ubitx_controller exits immediately)
-
-## C compiler defines
-
-   Set the firmware Makefile for different radio versions. Set NO_BYPASS for
-   the version of the radio without the by-pass board.
-
-## Raduino modifications
-
-   The resistor R2 needs to be removed. Also the pins 17 and 18 of the
-   connector between the Raduino and the main uBitx board need to be cut.
 
 ## Author
 
